@@ -1,0 +1,4 @@
+# Datasets are not committed: Kaggle KTAS licence is unclear and NHAMCS is 37 MB.
+# See README.md for download steps.
+data/
+__pycache__/
