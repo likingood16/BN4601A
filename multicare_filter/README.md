@@ -6,7 +6,7 @@ Selects the images and case reports from [OpenMed/multicare-images](https://hugg
 ## Run it on Google Colab
 
 1. Go to [colab.research.google.com](https://colab.research.google.com) → **File → Upload notebook** → choose
-   `MultiCaRe_filter_colab.ipynb` (it contains its own copy of the filter code; nothing else needs uploading).
+   `notebooks/MultiCaRe_filter_colab.ipynb` (it contains its own copy of the filter code; nothing else needs uploading).
 2. **Runtime → Run all.** A CPU runtime is enough. The first run downloads the two datasets from Hugging Face
    (about 3.3 GB, a few minutes).
 3. At the end the results download as `multicare_filter_output.zip`. Colab deletes files when the session ends; set
@@ -38,7 +38,10 @@ Department guess per case: Respiratory 260 · Cardiology 219 · Surgery 193 · N
 
 ```
 src/multicare_filter.py            rules, loading (from the local HF cache), department guess
+notebooks/00_explore_multicare.ipynb   first look at MultiCaRe + ED base filter (writes data/ed_review_sample.csv)
 notebooks/01_filter_multicare.ipynb  funnel, breakdowns, options, example images (outputs saved)
+notebooks/MultiCaRe_filter_colab.ipynb  self-contained Colab version of 01
+reports/MultiCaRe_Step2_Classes.xlsx   summary of MultiCaRe classes and parameters (Step 2)
 output/selected_images.csv         one row per image: file_id, licence, modality, region, caption, case_id
 output/selected_cases.csv          one row per case: age, gender, department guess, vitals mentioned, case text
 output/department_hand_check.csv   40 random cases to label by hand (fill `correct_department`)
