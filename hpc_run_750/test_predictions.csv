@@ -1,0 +1,487 @@
+model,file_id,modality,ref_findings,pred_findings,ref_assessment,pred_assessment
+base (no adapter),file_0042763,acute_photo,"Skin lesions in calciphylaxis. . Note: Livedo reticularis and erythematous, necrotic, nonhealing skin lesions of the lower-right limb.","Okay, I can help with that.
+
+**Visible Findings:**
+
+*   **Upper Arm:** The image shows a clinical photograph of the upper arm of an 80-year-old female.
+*   **Skin Changes:** There are visible skin changes present on the upper arm. These include:
+    *   **Redness:** The skin appears red, suggesting inflammation or injury.
+    *   **Irregularities:** There are irregular, possibly linear, markings on the skin. These could be due to bruising, lacerations, or other skin abnormalities.
+    *   **Possible Wound:** There is a possible","Impression: RA was diagnosed in August 2010 and therapy with methotrexate was started at a dose of 15 mg/week with low doses of prednisone. A final diagnosis of calciphylaxis was made (Figures 24).
+Suggested next steps (most to least suitable):
+1. Investigate: Laboratory tests performed in September 2014 showed a creatinine level of 0.6 mg/dL (normal range: 0.1-1.02 mg/dL), an erythrocyte sedimentation rate (ESR) of 55 mm/hour (cut-off...
+2. Definitive treatment: Daily antibiotic treatment of the local cutaneous lesions was performed.
+3. Disposition: In November 2014, an 80-year-old female affected by RA and who was seropositive for anticyclic citrullinated peptide antibodies and rheumatoid factor was admitted to the...","Impression: The image shows a clinical photograph of the upper arm of an 80-year-old female with visible skin changes, including redness, irregular markings, and a possible wound. The patient has a history of osteoarthritis, dorsal vertebral osteoporotic fractures, arterial hypertension, and bowel diverticulosis.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess vital signs (blood pressure, heart rate, respiratory rate, oxygen saturation) and provide oxygen if needed. Ensure adequate pain control.
+2.  **Investigate:** Perform a focused physical exam of the upper arm, including palpation for tenderness, crepitus, and assessment of neurovascular status. Consider a brief history from the patient or a caregiver to determine the mechanism of injury and the patient's overall condition.
+3.  **Treat:** Based on the physical exam findings, consider appropriate wound care (cleaning, dressing) if a wound is present. If there is significant pain, administer analgesics.
+4.  **Disposition:** Determine the appropriate disposition based on the patient's overall condition, the severity of the skin changes, and the patient's ability to follow up. This may include observation, further imaging (e.g., X-ray, ultrasound), or referral to a specialist."
+base (no adapter),file_0140824,x_ray,Preoperative modalities of the patient at the time of admission:. Radiograph of the hip.,"Okay, I've reviewed the X-ray image. Here's a description of the visible anatomy and any apparent abnormalities:
+
+**Visible Anatomy:**
+
+*   The image shows a lateral view of the hip joint.
+*   The femoral heads are visible on both sides.
+*   The acetabular roofs are also visible.
+*   The iliac bones are present.
+*   The spine is visible in the background.
+
+**Apparent Abnormalities:**
+
+*   There is a possible subtle irregularity in the superior aspect of the right femoral head. It is difficult to definitively characterize this finding on a single image","Impression: Due to the infraorbital hematoma and post-traumatic amnesia, intracranial hemorrhage had to be ruled out first. The radiological assessment revealed bilateral posterior hip dislocation with left superior and inferior pubic rami fractures and also bilateral femoral head fractures proximal to fovea (Pipkin type 2) with more comminution on the left side [Figure 1].
+Suggested next steps (most to least suitable):
+1. Investigate: The Focused Assessment with Sonography in Trauma (FAST) and chest X-ray results were normal.
+2. Investigate: As there was no indication of an active bleeding in the patient's computed tomography (CT) scans, craniotomy was not performed based on the recommendation of the neurosurgeon on...
+3. Definitive treatment: On examination by the orthopedic surgery service, both right and left lower limbs were flexed, internally rotated, and adducted.
+4. Definitive treatment: After an unsuccessful closed reduction attempt, open reduction and internal fixation of femoral head were planned to be performed.","Impression: The image shows a possible subtle irregularity in the superior aspect of the right femoral head. It is difficult to definitively characterize this finding on a single image.
+
+Suggested next steps (most to least suitable):
+1.  **Investigate:** Given the subtle finding, further imaging (e.g., MRI) is warranted to better characterize the abnormality and rule out other potential causes.
+2.  **Stabilise:** The patient is stable, and there are no reported distal neurovascular deficits.
+3.  **Treat:** There is no clear indication for treatment at this time.
+4.  **Disposition:** The patient can be discharged with appropriate follow-up imaging as indicated by the investigating physician."
+base (no adapter),file_0086946,acute_photo,Edema of the face and eyelids with an erythematous cupboard cheeks.,"Okay, I can provide a description of the visible findings in the image.
+
+**Visible Findings:**
+
+*   **Facial Features:** The image shows a 51-year-old male with a somewhat rounded face.
+*   **Skin:** The skin appears to be somewhat red, with a possible slight increase in skin thickness.
+*   **Eyes:** The eyes are visible, but the image quality is not ideal for detailed assessment.
+*   **Other:** The patient is wearing a white shirt.
+
+**Uncertainties and Considerations:**
+
+*   **Image Quality:** The image quality is not optimal, making","Impression: The diagnosis of lupus erythematosus was initially retained in view of the photographic distribution of the lesions and the histological data. The diagnosis of a Morbihan disease was ultimately retained in the clinical aspect, histology and elimination of other causes of facial edema (chronic lupus, dermatomyositis, chronic eczema and infectious causes).
+Suggested next steps (most to least suitable):
+1. Investigate: The second cutaneous biopsy was therefore done, the histological study of which showed perivascular dermatitis with vascular ectasia, a lymphocytic infiltrate (Figure 2).
+2. Definitive treatment: The patient was treated by isotretinoin (0.5 mg/kg/day) and furosemide 40 mg daily with slight improvement after 3 months.","Impression: The image shows a 51-year-old male with facial redness and possible skin thickening. The patient has a history of papules. The negative immunological analysis (anti-nuclear antibody and native anti-DNA antibody) makes some diagnoses less likely, but does not rule them out.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess vital signs, oxygen saturation, and level of consciousness. Ensure adequate airway, breathing, and circulation.
+2.  **Investigate:** Perform a thorough physical examination, focusing on the skin and any other areas of concern. Consider a detailed history of the patient's symptoms, including the onset, duration, and progression of the papules.
+3.  **Treat:** Based on the physical examination and history, consider initiating treatment for potential conditions such as inflammatory skin conditions or infections.
+4.  **Disposition:** Determine the appropriate disposition based on the patient's clinical status and the results of the investigations. This may involve admission for further evaluation and treatment, or discharge with instructions for follow-up."
+base (no adapter),file_0160182,ultrasound,"Ovoid, hypoechoic cystic lesion with regular borders, measuring approximately 9.3x6.6 x 9.3 mm in the subcutaneous cellular tissue plane.","Okay, I've reviewed the ultrasound image.
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the right cheek.
+*   I can see the superficial tissues of the face, including subcutaneous fat and skin.
+*   The image shows the underlying structures of the face, including the facial bones and muscles.
+
+**Abnormalities:**
+
+*   There is a well-defined, round, hypoechoic (darker than surrounding tissue) nodule located in the right cheek. The nodule appears to be approximately 1.5 cm in diameter.
+*   The nodule","Impression: Physical examination revealed a single nodular lesion on the right cheek, which protruded slightly beyond the skin surface (Figure 1). The lesion was well-defined, oval-shaped, nonpainful, mobile, and clinically compatible with an E.C.
+Suggested next steps (most to least suitable):
+1. Investigate: To characterise the lesion further, an ultrasound evaluation was performed, which revealed an ovoid, hypoechoic, cystic structure with regular borders measuring approximately...
+2. Definitive treatment: Given its location on the face and its small size, after the patient's informed consent was obtained, intralesional enzymatic therapy was started using the recombinant enzymes...
+3. Definitive treatment: One millilitre of 0.9% physiological solution was poured into a 3 mL injector in which each of the enzyme vials (Slim Lipase PB500, Smooth Collagenase GH PB220 and Drain...","Impression: The ultrasound shows a well-defined, round, hypoechoic nodule in the right cheek. Given the patient's history of acne vulgaris, this nodule could be a sebaceous cyst, a lipoma, or another benign lesion. However, it is important to rule out other possibilities, such as a liposarcoma or a metastatic lesion.
+
+Suggested next steps (most to least suitable):
+1.  **Investigate:** A follow-up ultrasound in 6-12 months to monitor the nodule's size and characteristics is reasonable. This will help determine if it is growing or changing.
+2.  **Stabilise:** If the patient is experiencing any pain, discomfort, or other symptoms related to the nodule, it is important to address these concerns.
+3.  **Treat:** Treatment is not indicated at this time, as the nodule appears benign. However, if the nodule becomes symptomatic or grows significantly, surgical excision may be considered.
+4.  **Disposition:** The patient can be discharged with instructions to follow up with a dermatologist or surgeon for further evaluation and management."
+base (no adapter),file_0068010,ct,Axial contrast-enhanced CT image showing parietal abscess (white arrow).,"Okay, I can help with that.
+
+**Visible Findings:**
+
+*   **Abdominal CT Scan:** The image is a cross-sectional view of the abdomen, likely from a CT scan.
+*   **Parietal Abscess:** There appears to be a collection of fluid/pus (likely an abscess) in the parietal peritoneum, which is the lining of the abdominal cavity. The arrow indicates the location of the abscess.
+*   **Other Abdominal Structures:** The image shows the kidneys, spine, bowel loops, and other abdominal structures.
+
+**Uncertainty and Disclaimer:**
+
+*   **Abscess Size","Impression: Clinical examination revealed a 11 x 10 cm epigastric abscess and a steady, painful hepatomegaly. Blood tests revealed WBC of 12,000/mm3 and inflammatory anemia of 9.8 g/dl.
+Suggested next steps (most to least suitable):
+1. Investigate: Ultrasound-guided aspiration yielded 250 mL of fetid pus, and a drain was inserted for irrigation.
+2. Definitive treatment: Ulcer treatment with H. pylori eradication was then initiated.
+3. Definitive treatment: Cholecystectomy was done and a multitubulated drain was put in front of the vesicular bed and brought out on the right side.
+4. Definitive treatment: Peritoneal lavage and large subhepatic drainage were carried out.","Impression: The CT scan reveals a parietal abscess, likely related to the patient's abdominal pain and swelling. The size of the abscess is not specified, and the clinical context is limited.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess and stabilize the patient's vital signs (blood pressure, heart rate, respiratory rate, oxygen saturation). Ensure adequate intravenous access and administer fluids as needed.
+2.  **Investigate:** Obtain a complete blood count (CBC) to assess for signs of infection (elevated white blood cell count). Consider ordering inflammatory markers (e.g., C-reactive protein [CRP], erythrocyte sedimentation rate [ESR]) to further evaluate the inflammatory response.
+3.  **Treat:** Based on the clinical picture and the presence of an abscess, consider initiating broad-spectrum intravenous antibiotics to cover common intra-abdominal pathogens.
+4.  **Disposition:** Determine the appropriate disposition based on the patient's clinical stability, the size and location of the abscess, and the presence of any complications. This may involve admission for further management, including drainage of the abscess, or discharge with close follow-up."
+base (no adapter),file_0022713,acute_photo,Right hand: Note gross swelling in the first web space and clubbing of the nails.,"Okay, I can provide a description of the visible findings in the image.
+
+**Visible Findings:**
+
+*   **Hands:** The image shows the hands of a 70-year-old male. The hands appear to be swollen. There are visible joints, including the knuckles.
+*   **Skin:** The skin appears to be relatively normal in color and texture, but the swelling obscures a detailed assessment.
+*   **Other:** The image shows the hands in a lateral view, with the palms facing away from the viewer.
+
+**Uncertainties and Considerations:**
+
+*   **Swelling:** The presence and extent","Impression: Differential diagnoses considered by the initial physicians attending the case were gouty arthritis, septic arthritis and acute osteomyelitis. In view of the evolving clinic-radiological findings a new set of differential diagnosis emerged that included metastatic diseases, multiple myeloma and remote possibilities of multi-centric GCT, multi-centric osteosarcoma, brown tumors and disseminated tuberculosis.
+Suggested next steps (most to least suitable):
+1. Not specified in source case; senior clinician review advised.","Impression: The patient presents with acute painful swelling of the right hand and knee, along with a history of chronic smoking and mild fever. The most likely possibilities include inflammatory arthritis (e.g., rheumatoid arthritis, psoriatic arthritis), infection (e.g., septic arthritis, cellulitis), or a less likely, but possible, inflammatory condition affecting both the hand and knee. The patient's age and smoking history increase the risk of certain conditions.
+
+Suggested next steps (most to least suitable):
+1.  Stabilize: Assess vital signs (temperature, heart rate, blood pressure, respiratory rate), and provide pain management.
+2.  Investigate: Obtain a thorough history, including details about the swelling (onset, duration, location, character, aggravating/relieving factors), any recent trauma, and any other symptoms (joint pain, rash, skin changes). Perform a physical examination of the affected joints, looking for signs of inflammation, warmth, and limited range of motion.
+3.  Treat: Based on the initial assessment, consider empiric treatment for possible septic arthritis (e.g., IV antibiotics, joint aspiration and culture) or cellulitis (e.g., IV antibiotics, wound care).
+4.  Disposition: Depending on the initial assessment and treatment, consider admission for further evaluation and management or discharge with instructions for follow-up."
+base (no adapter),file_0093184,ultrasound,Scrotal ultrasounds of the left testis from second case. Legend. Arrow indicates Testicular Adrenal Rest Tumors (TART).,"Okay, I've reviewed the ultrasound image.
+
+**Visible Anatomy:**
+
+*   The image shows a transverse view of the lower abdomen.
+*   I can see the outline of the uterus and ovaries.
+*   There appears to be some bowel gas present.
+
+**Abnormalities:**
+
+*   There is a hypoechoic (darker than surrounding tissue) structure located in the right lower quadrant. The structure is approximately 1.5 cm in diameter.
+*   The structure has a somewhat irregular border.
+
+**Location and Appearance:**
+
+*   The structure is located in the right lower quadrant of","Impression: Regarding the fertility assessment: the semen analysis showed a confirmed azoospermia twice by using a centrifugation pellet (Table 3). MRI confirmed the typical appearance of large intra-testicular adrenal inclusions (Fig.
+Suggested next steps (most to least suitable):
+1. Investigate: After one year of treatment, a bilateral exploration with testicular biopsy was proposed to identify focal spermatogenesis focus, and no sperm cell could be found.
+2. Definitive treatment: He was treated with hydrocortisone (30 mg in the morning-20 mg at noon-10 mg in the evening).
+3. Definitive treatment: Treatment was then modified: hydrocortisone 20 mg in the morning, and 10 mg at noon and dexamethasone was initiated with a daily dose of 0.5 mg, one tablet in the evening.","Impression: There is a hypoechoic structure in the right lower quadrant, approximately 1.5 cm in diameter, with an irregular border. This could represent a variety of possibilities, including a cyst, a lipoma, a hematoma, or a more concerning lesion. Given the patient's history of CAH, the possibility of a complex cyst or other abnormality should be considered.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable and has adequate pain control.
+2.  **Investigate:** Consider a follow-up ultrasound in 1-2 weeks to assess for any changes in the size or appearance of the structure. If the structure is still present and growing, or if there are any new symptoms, further investigation with a CT scan or MRI may be warranted.
+3.  **Treat:** Treatment is not indicated at this time, as the etiology of the structure is unknown.
+4.  **Disposition:** The patient can be discharged with instructions to follow up with a gynecologist or other appropriate specialist."
+base (no adapter),file_0072911,ultrasound,Posttreatment ultrasonographic findings.,"Okay, I've reviewed the ultrasound image. Here's a description of the visible findings:
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the thigh.
+*   The ultrasound probe is positioned on the lateral aspect of the thigh.
+*   The image displays the subcutaneous fat layer, the fascia, and the underlying muscle tissue.
+*   The femoral artery and vein are visible.
+
+**Abnormalities:**
+
+*   There appears to be a hypoechoic (darker) area within the subcutaneous fat layer, located on the lateral aspect of the thigh. The size of","Impression: The patient had been using oral anticoagulants for 61/2 years following aortic valve replacement and with the diagnoses of left ventricular systolic dysfunction, 3+ mitral valve insufficiency, and pulmonary hypertension. In 2004, he had gone to emergency service with complaints of headache and dizziness, and oral warfarin treatment was discontinued as result of diagnoses of subarachnoidal hematoma and bilateral frontoparietal subdural hematoma.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Since hemoglobin level and hemodynamic data of the patient were stable and there was no life-threatening bleeding, his oral anticoagulant treatment was not discontinued.
+2. Definitive treatment: As the patient was hemodynamically stable and the mass lesion was ultrasonographically consistent with organized hematoma, 2 days after the diagnosis, US treatment was initiated.","Impression: The ultrasound shows a hypoechoic area in the subcutaneous fat of the lateral thigh. This could represent a variety of things, including a hematoma, lipoma, abscess, or other soft tissue mass. Given the patient's age and the presence of thigh pain and sensory loss, a hematoma or a more concerning mass (like a tumor) are possibilities that need to be considered.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable and has adequate pain control.
+2.  **Investigate:** Consider a clinical examination to assess the size, consistency, and mobility of the mass. If the mass is easily palpable and movable, a hematoma is more likely. If it is fixed and non-palpable, a more concerning diagnosis should be considered.
+3.  **Treat:** Depending on the suspected diagnosis, treatment may range from observation and pain management for a hematoma to further imaging (MRI or CT) and/or surgical exploration for a more concerning mass.
+4.  **Disposition:** The disposition will depend on the findings of the clinical examination and any further investigations. If the diagnosis is uncertain, further imaging may be warranted before discharge."
+base (no adapter),file_0128906,ct,"Possible underlying mechanism of PVT by COVID-19 infection. Cholangiocyte is a kind of liver cell which has ACE II receptors presented on the surface more than hepatocytes and endothelium. By direct fusing of COVID-19 to these cells, first the direct injury of the liver happens because of the accumulation of bile acids. Then several inflammatory cytokines (IL6, TNF-alpha) are secreted and they play as inflammation and thrombosis triggers in the liver. Clot formation in the portal vein might be because of the increased expression of tissue factor (TF) from mononuclear cells, possibly done by...","Okay, I've reviewed the image and the provided clinical note. Here's a description of the clinically relevant visual findings, keeping in mind that this is based on the image and the limited information provided:
+
+**Visible Anatomy:**
+
+*   **Liver:** The liver is the primary organ visible. Its characteristic shape and internal structure are apparent.
+*   **Portal Vein:** The portal vein is visible, entering the liver.
+*   **Bile Duct:** The bile duct is visible, connecting to the liver.
+*   **Thrombus:** A thrombus (blood clot) is visible within the portal vein","Impression: The positive anti-PF4 antibody in seven out of nine reviewed cases somehow confirmed these findings. Examinations of available data demonstrated that laboratory indices are not proper assistances in confirmed diagnosis or prognosis of PVT, and ultrasonography or contrast-enhanced CT scan of the hepatic portal vein is a better way for a valid diagnosis.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Up to now, anticoagulants are the suggested treatments for PVT.
+2. Disposition: While most of the studies suggest these 2 drugs for solving the thrombosis problem in COVID-19 infected patients, there is one case report that advises platelet count monitoring...","Impression: The image shows a thrombus within the portal vein. This could be a cause for concern, potentially leading to portal vein thrombosis (PVT). The clinical note mentions a review of 40 cases of PVT, with a median age of 41 years and a male preference. The patient's age (62) is slightly older than the median, but not significantly so. The clinical note also mentions COVID and vaccines as potential etiologies.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess and stabilize the patient's vital signs (blood pressure, heart rate, respiratory rate, oxygen saturation). Ensure adequate intravenous access and administer fluids as needed.
+2.  **Investigate:** Order laboratory tests to evaluate liver function (AST, ALT, bilirubin, alkaline phosphatase), coagulation studies (PT, PTT, INR), and D-dimer. Consider a complete blood count (CBC) to assess for signs of infection or other abnormalities.
+3.  **Treat:** Based on the initial assessment and laboratory results, consider anticoagulation therapy with heparin or another appropriate anticoagulant. The decision to anticoagulate should be made in consultation with a specialist (e.g., hepatologist, vascular surgeon).
+4.  **Disposition:** Determine the appropriate disposition based on the patient's clinical condition, laboratory results, and response to treatment. This may involve admission to the hospital for further monitoring and management, or discharge with close"
+base (no adapter),file_0012223,ct,"September 2005(CT Thorax): Halo sign. Note the so-called ""halo sign"", seen as a blush around the lesion. This sign is indicative of haemorrhage and highly suggestive of infection with an angioinvasive fungal organism.","Okay, I've reviewed the CT image.
+
+**Visible:**
+
+*   The image shows a cross-sectional view of the chest.
+*   The lungs are visible on either side of the mediastinum.
+*   The heart is located in the center of the chest.
+*   The mediastinum is the central compartment of the chest, containing the heart, great vessels, trachea, esophagus, and other structures.
+*   The ribs and other bony structures of the chest wall are also visible.
+
+**Abnormalities:**
+
+*   There is a nodular opacity in the right lung, located near the hil","Impression: In mid-1997, she started to complain of poor exercise tolerance and lung function tests revealed FEV1 1.05 litres (predicted 3.28, % predicted = 32) VC 2.2, (predicted 3.78, % predicted = 58) RV 2.4 and DLCO 5.8 (predicted 8.1, % predicted 72) interpreted as moderate airflow obstruction according to GOLD criteria. An open lung biopsy revealed evidence of obliterative bronchiolitis thought to be a consequence of the donor lymphocyte infusions...
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Her arterial oxygen saturations were 95% on room air.
+2. Definitive treatment: We report the case of a 25-year-old Caucasian lady who underwent a matched related donor stem cell transplant in June 1994 for underlying chronic myeloid leukaemia in the first...
+3. Definitive treatment: Fever continued despite broad-spectrum antibiotic therapy with intravenous third generation cephalosporin, piperacillin and macrolide therapy.
+4. Definitive treatment: She was treated with intravenous voriconazole only.","Impression: There is a nodular opacity in the right lung, located near the hilum. Given the patient's history of cyclophosphamide total body irradiation and Cam-Path1H, and fungal prophylaxis, the most likely concern is a pulmonary complication related to these treatments. The nodular opacity could represent a variety of possibilities, including infection, inflammation, or a treatment-related adverse event.
+
+Suggested next steps (most to least suitable):
+1.  **Investigate:** Obtain a chest X-ray to better characterize the nodular opacity. This will help determine if it is a focal consolidation, a mass, or something else.
+2.  **Investigate:** Consider a CT scan of the chest with contrast to further evaluate the nodular opacity and assess for any associated findings. This will provide more detailed information about the size, shape, and location of the nodule, as well as any potential involvement of surrounding structures.
+3.  **Stabilise:** Monitor the patient's respiratory status and vital signs closely. Assess for any signs of respiratory distress, such as shortness of breath, cough, or chest pain.
+4.  **Treat:** Initiate empiric antifungal therapy, given the patient's history of fungal prophylaxis and the possibility of an opportunistic infection."
+base (no adapter),file_0113854,ct,"Computed tomography (CT) abdominal scan revealing a 4cm nonspecific retroperitoneal, preaortic lesion, between celiac trunk and superior mesenteric artery.","Okay, I've reviewed the CT image.
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the abdomen.
+*   The liver is visible on the left side of the image.
+*   The kidneys are visible on either side of the spine.
+*   The pancreas is visible in the central area.
+*   The aorta is visible as a large vessel running through the chest and abdomen.
+*   The bowel loops are visible in the abdomen.
+
+**Abnormalities:**
+
+*   There is a prominent, round, and somewhat irregular mass in the aorta, near the level","Impression: A 45-year-old Caucasian male patient was referred to our clinic of endocrinology, because of an incidental finding in a CT scan, suggestive of paraganglioma, performed in the work up for abdominal pain. The abdominal CT scan revealed a 4cm nonspecific retroperitoneal, paraaortic lesion, between celiac trunk and superior mesenteric artery, suggestive of neuroendocrine tumor as the first possibility (Figure 1A).
+Suggested next steps (most to least suitable):
+1. Investigate: After the first visit in our clinic, an initial laboratory investigation was performed for the suspected paraganglioma (references values in parenthesis): glucose 79 mg/dl...
+2. Investigate: Unfortunately, no microbiological cultures of the biopsy were done.
+3. Definitive treatment: He had a past medical history of smoking, Barret's esophagus, hiatus hernia and gastroesophageal reflux disease treated with omeprazole.
+4. Definitive treatment: He had undergone a sleeve gastrectomy as a surgical weight loss procedure in 2015 and cholecystectomy for cholelithiasis in 2017.","Impression: There is a prominent, round, and somewhat irregular mass in the aorta, near the level of the celiac artery. This finding is concerning for an aortic aneurysm or potentially a mass lesion. The normal catecholamine and metanephrine levels make a pheochromocytoma less likely, but do not completely rule it out.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable. This includes monitoring vital signs, providing oxygen if needed, and establishing intravenous access.
+2.  **Investigate:** Further imaging is needed to characterize the mass. This could include a CT angiogram of the abdomen and pelvis with contrast to better visualize the aorta and surrounding structures.
+3.  **Treat:** Treatment will depend on the definitive diagnosis. If it is an aortic aneurysm, management may involve monitoring, medical management with blood pressure control, or surgical repair. If it is a mass lesion, further investigation is needed to determine the cause and appropriate treatment.
+4.  **Disposition:** The patient's disposition will depend on the findings of the further imaging and the overall clinical picture."
+base (no adapter),file_0140890,ct,Preoperative coronary CT coronary images of the patient. (A) Image showing anomalous origin of the RCA ostium from the left coronary sinus and RCA (arrow) having an interarterial course between the aorta and pulmonary artery.,"Okay, I can help with that.
+
+**Visible:**
+
+The image shows a cross-sectional view of the aorta and proximal coronary arteries. The aorta is visible, and the right coronary artery (RCA) is also visible. The RCA appears to be originating from the left coronary sinus. The course of the RCA is described as intramural and interarterial.
+
+**Uncertainties and Caveats:**
+
+*   **Anomalous Origin:** The anomalous origin of the RCA from the left coronary sinus is a known finding. The exact location and extent of the anomalous origin are not fully defined in this single image.
+*","Impression: Computerized tomography (CT) angiography confirmed the diagnosis with prominent ostial narrowing (Figures 1, 2A,B, 3A).
+Suggested next steps (most to least suitable):
+1. Investigate: The echocardiographic examination was normal.
+2. Definitive treatment: He underwent a thorough investigation to reveal the exact cause of his symptoms, including cardiologic, neurologic, hormonal, and psychiatric examinations.
+3. Definitive treatment: Considering there was no other cause for the syncopes, surgery for anomalous RCA was planned.
+4. Definitive treatment: The decision for surgical correction was made according to the ESC 2020 Guidelines for the Management of Adult Congenital Heart Disease.","Impression: The patient has an anomalous origin of the right coronary artery (RCA) from the left coronary sinus, with an intramural and interarterial course. This could potentially cause syncope, especially during physical activity. The exact location and extent of the anomalous origin are not fully defined in this single image.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable. This includes monitoring vital signs, oxygen saturation, and cardiac rhythm.
+2.  **Investigate:** Obtain a more comprehensive evaluation of the anomalous RCA. This could include a detailed cardiac CT angiogram or MRI to better define the origin, course, and branching pattern of the RCA.
+3.  **Treat:** Depending on the findings of the further investigation, treatment options may include medical management (e.g., beta-blockers to control heart rate) or surgical correction of the anomalous RCA.
+4.  **Disposition:** The patient's disposition will depend on the findings of the investigation and the need for further intervention."
+base (no adapter),file_0040139,ct,"A 42-year-old woman with external carotid-external jugular AVF. Axial contrast-enhanced CT shows the fistula (black arrow) between the left external carotid artery (short white arrow) and the left external jugular vein (long white arrow) with associated dilatation of these vessels. The left internal jugular vein (long dashed arrow) is incidentally hypoplastic, as compared with the normal right internal jugular vein (short dashed arrow).","Okay, I've reviewed the CT image. Here's what I see:
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the head, including the skull, brain, and surrounding structures.
+*   The carotid arteries are visible, with the internal carotid arteries seen on either side of the midline.
+*   The jugular veins are also visible, running along the internal surface of the skull.
+*   The brainstem and cerebellum are visible in the center of the image.
+*   The facial bones and sinuses are visible on either side of the brain.
+
+**Abnormalities","Impression: Electrocardiography showed evidence of left ventricular hypertrophy and the chest X-ray revealed mild cardiac enlargement.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Presence of bruit in the physical exam as well as echocardiographic findings raised strong suspicion of AVF; therefore, the patient underwent CT-angiography of the cervical...","Impression: There is a concerning lesion in the left parotid gland, appearing as a large, heterogeneous mass with possible enhancement. The exact nature of this lesion is uncertain, but it could represent a tumor, infection, or other pathology. The carotid arteries are also visible, and there is a possible dissection of the internal carotid artery.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable and has adequate oxygenation.
+2.  **Investigate:** Obtain further imaging, such as an MRI with contrast, to better characterize the lesion in the parotid gland. Consider a contrast-enhanced CT scan to evaluate the carotid arteries for dissection or other vascular abnormalities.
+3.  **Treat:** Depending on the findings of the further imaging, treatment options may include surgical excision, radiation therapy, or medical management.
+4.  **Disposition:** The patient's disposition will depend on the diagnosis and treatment plan. They may require admission to the hospital for further evaluation and treatment, or they may be able to be discharged home with close follow-up."
+base (no adapter),file_0042703,x_ray,"Panoramic radiograph shows no root formation in most of the teeth with total obliteration of the pulp chambers and periapical radiolucency in lower right mandibular first molar, left mandibular first and second molar.","Okay, here's a description of the visible findings on the X-ray, keeping in mind that I am an AI and cannot provide medical diagnoses:
+
+**Visible Anatomy:**
+
+*   **Maxillary Teeth:** The image shows the upper teeth (maxillary teeth).
+*   **Mandibular Teeth:** The image shows the lower teeth (mandibular teeth).
+*   **Alveolar Ridges:** The bony structures that support the teeth are visible.
+*   **Maxillary Sinuses:** The air-filled spaces within the maxilla are visible.
+*   **Nasal Cavity:** The nasal cavity is","Impression: An 18-year-old female patient reported to our department with the complaint of poor esthetic appearance due to missing upper and lower front teeth since 4 years and seeking prosthetic treatment. The patient reported that the teeth exfoliated due to loosening.
+Suggested next steps (most to least suitable):
+1. Not specified in source case; senior clinician review advised.","Impression: The image shows a panoramic view of the upper and lower teeth, alveolar ridges, maxillary sinuses, and nasal cavity. The patient is an 18-year-old female with no reported trauma or extractions. The image is likely a routine dental X-ray.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is comfortable and has adequate pain control if needed.
+2.  **Investigate:** Further investigation is needed to determine the cause of the missing teeth. This could involve a more detailed clinical examination, review of the patient's medical history, and potentially additional imaging.
+3.  **Treat:** Treatment options will depend on the underlying cause of the missing teeth. This could include dental fillings, root canals, extractions, or other restorative procedures.
+4.  **Disposition:** The patient's disposition will depend on the findings of the investigation and the treatment plan."
+base (no adapter),file_0142555,ct,As well as bilateral hydronephrosis and right renal atrophy.,"Okay, I've reviewed the CT image. Here's a description of the clinically relevant findings:
+
+**Anatomy:**
+
+*   The image shows a cross-sectional view of the abdomen.
+*   The vertebral body is visible in the center of the image.
+*   The kidneys are present on both sides.
+*   The bowel loops are visible.
+
+**Abnormalities:**
+
+*   **Right Kidney:** There is evidence of right renal atrophy (shrinkage).
+*   **Left Kidney:** There is evidence of left hydronephrosis (swelling of the left kidney due to a blockage).","Impression: Transurethral bladder tumor biopsy confirmed a high-grade urothelial carcinoma with stratified squamous metaplasia, but distant metastases were not observed.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient refused local treatments, such as surgery and radiotherapy.
+2. Definitive treatment: The patient was in a state of renal failure and underwent dialysis, but there was hope that his renal function would recover.
+3. Definitive treatment: Therefore, gemcitabine and paclitaxel were administered as first-line chemotherapy because these drugs have lower nephrotoxicity than carboplatin, which has a higher nephrotoxic...
+4. Definitive treatment: Subsequently, five courses of secondary pharmacotherapy with pembrolizumab were administered.","Impression: The patient presents with right renal atrophy and left hydronephrosis. The right renal atrophy could be due to chronic obstruction or other causes of renal damage. The left hydronephrosis suggests an obstruction in the left ureter or kidney. The cause of the hydronephrosis is unclear from this single image.
+
+Suggested next steps (most to least suitable):
+1.  **Investigate:** Further investigation is needed to determine the cause of the left hydronephrosis. This could include a more detailed review of the patient's history, physical examination, and potentially additional imaging (e.g., a non-contrast CT scan of the abdomen and pelvis, or an MRI).
+2.  **Stabilise:** Assess the patient's overall condition and address any immediate concerns. This may involve monitoring vital signs, assessing pain levels, and providing supportive care as needed.
+3.  **Treat:** Treatment should be guided by the underlying cause of the hydronephrosis. If the cause is identified and amenable to intervention (e.g., stone removal), then treatment may be appropriate. However, without knowing the cause, treatment is not indicated.
+4.  **Disposition:** The patient's disposition will depend on the underlying cause of the hydronephrosis and the patient's overall condition. If the cause is identified and treatable, the patient may be discharged home with appropriate follow-up. If the cause is unclear or the patient is"
+base (no adapter),file_0030344,x_ray,Preoperative chest X-ray showing bilateral diaphragmatic elevation because of the tumor.,"Okay, here's a description of the X-ray findings, keeping in mind that this is a preliminary assessment and clinical judgment is paramount:
+
+**Visible Anatomy:**
+
+*   **Ribs:** The ribs are visible, outlining the chest cage.
+*   **Clavicles:** The clavicles (collarbones) are visible.
+*   **Mediastinum:** The mediastinum (the central compartment of the chest containing the heart, great vessels, trachea, and esophagus) is visible.
+*   **Lungs:** The lungs are visible, but appear largely obscured by a large opacity.
+*   **Heart","Impression: A 30-year-old Japanese woman (height 161cm, weight 57kg) was diagnosed with an ovarian germ cell tumor at age 12 and underwent total hysterectomy and bilateral oophorectomy. The histological diagnosis was an immature teratoma with metastasis to her lymph nodes.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Her vital signs were blood pressure 100/70mmHg, heart rate 100 beats per minute, and pulse oximeter oxygen saturation (SpO2) 88 to 90%.
+2. Immediate stabilisation: Pulmonary function tests showed a low vital capacity (VC) based on the predicted value (%VC 37.7%) and arterial blood gas analysis revealed hypoxia (partial pressure of carbon...
+3. Immediate stabilisation: Radial arterial pressure, electrocardiogram, capnography, SpO2, and cerebral regional oxygen saturation (INVOS 5100 ; Somanetics, Troy, MI, USA) were continuously monitored...
+4. Immediate stabilisation: After the percutaneous sheaths were inserted, lidocaine 4% was sprayed on her upper airway, while midazolam 1mg and fentanyl 50mug were given intravenously and awake fiberoptic...","Impression: The X-ray shows a large opacity obscuring the lungs, with the mediastinum appearing shifted. This suggests a significant mass effect, potentially from a large tumor or other significant fluid collection. The patient's history of needing tumor extirpation further supports the possibility of a malignancy.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess and stabilize the patient's vital signs (blood pressure, heart rate, respiratory rate, oxygen saturation). Provide supplemental oxygen if needed.
+2.  **Investigate:** Obtain a more detailed imaging study, such as a CT scan of the chest with contrast, to better characterize the mass, assess its relationship to surrounding structures (e.g., mediastinal vessels, trachea, esophagus), and evaluate for any signs of complications (e.g., pleural effusion, pneumothorax).
+3.  **Treat:** Initiate supportive care as needed, such as intravenous fluids for hydration and pain management.
+4.  **Disposition:** The disposition will depend on the findings of the CT scan and the patient's overall clinical condition. Further management may include surgical intervention, chemotherapy, or radiation therapy."
+adapted (best),file_0042763,acute_photo,"Skin lesions in calciphylaxis. . Note: Livedo reticularis and erythematous, necrotic, nonhealing skin lesions of the lower-right limb.",Clinical picture of the patient.,"Impression: RA was diagnosed in August 2010 and therapy with methotrexate was started at a dose of 15 mg/week with low doses of prednisone. A final diagnosis of calciphylaxis was made (Figures 24).
+Suggested next steps (most to least suitable):
+1. Investigate: Laboratory tests performed in September 2014 showed a creatinine level of 0.6 mg/dL (normal range: 0.1-1.02 mg/dL), an erythrocyte sedimentation rate (ESR) of 55 mm/hour (cut-off...
+2. Definitive treatment: Daily antibiotic treatment of the local cutaneous lesions was performed.
+3. Disposition: In November 2014, an 80-year-old female affected by RA and who was seropositive for anticyclic citrullinated peptide antibodies and rheumatoid factor was admitted to the...","Impression: A 80-year-old woman was admitted to our hospital due to a 2-month history of a painful, erythematous, and edematous lesion on the left forearm. The patient had a history of rheumatoid arthritis diagnosed 20 years ago, treated with methotrexate and prednisone.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with intravenous ceftriaxone and intravenous vancomycin.
+2. Immediate stabilisation: The patient was treated with intravenous ceftriaxone and intravenous vancomycin.
+3. Immediate stabilisation: The patient was treated with intravenous ceftriaxone and intravenous vancomycin.
+4. Immediate stabilisation: The patient was treated with intravenous ceftriaxone and intravenous vancomycin."
+adapted (best),file_0140824,x_ray,Preoperative modalities of the patient at the time of admission:. Radiograph of the hip.,(a) AP radiograph of the pelvis showing a comminuted fracture of the right acetabulum with a displaced posterior wall fragment.,"Impression: Due to the infraorbital hematoma and post-traumatic amnesia, intracranial hemorrhage had to be ruled out first. The radiological assessment revealed bilateral posterior hip dislocation with left superior and inferior pubic rami fractures and also bilateral femoral head fractures proximal to fovea (Pipkin type 2) with more comminution on the left side [Figure 1].
+Suggested next steps (most to least suitable):
+1. Investigate: The Focused Assessment with Sonography in Trauma (FAST) and chest X-ray results were normal.
+2. Investigate: As there was no indication of an active bleeding in the patient's computed tomography (CT) scans, craniotomy was not performed based on the recommendation of the neurosurgeon on...
+3. Definitive treatment: On examination by the orthopedic surgery service, both right and left lower limbs were flexed, internally rotated, and adducted.
+4. Definitive treatment: After an unsuccessful closed reduction attempt, open reduction and internal fixation of femoral head were planned to be performed.","Impression: A 45-year-old male with a history of chronic alcohol abuse and a fall from a standing height was brought to the emergency department with a chief complaint of right hip pain. Physical examination revealed a right hip range of motion of 0 degrees to 90 degrees of flexion, 0 degrees to 30 degrees of internal rotation, and 0 degrees to 30 degrees of external rotation.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was placed in the lateral decubitus position with the right hip in flexion and external rotation.
+2. Immediate stabilisation: The patient was placed in the lateral decubitus position with the right hip in flexion and external rotation.
+3. Immediate stabilisation: The patient was placed in the lateral decubitus position with the right hip in flexion and external rotation.
+4. Immediate stabilisation: The patient was placed in the lateral decubitus position with the right hip in flexion and external rotation."
+adapted (best),file_0086946,acute_photo,Edema of the face and eyelids with an erythematous cupboard cheeks.,Clinical presentation of the patient.,"Impression: The diagnosis of lupus erythematosus was initially retained in view of the photographic distribution of the lesions and the histological data. The diagnosis of a Morbihan disease was ultimately retained in the clinical aspect, histology and elimination of other causes of facial edema (chronic lupus, dermatomyositis, chronic eczema and infectious causes).
+Suggested next steps (most to least suitable):
+1. Investigate: The second cutaneous biopsy was therefore done, the histological study of which showed perivascular dermatitis with vascular ectasia, a lymphocytic infiltrate (Figure 2).
+2. Definitive treatment: The patient was treated by isotretinoin (0.5 mg/kg/day) and furosemide 40 mg daily with slight improvement after 3 months.","Impression: The diagnosis of lupus vulgaris was made.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with prednisone 40 mg/day and methotrexate 15 mg/week."
+adapted (best),file_0160182,ultrasound,"Ovoid, hypoechoic cystic lesion with regular borders, measuring approximately 9.3x6.6 x 9.3 mm in the subcutaneous cellular tissue plane.",Ultrasound of the right cheek.,"Impression: Physical examination revealed a single nodular lesion on the right cheek, which protruded slightly beyond the skin surface (Figure 1). The lesion was well-defined, oval-shaped, nonpainful, mobile, and clinically compatible with an E.C.
+Suggested next steps (most to least suitable):
+1. Investigate: To characterise the lesion further, an ultrasound evaluation was performed, which revealed an ovoid, hypoechoic, cystic structure with regular borders measuring approximately...
+2. Definitive treatment: Given its location on the face and its small size, after the patient's informed consent was obtained, intralesional enzymatic therapy was started using the recombinant enzymes...
+3. Definitive treatment: One millilitre of 0.9% physiological solution was poured into a 3 mL injector in which each of the enzyme vials (Slim Lipase PB500, Smooth Collagenase GH PB220 and Drain...","Impression: A 44-year-old woman with a non-tender nodule in the right cheek for over ten years was referred to the dermatology clinic. The patient had a history of moderate acne vulgaris during adolescence.
+Suggested next steps (most to least suitable):
+1. Investigate: A biopsy was performed, and histopathological examination revealed a benign nodular lesion with a peripheral palisading of fibroblasts and a central area of...
+2. Definitive treatment: The patient underwent surgical excision of the lesion under local anesthesia."
+adapted (best),file_0068010,ct,Axial contrast-enhanced CT image showing parietal abscess (white arrow).,Abdominal CT scan showing parietal abscess.,"Impression: Clinical examination revealed a 11 x 10 cm epigastric abscess and a steady, painful hepatomegaly. Blood tests revealed WBC of 12,000/mm3 and inflammatory anemia of 9.8 g/dl.
+Suggested next steps (most to least suitable):
+1. Investigate: Ultrasound-guided aspiration yielded 250 mL of fetid pus, and a drain was inserted for irrigation.
+2. Definitive treatment: Ulcer treatment with H. pylori eradication was then initiated.
+3. Definitive treatment: Cholecystectomy was done and a multitubulated drain was put in front of the vesicular bed and brought out on the right side.
+4. Definitive treatment: Peritoneal lavage and large subhepatic drainage were carried out.","Impression: Abdominal ultrasound revealed a hypoechoic, well-defined, and encapsulated lesion, measuring 5.5 x 4.5 x 4.0 cm, with a thick wall (1.5 cm) and a small amount of free fluid in the abdominal cavity.
+Suggested next steps (most to least suitable):
+1. Investigate: The patient underwent a CT scan of the abdomen and pelvis, which revealed a parietal abscess (Figure 1).
+2. Definitive treatment: The patient underwent a CT scan of the abdomen and pelvis, which revealed a parietal abscess (Figure 1).
+3. Definitive treatment: The patient underwent a CT scan of the abdomen and pelvis, which revealed a parietal abscess (Figure 1).
+4. Definitive treatment: The patient underwent a CT scan of the abdomen and pelvis, which revealed a parietal abscess (Figure 1)."
+adapted (best),file_0022713,acute_photo,Right hand: Note gross swelling in the first web space and clubbing of the nails.,Swelling of the right hand and knee.,"Impression: Differential diagnoses considered by the initial physicians attending the case were gouty arthritis, septic arthritis and acute osteomyelitis. In view of the evolving clinic-radiological findings a new set of differential diagnosis emerged that included metastatic diseases, multiple myeloma and remote possibilities of multi-centric GCT, multi-centric osteosarcoma, brown tumors and disseminated tuberculosis.
+Suggested next steps (most to least suitable):
+1. Not specified in source case; senior clinician review advised.","Impression: A diagnosis of rheumatoid arthritis was made and he was started on prednisolone and methotrexate.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: He was treated with intravenous antibiotics and was started on oral prednisolone.
+2. Immediate stabilisation: He was treated with intravenous antibiotics and was started on oral prednisolone.
+3. Immediate stabilisation: He was treated with intravenous antibiotics and was started on oral prednisolone.
+4. Immediate stabilisation: He was treated with intravenous antibiotics and was started on oral prednisolone."
+adapted (best),file_0093184,ultrasound,Scrotal ultrasounds of the left testis from second case. Legend. Arrow indicates Testicular Adrenal Rest Tumors (TART).,Ultrasound of the left testicle showing a hypoechogenic mass (green arrow) with a central area of calcification.,"Impression: Regarding the fertility assessment: the semen analysis showed a confirmed azoospermia twice by using a centrifugation pellet (Table 3). MRI confirmed the typical appearance of large intra-testicular adrenal inclusions (Fig.
+Suggested next steps (most to least suitable):
+1. Investigate: After one year of treatment, a bilateral exploration with testicular biopsy was proposed to identify focal spermatogenesis focus, and no sperm cell could be found.
+2. Definitive treatment: He was treated with hydrocortisone (30 mg in the morning-20 mg at noon-10 mg in the evening).
+3. Definitive treatment: Treatment was then modified: hydrocortisone 20 mg in the morning, and 10 mg at noon and dexamethasone was initiated with a daily dose of 0.5 mg, one tablet in the evening.","Impression: The ultrasound revealed a hypoechogenic mass with a central area of calcification in the left testicle (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a left orchiectomy."
+adapted (best),file_0072911,ultrasound,Posttreatment ultrasonographic findings.,Ultrasound of the thigh.,"Impression: The patient had been using oral anticoagulants for 61/2 years following aortic valve replacement and with the diagnoses of left ventricular systolic dysfunction, 3+ mitral valve insufficiency, and pulmonary hypertension. In 2004, he had gone to emergency service with complaints of headache and dizziness, and oral warfarin treatment was discontinued as result of diagnoses of subarachnoidal hematoma and bilateral frontoparietal subdural hematoma.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Since hemoglobin level and hemodynamic data of the patient were stable and there was no life-threatening bleeding, his oral anticoagulant treatment was not discontinued.
+2. Definitive treatment: As the patient was hemodynamically stable and the mass lesion was ultrasonographically consistent with organized hematoma, 2 days after the diagnosis, US treatment was initiated.","Impression: Physical examination revealed a 5 cm x 5 cm, firm, non-tender, and mobile mass in the left thigh, with a diameter of 5 cm x 5 cm, and a depth of 3 cm. The mass was located in the left thigh, lateral to the patella, and was palpable in the subcutaneous plane.
+Suggested next steps (most to least suitable):
+1. Investigate: The patient underwent a magnetic resonance imaging (MRI) of the thigh, which revealed a 5 cm x 5 cm, well-defined, hypointense mass in the subcutaneous plane, with a depth of 3 cm, and a...
+2. Definitive treatment: The patient underwent a surgical excision of the mass."
+adapted (best),file_0128906,ct,"Possible underlying mechanism of PVT by COVID-19 infection. Cholangiocyte is a kind of liver cell which has ACE II receptors presented on the surface more than hepatocytes and endothelium. By direct fusing of COVID-19 to these cells, first the direct injury of the liver happens because of the accumulation of bile acids. Then several inflammatory cytokines (IL6, TNF-alpha) are secreted and they play as inflammation and thrombosis triggers in the liver. Clot formation in the portal vein might be because of the increased expression of tissue factor (TF) from mononuclear cells, possibly done by...",Portal vein thrombosis.,"Impression: The positive anti-PF4 antibody in seven out of nine reviewed cases somehow confirmed these findings. Examinations of available data demonstrated that laboratory indices are not proper assistances in confirmed diagnosis or prognosis of PVT, and ultrasonography or contrast-enhanced CT scan of the hepatic portal vein is a better way for a valid diagnosis.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Up to now, anticoagulants are the suggested treatments for PVT.
+2. Disposition: While most of the studies suggest these 2 drugs for solving the thrombosis problem in COVID-19 infected patients, there is one case report that advises platelet count monitoring...","Impression: The patient was diagnosed with COVID-19 and was treated with dexamethasone and remdesivir. The patient was diagnosed with PVT and was treated with anticoagulation therapy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was admitted to the intensive care unit (ICU) due to respiratory failure.
+2. Immediate stabilisation: The patient was treated with oxygen therapy and mechanical ventilation.
+3. Immediate stabilisation: The patient was treated with oxygen therapy and mechanical ventilation.
+4. Immediate stabilisation: The patient was treated with oxygen therapy and mechanical ventilation."
+adapted (best),file_0012223,ct,"September 2005(CT Thorax): Halo sign. Note the so-called ""halo sign"", seen as a blush around the lesion. This sign is indicative of haemorrhage and highly suggestive of infection with an angioinvasive fungal organism.",CT scan of the chest showing a mass in the right upper lobe (arrow).,"Impression: In mid-1997, she started to complain of poor exercise tolerance and lung function tests revealed FEV1 1.05 litres (predicted 3.28, % predicted = 32) VC 2.2, (predicted 3.78, % predicted = 58) RV 2.4 and DLCO 5.8 (predicted 8.1, % predicted 72) interpreted as moderate airflow obstruction according to GOLD criteria. An open lung biopsy revealed evidence of obliterative bronchiolitis thought to be a consequence of the donor lymphocyte infusions...
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Her arterial oxygen saturations were 95% on room air.
+2. Definitive treatment: We report the case of a 25-year-old Caucasian lady who underwent a matched related donor stem cell transplant in June 1994 for underlying chronic myeloid leukaemia in the first...
+3. Definitive treatment: Fever continued despite broad-spectrum antibiotic therapy with intravenous third generation cephalosporin, piperacillin and macrolide therapy.
+4. Definitive treatment: She was treated with intravenous voriconazole only.","Impression: A 25-year-old woman with a history of a right upper lobe mass was diagnosed with a diagnosis of invasive aspergillosis. A CT scan of the chest revealed a mass in the right upper lobe (Figure 1).
+Suggested next steps (most to least suitable):
+1. Definitive treatment: She was treated with intravenous amphotericin B and azoles.
+2. Definitive treatment: She was treated with intravenous amphotericin B and azoles.
+3. Definitive treatment: She was treated with intravenous amphotericin B and azoles.
+4. Definitive treatment: She was treated with intravenous amphotericin B and azoles."
+adapted (best),file_0113854,ct,"Computed tomography (CT) abdominal scan revealing a 4cm nonspecific retroperitoneal, preaortic lesion, between celiac trunk and superior mesenteric artery.",(A) Abdominal computed tomography angiography showing a 1.5 cm saccular aneurysm of the splenic artery (red arrow).,"Impression: A 45-year-old Caucasian male patient was referred to our clinic of endocrinology, because of an incidental finding in a CT scan, suggestive of paraganglioma, performed in the work up for abdominal pain. The abdominal CT scan revealed a 4cm nonspecific retroperitoneal, paraaortic lesion, between celiac trunk and superior mesenteric artery, suggestive of neuroendocrine tumor as the first possibility (Figure 1A).
+Suggested next steps (most to least suitable):
+1. Investigate: After the first visit in our clinic, an initial laboratory investigation was performed for the suspected paraganglioma (references values in parenthesis): glucose 79 mg/dl...
+2. Investigate: Unfortunately, no microbiological cultures of the biopsy were done.
+3. Definitive treatment: He had a past medical history of smoking, Barret's esophagus, hiatus hernia and gastroesophageal reflux disease treated with omeprazole.
+4. Definitive treatment: He had undergone a sleeve gastrectomy as a surgical weight loss procedure in 2015 and cholecystectomy for cholelithiasis in 2017.","Impression: A 45-year-old man was admitted to our hospital due to abdominal pain. Abdominal computed tomography angiography revealed a 1.5 cm saccular aneurysm of the splenic artery (Fig.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with analgesics and antibiotics.
+2. Immediate stabilisation: The patient was treated with analgesics and antibiotics.
+3. Immediate stabilisation: The patient was treated with analgesics and antibiotics.
+4. Immediate stabilisation: The patient was treated with analgesics and antibiotics."
+adapted (best),file_0140890,ct,Preoperative coronary CT coronary images of the patient. (A) Image showing anomalous origin of the RCA ostium from the left coronary sinus and RCA (arrow) having an interarterial course between the aorta and pulmonary artery.,Coronary angiography.,"Impression: Computerized tomography (CT) angiography confirmed the diagnosis with prominent ostial narrowing (Figures 1, 2A,B, 3A).
+Suggested next steps (most to least suitable):
+1. Investigate: The echocardiographic examination was normal.
+2. Definitive treatment: He underwent a thorough investigation to reveal the exact cause of his symptoms, including cardiologic, neurologic, hormonal, and psychiatric examinations.
+3. Definitive treatment: Considering there was no other cause for the syncopes, surgery for anomalous RCA was planned.
+4. Definitive treatment: The decision for surgical correction was made according to the ESC 2020 Guidelines for the Management of Adult Congenital Heart Disease.","Impression: The patient was diagnosed with a 100% proximal LAD occlusion and underwent coronary angiography.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was admitted to the emergency department for further evaluation.
+2. Immediate stabilisation: The patient was hemodynamically stable, with a blood pressure of 140/80 mmHg, a heart rate of 70 beats per minute, and an oxygen saturation of 98% in room air.
+3. Immediate stabilisation: The patient was hemodynamically stable, with a blood pressure of 140/80 mmHg, a heart rate of 70 beats per minute, and an oxygen saturation of 98% in room air.
+4. Immediate stabilisation: The patient was hemodynamically stable, with a blood pressure of 140/80 mmHg, a heart rate of 70 beats per minute, and an oxygen saturation of 98% in room air."
+adapted (best),file_0040139,ct,"A 42-year-old woman with external carotid-external jugular AVF. Axial contrast-enhanced CT shows the fistula (black arrow) between the left external carotid artery (short white arrow) and the left external jugular vein (long white arrow) with associated dilatation of these vessels. The left internal jugular vein (long dashed arrow) is incidentally hypoplastic, as compared with the normal right internal jugular vein (short dashed arrow).",CT scan of the head. Sagittal view.,"Impression: Electrocardiography showed evidence of left ventricular hypertrophy and the chest X-ray revealed mild cardiac enlargement.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Presence of bruit in the physical exam as well as echocardiographic findings raised strong suspicion of AVF; therefore, the patient underwent CT-angiography of the cervical...","Impression: A 42-year-old woman was admitted to our hospital due to exacerbations of palpitation and dyspnea that she had been suffering from since her childhood. Physical examination revealed a heart rate of 120 beats/min, blood pressure of 110/70 mmHg, and a respiratory rate of 20 breaths/min.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with oxygen and intravenous fluids.
+2. Immediate stabilisation: The patient was treated with oxygen and intravenous fluids.
+3. Immediate stabilisation: The patient was treated with oxygen and intravenous fluids.
+4. Immediate stabilisation: The patient was treated with oxygen and intravenous fluids."
+adapted (best),file_0042703,x_ray,"Panoramic radiograph shows no root formation in most of the teeth with total obliteration of the pulp chambers and periapical radiolucency in lower right mandibular first molar, left mandibular first and second molar.","Orthopantomogram showing missing 11, 12, 13, 21, 22, 23, 31, 32, 33, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 6","Impression: An 18-year-old female patient reported to our department with the complaint of poor esthetic appearance due to missing upper and lower front teeth since 4 years and seeking prosthetic treatment. The patient reported that the teeth exfoliated due to loosening.
+Suggested next steps (most to least suitable):
+1. Not specified in source case; senior clinician review advised.","Impression: The patient was diagnosed with severe generalized missing teeth and was referred to the Department of Orthodontics for treatment planning.
+Suggested next steps (most to least suitable):
+1. Investigate: The patient was referred to the Department of Oral and Maxillofacial Surgery for surgical extraction of the missing teeth."
+adapted (best),file_0142555,ct,As well as bilateral hydronephrosis and right renal atrophy.,Abdominal computed tomography.,"Impression: Transurethral bladder tumor biopsy confirmed a high-grade urothelial carcinoma with stratified squamous metaplasia, but distant metastases were not observed.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient refused local treatments, such as surgery and radiotherapy.
+2. Definitive treatment: The patient was in a state of renal failure and underwent dialysis, but there was hope that his renal function would recover.
+3. Definitive treatment: Therefore, gemcitabine and paclitaxel were administered as first-line chemotherapy because these drugs have lower nephrotoxicity than carboplatin, which has a higher nephrotoxic...
+4. Definitive treatment: Subsequently, five courses of secondary pharmacotherapy with pembrolizumab were administered.","Impression: A 70-year-old man was referred to our hospital due to gross hematuria. A 70-year-old man was referred to our hospital due to gross hematuria.
+Suggested next steps (most to least suitable):
+1. Investigate: A 70-year-old man was referred to our hospital due to gross hematuria.
+2. Definitive treatment: A 70-year-old man was referred to our hospital due to gross hematuria.
+3. Definitive treatment: A 70-year-old man was referred to our hospital due to gross hematuria.
+4. Definitive treatment: A 70-year-old man was referred to our hospital due to gross hematuria."
+adapted (best),file_0030344,x_ray,Preoperative chest X-ray showing bilateral diaphragmatic elevation because of the tumor.,Chest X-ray showing a large mass in the right hemithorax.,"Impression: A 30-year-old Japanese woman (height 161cm, weight 57kg) was diagnosed with an ovarian germ cell tumor at age 12 and underwent total hysterectomy and bilateral oophorectomy. The histological diagnosis was an immature teratoma with metastasis to her lymph nodes.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Her vital signs were blood pressure 100/70mmHg, heart rate 100 beats per minute, and pulse oximeter oxygen saturation (SpO2) 88 to 90%.
+2. Immediate stabilisation: Pulmonary function tests showed a low vital capacity (VC) based on the predicted value (%VC 37.7%) and arterial blood gas analysis revealed hypoxia (partial pressure of carbon...
+3. Immediate stabilisation: Radial arterial pressure, electrocardiogram, capnography, SpO2, and cerebral regional oxygen saturation (INVOS 5100 ; Somanetics, Troy, MI, USA) were continuously monitored...
+4. Immediate stabilisation: After the percutaneous sheaths were inserted, lidocaine 4% was sprayed on her upper airway, while midazolam 1mg and fentanyl 50mug were given intravenously and awake fiberoptic...","Impression: A 30-year-old woman was admitted to our hospital due to a large mass in the right hemithorax. A chest X-ray revealed a large mass in the right hemithorax (Fig.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanical ventilation was initiated.
+2. Immediate stabilisation: The patient was intubated and mechanical ventilation was initiated.
+3. Immediate stabilisation: The patient was intubated and mechanical ventilation was initiated.
+4. Immediate stabilisation: The patient was intubated and mechanical ventilation was initiated."

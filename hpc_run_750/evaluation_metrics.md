@@ -1,0 +1,12 @@
+|                    |   base (no adapter) |   adapted (best) |   delta (adapted-base) |
+|:-------------------|--------------------:|-----------------:|-----------------------:|
+| test_loss          |              2.9569 |           1.9104 |                -1.0466 |
+| test_perplexity    |             19.2389 |           6.7555 |               -12.4834 |
+| n_generated        |             16      |          16      |                 0      |
+| findings_rougeL    |              0.1041 |           0.1707 |                 0.0666 |
+| findings_f1        |              0.1357 |           0.1986 |                 0.0629 |
+| assess_rougeL      |              0.1739 |           0.2364 |                 0.0625 |
+| assess_term_recall |              0.2475 |           0.2005 |                -0.047  |
+| format_ok          |              0      |           0      |                 0      |
+| words_findings     |             85.1875 |           9.9375 |               -75.25   |
+| words_assess       |            168.562  |          89.625  |               -78.9375 |

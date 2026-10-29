@@ -1,0 +1,2 @@
+best_step,best_epoch,training_loss,validation_loss,testing_loss,testing_perplexity,findings_rougeL,findings_f1,assess_rougeL,assess_term_recall,format_ok,n_generated,words_findings,words_assess
+88,4.0,1.8437681760660996,1.968846673966427,1.9103538164461509,6.75547857515673,0.1706688682339486,0.1985701921541801,0.23641587224474714,0.20052343854509064,0.0,16.0,9.9375,89.625
