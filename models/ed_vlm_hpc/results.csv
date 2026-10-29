@@ -1,0 +1,11 @@
+,base (no adapter),adapted (best),delta (adapted-base)
+test_loss,3.0503,1.9818,-1.0685
+test_perplexity,21.1217,7.2558,-13.8658
+n_generated,16.0,16.0,0.0
+findings_rougeL,0.0921,0.2048,0.1127
+findings_f1,0.1263,0.239,0.1127
+assess_rougeL,0.1813,0.2416,0.0603
+assess_term_recall,0.2096,0.1837,-0.0259
+format_ok,0.0,0.0,0.0
+words_findings,86.8125,8.875,-77.9375
+words_assess,160.9375,73.3125,-87.625
