@@ -1,0 +1,8 @@
+step,images,cases,articles
+all images,161702,42044,38832
+licence allows reuse,121710,30972,28561
+"A&E modality (X-ray/CT/US, acute photo)",43099,17071,16069
+caption >= 8 chars,42938,17061,16059
+"not a later-stage image (post-op, follow-up, healed)",38833,16509,15575
+linked to a case,38833,16509,15575
+age >= 16 or unknown,32988,13937,13188

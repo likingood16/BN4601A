@@ -1,0 +1,2 @@
+ best_step  best_epoch  training_loss  validation_loss  testing_loss  testing_perplexity  findings_rougeL  findings_f1  assess_rougeL  assess_term_recall  format_ok  n_generated  words_findings  words_assess
+        60         4.0       1.908464         1.982748      1.981808            7.255848          0.20482     0.238968        0.24164            0.183682        0.0         16.0           8.875       73.3125

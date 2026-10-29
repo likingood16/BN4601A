@@ -1,0 +1,497 @@
+model,file_id,modality,ref_findings,pred_findings,ref_assessment,pred_assessment
+base (no adapter),file_0033639,ultrasound,At follow up there is neotendon infilling in place of the tear defect. . The lateral tear margin has retracted with mild interval attrition of the supraspinatus tendon. At the time of this follow up study the patient had a dramatic return to a completely pain free state and had full range of movement with no dysfunction.,"Okay, here's a description of the ultrasound findings, keeping in mind that this is a preliminary assessment and clinical judgment is always paramount:
+
+**Visible Anatomy:**
+
+*   **Greater Tuberosity of the Humerus:** The bony prominence on the upper part of the humerus (upper arm bone) is visible.
+*   **Neotendons:** The image shows what appears to be neotendons, which are new tendon formations.
+*   **Fibrocartilage Interface:** The image shows the interface between the tendon and the fibrocartilage.
+*   **Retracted Tear Margin:** The tear","Impression: A diagnosis of a recent footprint tear superimposed on degenerative supraspinatus tendon with mild muscle atrophy was made.
+Suggested next steps (most to least suitable):
+1. Investigate: At the 10 month follow up, ultrasound (GE Logic 9, 9MHz probe) performed by the author showed a near complete echogenic infilling obliterating the tear defect.
+2. Definitive treatment: At 8 weeks follow up post PRP the patient verbally reported a marked reduction in pain with improvement in shoulder movement.","Impression: The ultrasound findings suggest a possible rotator cuff tear, specifically involving the supraspinatus tendon, with evidence of neotendons and a retracted tear margin. The presence of neotendons could indicate a healing process, but further evaluation is needed to confirm the diagnosis and assess the severity of the tear. The patient's age and history of lymphoma and hypertension are relevant but do not directly influence the interpretation of the ultrasound findings.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess the patient's pain level and provide appropriate analgesia. Ensure the patient is comfortable and able to participate in further evaluation.
+2.  **Investigate:** Consider a more detailed ultrasound examination, including assessment of the entire rotator cuff, to confirm the presence and extent of the tear. If the ultrasound is inconclusive, consider an MRI of the shoulder for a more detailed evaluation.
+3.  **Treat:** Initiate conservative management, such as physical therapy and pain control, unless there are signs of acute instability or significant pain that warrants more immediate intervention.
+4.  **Disposition:** Determine the appropriate disposition based on the patient's symptoms, the severity of the tear (if confirmed), and their overall health status. This may involve outpatient follow-up, further imaging, or surgical consultation."
+base (no adapter),file_0015866,ct,"CT scan of the chest at two contiguous levels shows areas of bronchiectasis surrounded by air space opacities (arrow in A) representing hemorrhage within the consolidated right middle lobe, extending to the pleural surface (arrow in B).","Okay, I've reviewed the CT images. Here's a description of the visible findings, keeping in mind that I am an AI and cannot provide a definitive diagnosis:
+
+**Visible Findings:**
+
+*   **Right Lung:** There appears to be a significant area of consolidation/opacity in the right lung, particularly in the upper lobe (as indicated by the arrow in both images). The appearance suggests a possible infectious process.
+*   **Left Lung:** The left lung appears relatively clear on the images provided.
+*   **Mediastinum:** The mediastinum (the space between the lungs containing the heart, great vessels,","Impression: A contrast-enhanced CT scan of the chest revealed consolidation and bronchiectasis involving the lateral segment of the right middle lobe and a larger surrounding zone of hazy airspace opacities [Figure 1] probably representing hemorrhage. An Echelon-14 microcatheter (MTI, Irvine, CA, USA) was advanced coaxially through the existing 5-French diagnostic catheter.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Four years ago, he had been treated for pulmonary tuberculosis.
+2. Definitive treatment: Two earlier episodes, 6 and 4 years earlier, were conservatively managed with antibiotics.
+3. Definitive treatment: A hypertrophied right internal mammary artery (IMA) was noted supplying a complex vascular malformation in the right middle lobe [Figure 2] via large pleural and phrenic...
+4. Definitive treatment: We decided to undertake angiographic evaluation and embolization of this malformation.","Impression: The CT images show a significant area of consolidation/opacity in the right lung, which could be due to a variety of factors, including infection (e.g., pneumonia, abscess), inflammation, or other pathology. The patient's history of necrotizing pneumonia in infancy is relevant, but the current presentation (no fever or elevated white count) makes infection less likely, but does not exclude it. The left lung appears relatively clear.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable and has adequate oxygenation. This is a baseline step for any patient presenting to the ED.
+2.  **Investigate:** Obtain a complete blood count (CBC) with differential, comprehensive metabolic panel (CMP), and consider a procalcitonin level to help differentiate between infectious and non-infectious causes of the consolidation. A chest X-ray (CXR) may be helpful to confirm the findings and rule out other causes.
+3.  **Treat:** Initiate empiric antibiotics if there is a high suspicion for bacterial pneumonia, especially given the patient's history. However, given the lack of fever and elevated white count, the need for antibiotics should be carefully considered.
+4.  **Disposition:** Depending on the results of the investigations and the patient's clinical status, further imaging (e.g., CT-guided biopsy, bronchoscopy) may be necessary to determine the underlying"
+base (no adapter),file_0005136,ct,Chylotorax due to juvenile paracoccidioidomycosis.,"Okay, I've reviewed the CT images. Here's a description of the visible findings:
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the chest.
+*   The lungs are visible, with the characteristic branching pattern of the bronchi.
+*   The heart is visible, with its chambers and major vessels.
+*   The mediastinum (the space between the lungs containing the heart, great vessels, trachea, and esophagus) is visible.
+*   The ribs and other bony structures of the chest wall are visible.
+
+**Abnormalities:**
+
+*   **A:** There","Impression: Physical examination revealed that the liver was palpable, 4 cm below the right costal margin, with palpable lymph nodes, 1-3 cm in all superficial chains, mobile, and painful. Imaging tests performed during hospital admission revealed mesenteric, retroperitoneal, pelvic, inguinal, mediastinal, and hilar lymphadenopathy, hepatosplenomegaly, and large-volume ascites (Figure 1).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Furthermore, the patient complained of ventilatory-dependent pain in the right hemithorax and low dysphagia with solid food intake.
+2. Immediate stabilisation: Chylous ascites was characterized by comparing lipid levels in these fluids to serum levels (Table 1).
+3. Immediate stabilisation: On day 33 of hospitalization, the patient presented with deteriorated ventilatory status, necessitating orotracheal intubation, resulting in a 14-day stay in the intensive care...
+4. Immediate stabilisation: After the procedure, the patient developed tachypnea and chest pain, necessitating supplemental oxygen therapy.","Impression: There is a concerning finding in the left lung, specifically a large opacity with air bronchograms (arrows). This could represent a variety of conditions, including pneumonia, pulmonary edema, or a mass. The patient's history of tobacco use, illicit drug use, and gardening raises the possibility of infectious etiologies, as well as potential exposure to environmental toxins. The generalized lymphadenomegaly reported in the clinical note is also a significant finding that needs to be investigated.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable, provide oxygen if needed, and monitor vital signs closely.
+2.  **Investigate:** Obtain a complete blood count (CBC), comprehensive metabolic panel (CMP), and consider ordering a sputum sample for Gram stain and culture to evaluate for infection. A chest X-ray (CXR) would be helpful to assess the extent of the opacity and rule out other potential causes.
+3.  **Treat:** Initiate empiric antibiotics if there is a high suspicion for pneumonia, based on the clinical presentation and initial imaging findings.
+4.  **Disposition:** The disposition will depend on the results of the investigations and the patient's clinical condition. Further imaging, such as a CT scan of the chest, may be necessary to determine the underlying cause of the opacity."
+base (no adapter),file_0031255,ct,Computed tomography of the abdomen showing foreign materials in the stomach and small intestines.,"Okay, I can help with that.
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the abdomen.
+*   The liver is visible on the left side of the image.
+*   The kidneys are visible on either side of the spine.
+*   The bowel loops are present throughout the abdomen.
+*   The spine is visible in the center of the image.
+*   The ribs and chest wall are visible on the right side of the image.
+
+**Abnormalities:**
+
+*   There are multiple, well-defined, round, low-density lesions scattered throughout the abdomen","Impression: A 45-year-old Nigerian patient was admitted to the emergency unit in our hospital, following resuscitation at the airport transit hall due to convulsion, loss of consciousness and cardiopulmonary arrest. Endoscopic examination confirmed retention of 20-25 pieces of 5 x 4 cm white, capsule-shaped packets in the stomach of the patient, who was intubated under intensive care conditions (fig.
+Suggested next steps (most to least suitable):
+1. Not specified in source case; senior clinician review advised.","Impression: The image shows multiple, well-defined, round, low-density lesions scattered throughout the abdomen. This could be consistent with a number of possibilities, including metastatic disease, cysts, or other benign or malignant processes. The clinical context of a mass palpated in the lower right quadrant is important.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess and stabilize the patient's vital signs, airway, breathing, and circulation. Ensure adequate oxygenation and ventilation.
+2.  **Investigate:** Obtain a more detailed history and physical examination to better characterize the mass and the patient's symptoms. Consider laboratory tests (e.g., complete blood count, electrolytes, renal function) to assess for signs of infection or other complications.
+3.  **Treat:** Initiate supportive care as needed, such as intravenous fluids and pain management.
+4.  **Disposition:** Determine the appropriate disposition based on the patient's clinical status and the findings on the CT scan. This may involve admission for further evaluation and management, or discharge with appropriate follow-up."
+base (no adapter),file_0032649,ct,A) Demonstrates conglomerate of para-aortic retroperitoneal lymphadenopathy at diagnosis of primitive neuroectodermal tumor. Patient went on to receive cheomtherapy with VAC/IE.,"Okay, I'm looking at a CT scan of the abdomen.
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the abdomen.
+*   I can see the vertebral body of a lumbar vertebra.
+*   The bowel loops are visible.
+*   The kidneys are present.
+
+**Abnormalities:**
+
+*   There is a large, well-defined mass in the left upper quadrant of the abdomen. The mass appears to be causing some displacement of the bowel loops.
+*   There is a possible mass in the right upper quadrant of the abdomen.
+
+**Location and Appearance:**","Impression: A pre-operative computed tomography (CT) of the chest, abdomen, and pelvis revealed extensive retroperitoneal lymphadenopathy, including a confluence of tissue measuring 9.7x7.4 cm, as well as scattered mediastinal lymphadenopathy. The supraclavicular node was biopsied, which demonstrated a poorly differentiated high grade neoplasm though the definitive diagnosis remained in question.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: A 33 year-old man underwent right radical orchiectomy after presenting with severe back pain and right testicular swelling.
+2. Definitive treatment: Surgery was followed by three cycles of bleomycin, etoposide and cisplatin (BEP).
+3. Definitive treatment: He then underwent retroperitoneal lymph node dissection (RPLND), which showed metastatic mature teratoma in multiple lymph nodes without any residual GCT.
+4. Definitive treatment: The patient was not initially a candidate for surgical resection.","Impression: There is a large mass in the left upper quadrant of the abdomen, potentially displacing bowel loops. There is also a possible mass in the right upper quadrant. The exact nature of these masses is unknown.
+
+Suggested next steps (most to least suitable):
+1.  Stabilize: Assess vital signs, initiate IV access, and provide oxygen if needed.
+2.  Investigate: Order a contrast-enhanced CT scan of the abdomen and pelvis with IV contrast to better characterize the masses.
+3.  Treat: Based on the findings of the contrast-enhanced CT scan, consider further interventions such as biopsy, drainage, or surgical consultation.
+4.  Disposition: The disposition will depend on the findings of the contrast-enhanced CT scan and the patient's overall clinical condition."
+base (no adapter),file_0069269,ultrasound,"B-scan ultrasonography of the left eye. . Note: The retina was thought to be not detached, and high-intensity opacities of the vitreous body were also absent.","Okay, I've reviewed the ultrasound image.
+
+**Visible:**
+
+*   The image shows a cross-sectional view of the left eye.
+*   The optic nerve is visible.
+*   The retinal vessels are visible.
+*   The anterior chamber is visible.
+*   The lens is visible.
+*   The sclera is visible.
+
+**Findings:**
+
+*   The image shows a normal anatomical structure of the eye.
+*   There are no obvious signs of acute hemorrhage, retinal detachment, or other major structural abnormalities.
+*   The image is of good quality, allowing for visualization of the","Impression: A laboratory workup revealed a white blood cell count of 8,830/microL and a C-reactive protein (CRP) level of 1.32 mg/dL.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: We scheduled a blood evaluation and culture and a culture of fluid from the anterior chamber of the left eye.
+2. Immediate stabilisation: Despite best efforts to stabilize her whole-body condition, she passed away within 1 month.
+3. Investigate: Candida was detected after 45 h of blood culture (there was no susceptibility test result at this time); however, no microbe was cultured from the aqueous humor of the anterior...
+4. Definitive treatment: A 92-year-old woman, with no history of a systemic or ophthalmic disorder, no history of any prior operation, and no dementia, underwent cardiovascular surgery (placement of a...","Impression: The ultrasound image shows a normal anatomical structure of the eye. There are no obvious signs of acute hemorrhage, retinal detachment, or other major structural abnormalities. The patient is 92 years old and has a history of IVH decannulation. The patient is presenting with conjunctival hyperemia and pain in her left eye.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess the patient's vital signs, including blood pressure, heart rate, and respiratory rate. Ensure adequate oxygenation.
+2.  **Investigate:** Perform a thorough ophthalmic examination, including visual acuity testing, pupillary response assessment, and fundus examination. Consider a complete blood count (CBC) and inflammatory markers (e.g., ESR, CRP) to evaluate for systemic inflammation or infection.
+3.  **Treat:** Based on the ophthalmic examination and laboratory results, consider empiric treatment for potential causes of conjunctival hyperemia and pain, such as bacterial conjunctivitis or uveitis.
+4.  **Disposition:** Depending on the findings of the ophthalmic examination and laboratory results, consider further investigations, such as a CT scan of the eye or referral to an ophthalmologist for specialized evaluation."
+base (no adapter),file_0047351,acute_photo,Symphysis block graft with cancellous bone chips placed and stabilised using single screw apical to implants.,"Okay, I can provide a description of the visible findings in the image.
+
+**Visible Anatomy:**
+
+*   The image shows a clinical view of the oral cavity.
+*   The teeth are visible, including the mandibular right central incisor.
+*   The surrounding soft tissues are also visible, including the gums and the area around the implant.
+*   The implant itself is visible, with two screws/anchors present.
+
+**Abnormalities:**
+
+*   **Dental Implant:** A dental implant is present in the mandibular right central incisor region.
+*   **Mobility:** The clinician noted mobility of the","Impression: Intraoral examination revealed no soft tissue dehiscence noted in the concerned area. After hemostasis, the examination revealed completely denuded buccal aspect of the implant in relation to 41 (Figure 2).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The graft was stabilised over the buccal aspect of implants using titanium screw away from implants (Figure 4).
+2. Immediate stabilisation: Antibiotics and analgesics were prescribed to the patient.
+3. Definitive treatment: The patient had undergone surgical placement of 2 implants in mandibular anterior region 2 months back.
+4. Definitive treatment: The patient was ready for the surgery under local anesthesia.","Impression: The image shows a dental implant in the mandibular right central incisor region with reported mobility. The cause of the mobility is not evident from this single image.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess the patient's overall condition and ensure they are stable. This includes monitoring vital signs and addressing any immediate concerns.
+2.  **Investigate:** Further investigation is needed to determine the cause of the implant mobility. This could involve a more detailed examination of the implant site, review of the patient's medical history, and potentially additional imaging (e.g., a radiograph of the implant).
+3.  **Treat:** Treatment options will depend on the underlying cause of the mobility. This could range from conservative measures (e.g., adjusting the implant) to more invasive procedures (e.g., implant removal and replacement).
+4.  **Disposition:** The final disposition will depend on the findings of the investigation and the chosen treatment plan."
+base (no adapter),file_0119484,ct,Two-team approach surgical scenario setting.,"Okay, I can help with that. Based on the image description, here's what I can see:
+
+**Visible Anatomy:**
+
+*   **The image shows a CT scan of a patient, likely undergoing a surgical procedure.** The image displays the surgical field, including the patient's torso and the surgical instruments.
+*   **The patient's vasculature is prominent.** The image highlights the blood vessels surrounding the tumor.
+
+**Abnormalities:**
+
+*   **Extensive peritumoral vascularization:** This is the key finding. It indicates a dense network of blood vessels surrounding the tumor.
+
+**Location and Appearance","Impression: An euthyroid, asymptomatic and previously healthy 57-year old male patient was referred due to the incidental finding of a posterior mediastinal mass, flanking the right upper lobe artery (Figure 1). Due to a connection to the thyroid by a small tissue bridge, the diagnosis of a RSG with PME was confirmed by iodine-123 scintigraphy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated with a single lumen endotracheal tube and a bronchial blocker for single lung ventilation.
+2. Immediate stabilisation: For the second part the patient was placed in the left lateral decubitus position with one-lung ventilation of the left side.
+3. Definitive treatment: Surgery followed a two-step procedure: The first part was performed by the endocrine surgery team.
+4. Definitive treatment: Three 10 mm trocars were placed by the thoracic surgery team, standing on the right side of the table (Figure 2): a camera port at the seventh intercostal space in the...","Impression: The image shows a CT scan of a patient undergoing a surgical procedure with extensive peritumoral vascularization. This finding could be related to the tumor itself, the surgical procedure, or other factors.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient's vital signs are stable and that they are adequately resuscitated if needed.
+2.  **Investigate:** Further investigation is needed to determine the cause of the peritumoral vascularization. This could include additional imaging studies, such as angiography or MRI, to assess the blood vessels and surrounding tissues.
+3.  **Treat:** Treatment options will depend on the underlying cause of the peritumoral vascularization. This could include surgical resection of the tumor, radiation therapy, or other interventions.
+4.  **Disposition:** The patient's disposition will depend on the findings of the investigation and the treatment plan. They may be discharged home, admitted to the hospital for further treatment, or transferred to another facility."
+base (no adapter),file_0144096,acute_photo,Field biopsy with the extraction of 12 cutaneous tissue samples from the wound margin.,"Okay, I can provide a description of the visible findings based on the image and the provided clinical note.
+
+**Visible Findings:**
+
+*   **Skull Cap Defect:** A large oval-shaped defect is present in the skull cap, specifically in the occipital region.
+*   **Dura Mater Exposure:** The dura mater (the outermost membrane surrounding the brain and spinal cord) is exposed within the defect.
+*   **Location:** The defect is located in the occipital region of the skull cap.
+*   **Appearance:** The defect appears to be a relatively large area of tissue loss, with the dura mater visible","Impression: A 66-year-old patient was presented as an emergency case at an external neurological clinic due to noticeable neurological symptoms, including right-sided neglect. Furthermore, the initial diagnosis of type II diabetes mellitus was made with significant hyperglycaemia (blood glucose level of 30.4 mmol/L, HbA1c of 10.8%).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: After ruling out intracranial bleeding, infarction, and cerebrospinal fluid circulation disorders through imaging, the patient was transferred to our clinic for evaluation of...
+2. Investigate: Magnetic resonance imaging (MRI) and computed tomography (CT) scans were performed to rule out intracranial processes.
+3. Investigate: To exclude the possibility of scar carcinoma, a field biopsy was initially conducted, involving the collection of 12 cutaneous tissue samples from the wound margins (see Figure 3).
+4. Definitive treatment: According to the patient's medical history, in 2010, he had been treated by otolaryngologists for an extensive nuchal abscess (approximately 10 x 10 cm) with early necrotizing...","Impression: The image shows a large skull cap defect with dura mater exposure. This is a serious finding that requires immediate attention. The patient's history of turning to the right side while in bed suggests a possible mass or lesion causing discomfort. The exact nature of the defect and the underlying cause are unknown.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable and has adequate airway, breathing, and circulation. This is the priority in any emergency situation.
+2.  **Investigate:** Obtain a CT scan of the head with contrast to further characterize the defect, assess for any intracranial involvement, and rule out other potential causes.
+3.  **Treat:** Based on the CT scan findings, determine the appropriate treatment plan. This may involve surgical intervention to repair the defect and address any underlying pathology.
+4.  **Disposition:** The patient's disposition will depend on the findings of the CT scan and the overall clinical picture. Further management may require admission to the hospital for ongoing care and monitoring."
+base (no adapter),file_0132920,x_ray,Radiolucency of the metacarpal head of the third finger (arrow).,"Okay, I've reviewed the X-ray image. Here's a description of the visible findings, keeping in mind that I am an AI and cannot provide a definitive diagnosis:
+
+**Visible Anatomy:**
+
+*   The image shows a lateral view of the right wrist and hand.
+*   The bones of the wrist (radius, ulna, and carpals) are visible.
+*   The metacarpal bones of the right hand are also visible.
+*   The phalanges (finger bones) are visible.
+
+**Abnormalities:**
+
+*   There is a palpable mass, approximately 2 cm in","Impression: A 50-year-old housewife consulted a family doctor for her swelling around the A1 pulley in the right third finger and diagnosed as a trigger finger, and the lesion was treated by a tendon sheath injection. Magnetic resonance imaging revealed a mass of low intensity on T1 and high intensity on STIR sequences (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Based on these findings, giant cell tumor of the tendon sheath (GCTTS) was suspected and a subsequent resection of the tumor was scheduled.
+2. Definitive treatment: At the surgery, the tumor was identified adjacent to the flexor tendon after a careful palmar approach.
+3. Definitive treatment: ROM-based training was initiated from the next day of the surgery.","Impression: The X-ray shows a palpable mass on the ulnar side of the metacarpal head in the right third finger. The mass is approximately 2 cm in size. The image is limited in its ability to characterize the mass.
+
+Suggested next steps (most to least suitable):
+1.  Stabilize: Immobilize the right hand to prevent further injury or displacement of the mass.
+2.  Investigate: Order an MRI of the right hand to better characterize the mass and assess its extent.
+3.  Treat: Initiate treatment for a possible infection or inflammatory process, pending further investigation.
+4.  Disposition: Depending on the findings of the MRI and the patient's symptoms, consider referral to a specialist (e.g., hand surgeon, orthopedic surgeon) for further evaluation and management."
+base (no adapter),file_0156671,ultrasound,"Endoscopic ultrasonography and resected lesions. (A,B) Endoscopic ultrasonography shows two hypoechoic lesions (A measuring 5.5*4.3 mm and B measuring 8.4*6.4 mm) originating from muscularis propria of the duodenal bulb.","Okay, I've reviewed the ultrasound image.
+
+**Visible Anatomy:**
+
+*   The image shows a cross-sectional view of the stomach.
+*   The pyloric ring is visible, appearing as a circular structure at the outlet of the stomach.
+*   The greater curvature of the stomach is also visible.
+
+**Abnormalities:**
+
+*   There is a lesion present in the greater curvature of the stomach. The lesion appears as a hypoechoic (darker) area within the stomach wall.
+*   The lesion is located near the pyloric ring.
+
+**Location and Appearance:**
+
+*","Impression: Endoscopic ultrasonography revealed two hypoechoic lesions originating from the muscularis propria of the duodenal bulb (Figures 1A,B). Pathologic examination (Figure 4A) by hematoxylin-eosin staining (Figure 4B) and immunohistochemistry (Figures 4C-F) that were positive for Ki-67(< 3%), the cluster of differentiation 56 (CD56), chromogranin A (CgA), and synaptophysin were both consistent with a NET.
+Suggested next steps (most to least suitable):
+1. Disposition: A 59-year-old woman was referred to our hospital following the discovery of two submucosal tumors (SMTs) in the duodenal bulb during a routine gastroscopy.","Impression: There is a lesion present in the greater curvature of the stomach. The lesion appears as a hypoechoic (darker) area within the stomach wall. The lesion is located near the pyloric ring.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable and has adequate pain control.
+2.  **Investigate:** Consider further imaging (e.g., CT scan, endoscopy) to better characterize the lesion.
+3.  **Treat:** Treatment options will depend on the nature of the lesion, but may include endoscopic therapy (e.g., ESD, radiofrequency ablation) or surgical resection.
+4.  **Disposition:** The patient's disposition will depend on the findings of further investigations and the chosen treatment plan."
+base (no adapter),file_0147026,x_ray,Coronary angiography after first cardiac arrest episode. (A) Left coronary artery.,"Okay, I've reviewed the image. Here's a description of the visible findings, keeping in mind that this is a single image and further evaluation is needed:
+
+**Visible Anatomy:**
+
+*   The image appears to be a cardiac angiogram, showing the major coronary arteries and the heart chambers.
+*   The aorta is visible, with the aortic arch and descending aorta.
+*   The heart chambers, including the left ventricle and left atrium, are visible.
+*   The pulmonary artery is visible, with the main pulmonary artery and its branches.
+
+**Abnormalities:**
+
+*   **Coronary Arter","Impression: Given the clinical picture, ECGs, and coronary angiography findings, a likely diagnosis of vasospastic angina was made and the patient was started on nifedipine and nitroglycerin transdermal patch.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: He underwent urgent coronary angiography aided by optical coherence tomography (OCT) and a drug-eluting stent was placed in the distal segment of the left anterior descending...
+2. Disposition: The patient was admitted to the coronary intensive care unit and during his stay he had two further episodes of sudden chest pain at rest, which progressed to cardiac arrest,...
+3. Disposition: The patient remained under observation for another week with no further episodes.","Impression: The image shows a coronary artery with a possible stenosis or occlusion. The red arrow points to a vessel, and the blue arrow points to another vessel. The exact nature of the abnormality is unclear from this single image.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable. This includes monitoring vital signs (heart rate, blood pressure, oxygen saturation), providing supplemental oxygen if needed, and establishing intravenous access.
+2.  **Investigate:** Perform a more comprehensive cardiac evaluation. This could include:
+    *   **ECG:** To assess for any signs of ischemia or infarction.
+    *   **Cardiac Enzymes:** To rule out myocardial infarction.
+    *   **Further Imaging:** Depending on the initial findings, consider additional imaging such as a transthoracic echocardiogram (TTE) or transesophageal echocardiogram (TEE) to better visualize the coronary arteries.
+3.  **Treat:** Based on the findings of the initial evaluation, consider appropriate medical or interventional treatments. This could include antiplatelet therapy, anticoagulation, or percutaneous coronary intervention (PCI) if a significant coronary artery occlusion is identified.
+4.  **Disposition:** Determine the appropriate disposition for the patient. This could include admission to the hospital for further management, transfer to a specialized center, or discharge with appropriate follow-up."
+base (no adapter),file_0137143,ultrasound,(a and b) Evaluation of the blood flow of the donor artery using ultrasonography which revealed a prominent decrease in blood flow during mouth opening.,"Okay, I've reviewed the ultrasound image and the clinical information. Here's a description of the visible findings, along with some considerations:
+
+**Visible Findings:**
+
+*   **Aorta:** The aorta is visible in the image. The diameter appears to be within normal limits.
+*   **Heart:** The heart is visible. The heart size appears to be within normal limits.
+*   **Pulmonary Artery:** The pulmonary artery is visible. The diameter appears to be within normal limits.
+*   **Other Structures:** Other structures, such as the trachea and esophagus, are also visible.
+
+**Uncertain","Impression: A 60-year-old man who is a smoker with a medical history of hypertension, hyperlipidemia, and diabetic mellitus was transferred to our hospital with a diagnosis of acute ischemic stroke secondary to a left cervical internal carotid artery occlusion. Furthermore, MRA revealed a diminished signal intensity of the donor artery [Figures 3f-h].
+Suggested next steps (most to least suitable):
+1. Investigate: Cerebral angiography was performed to examine the cerebral blood flow in the left hemisphere [Figures 2ac].
+2. Investigate: MRI was immediately performed and showed no new lesions.
+3. Definitive treatment: One of his pertinent medical histories was a left-sided depressed fracture in which he underwent reduction surgery during childhood.
+4. Definitive treatment: Dual antiplatelet therapy (aspirin 100 mg and clopidogrel 75 mg) was administered, and rehabilitation was started.","Impression: The ultrasound image shows a possible aortic dissection. The red arrow indicates a possible intimal flap within the aorta. However, this finding is not definitive, and other conditions could potentially cause a similar appearance.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient's blood pressure and heart rate are controlled. This is crucial to prevent further propagation of a potential dissection.
+2.  **Investigate:** Obtain a CT angiogram of the chest to confirm or rule out an aortic dissection. This will provide a more definitive diagnosis and guide further management.
+3.  **Treat:** If an aortic dissection is confirmed, initiate appropriate medical or surgical management based on the location and extent of the dissection.
+4.  **Disposition:** Once the diagnosis is confirmed and treatment is initiated, the patient's disposition will depend on the severity of the dissection and their overall clinical condition."
+base (no adapter),file_0027288,x_ray,X-ray chest Posteroanterior view showing irregular diffuse deposition of mercury in the subcutaneous plane.,"Okay, I've reviewed the chest X-ray.
+
+**Visible Anatomy:**
+
+*   The lungs appear to be relatively clear, with no obvious consolidation or large effusions.
+*   The heart size appears within normal limits.
+*   The mediastinum is unremarkable.
+*   The bony structures of the rib cage are visible.
+
+**Abnormalities:**
+
+*   There is a significant opacity in the left lower lung field, appearing as a dense, white area. The exact shape and borders are somewhat irregular.
+*   The location of this opacity is in the left lower lung field, below the left nipple","Impression: Physical examination revealed a thin built male with stable vital signs. Microscopy-Hematoxylin and Eosin stained sections revealed stratified squamous epithelium showing hyperkeratosis and epitheliomatous hyperplasia.
+Suggested next steps (most to least suitable):
+1. Investigate: Gold-lysis test, blood, and urine mercury levels, energy-dispersive X-ray analysis and scanning electron microscopy were not carried out in our case.
+2. Definitive treatment: The patient underwent surgical excision of the areas of skin discoloration and soft-tissue induration.
+3. Disposition: After minute observation some shiny material was seen in the few tissue bits [Figure 5].","Impression: There is a significant opacity in the left lower lung field, appearing as a dense, white area. The exact shape and borders are somewhat irregular. This could be due to a variety of factors, including a mass, consolidation, or other abnormal process. The location below the left nipple is a key piece of information.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Ensure the patient is hemodynamically stable and has adequate oxygenation. This is always the first priority in any emergency situation.
+2.  **Investigate:** Obtain a CT scan of the chest with contrast. This will provide a more detailed view of the opacity and help to differentiate between possible causes.
+3.  **Treat:** Treatment should be guided by the underlying cause of the opacity. This could involve antibiotics for pneumonia, surgery for a mass, or other interventions.
+4.  **Disposition:** The patient's disposition will depend on the findings of the CT scan and the underlying cause of the opacity."
+base (no adapter),file_0023077,acute_photo,"Intubated state after release of the neck and mouth contractures. The solid line is drawn a transverse incision line under local anesthesia. And the part between a solid line and a dotted line is released area. ; this requires dissecting nearly whole circumference of the neck, leaving a large, stellate wound involving the lower face, the neck, the upper chest.","Okay, I can provide a description of the visible findings based on the image and the provided clinical note.
+
+**Visible Findings:**
+
+*   **Severe Scar Contractures:** The image shows extensive scar contractures affecting the neck, face, anterior chest, and both shoulders, including the upper arms.
+*   **Deformity:** The contractures have resulted in significant deformity, with the chin, chest, and upper arms fused together by thick, hard scars.
+*   **Location:** The contractures are primarily located in the neck, face, anterior chest, and both shoulders and upper arms.
+*   **Appearance:**","Impression: A 41-year-old man was hospitalized with severe scar contracture due to flame burn injury to neck and chest three years ago. Preoperative X-rays and a computed tomography (CT) scan for assessing his airway passage and related structures revealed marked thickening of the soft tissues around the neck, without distortion or stenosis of the upper airway and the trachea.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: We consulted an otolaryngologist for airway evaluation, but endoscopic examination of the airway could not be performed because of the narrow external nares and the small oral...
+2. Immediate stabilisation: In preoperative airway examination, the width from upper incisor to lower teeth was less than 1 cm.
+3. Immediate stabilisation: It was difficult to perform face mask ventilation because of nearly fixed neck movement and regressed mandible.
+4. Immediate stabilisation: For the same reason, conventional laryngoscopic intubation was thought to be impossible.","Impression: The image shows severe scar contractures resulting in significant deformity of the neck, face, chest, and upper arms. The cause of these contractures is not immediately apparent from this image alone.
+
+Suggested next steps (most to least suitable):
+1.  **Stabilize:** Assess the patient's airway, breathing, and circulation (ABCs). Ensure adequate oxygenation and ventilation. Address any immediate life-threatening issues.
+2.  **Investigate:** Obtain a detailed history from the patient and/or family regarding the cause of the contractures. This should include information about any previous injuries, surgeries, or medical conditions that may have contributed to the development of the scars.
+3.  **Treat:** Based on the history and physical examination, consider initiating treatment for the contractures. This may include physical therapy, massage, or other modalities to help improve range of motion and reduce the severity of the contractures.
+4.  **Disposition:** Determine the appropriate disposition for the patient. This may involve admission to the hospital for further treatment and rehabilitation, or discharge with instructions for outpatient follow-up."
+base (no adapter),file_0156414,ultrasound,"Ultrasound image of atypical parathyroid adenoma misdiagnosed as ""thyroid malignant tumor"".","Okay, I've reviewed the ultrasound image. Here's what I see:
+
+**Visible Anatomy:**
+
+*   **Thyroid Gland:** The ultrasound image shows the thyroid gland, which appears to be somewhat enlarged.
+*   **Thyroid Lobes:** The thyroid gland is divided into two lobes, which are visible in the image.
+*   **Blood Vessels:** I can see some blood vessels within the thyroid gland.
+*   **Surrounding Structures:** The image also shows some surrounding structures, such as the trachea and surrounding tissues.
+
+**Abnormalities:**
+
+*   **Mass:** There appears to","Impression: The ultrasound revealed a left lobe thyroid nodule (ACR-TIRADS 5type).Cervical enhanced CT revealed a left medial paratracheal thyroid space occupying lesion ( Figure 3 ). ECT diagnosis: Increased distribution of imaging agents in the upper left lobe of the thyroid, the possibility of hyperparathyroidism is high ( Figure 4 ).
+Suggested next steps (most to least suitable):
+1. Investigate: Biochemical findings indicated that the patient had raised iPTH, elevated blood calcium, and decreased blood phosphorus, which, together with imaging and laboratory tests,...
+2. Definitive treatment: Because the patient was nervous and concerned about the risk of tumor cell spillage, she refused to do FNA and wanted to accomplish the treatment through surgery as soon as...
+3. Definitive treatment: As a result, the patient was admitted and had surgery under general anesthesia.
+4. Definitive treatment: The thyroid surgeon considered the intraoperative pathological suggestion of capsule invasion, which was inconsistent with the typical parathyroid adenoma and had malignant...","Impression: The ultrasound image shows an enlarged thyroid gland with a visible mass. The mass is hypoechoic, which can be a non-specific finding. Further evaluation is needed to determine the nature of the mass.
+
+Suggested next steps (most to least suitable):
+1.  **Investigate:** Fine needle aspiration (FNA) of the thyroid mass. This is the most appropriate next step to obtain a tissue diagnosis and determine the nature of the mass (e.g., benign, malignant, or other).
+2.  **Investigate:** Thyroid function tests (TFTs) - TSH, free T4, and possibly T3. This will help assess the function of the thyroid gland and rule out thyroid dysfunction as a contributing factor.
+3.  **Investigate:** Consider a thyroid scan with radioactive iodine uptake (RAIU) to further characterize the mass and assess its vascularity. This can help differentiate between benign and malignant nodules.
+4.  **Stabilise:** Assess the patient's symptoms and vital signs. Ensure the patient is stable and comfortable."
+adapted (best),file_0033639,ultrasound,At follow up there is neotendon infilling in place of the tear defect. . The lateral tear margin has retracted with mild interval attrition of the supraspinatus tendon. At the time of this follow up study the patient had a dramatic return to a completely pain free state and had full range of movement with no dysfunction.,Ultrasound image of the shoulder.,"Impression: A diagnosis of a recent footprint tear superimposed on degenerative supraspinatus tendon with mild muscle atrophy was made.
+Suggested next steps (most to least suitable):
+1. Investigate: At the 10 month follow up, ultrasound (GE Logic 9, 9MHz probe) performed by the author showed a near complete echogenic infilling obliterating the tear defect.
+2. Definitive treatment: At 8 weeks follow up post PRP the patient verbally reported a marked reduction in pain with improvement in shoulder movement.","Impression: The patient was referred to the shoulder clinic in 2017 and was diagnosed with a rotator cuff tear.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: She was referred to the shoulder clinic in 2017 and was diagnosed with a rotator cuff tear."
+adapted (best),file_0015866,ct,"CT scan of the chest at two contiguous levels shows areas of bronchiectasis surrounded by air space opacities (arrow in A) representing hemorrhage within the consolidated right middle lobe, extending to the pleural surface (arrow in B).",(A) Chest CT scan showing a cavitary lesion in the right upper lobe (arrow).,"Impression: A contrast-enhanced CT scan of the chest revealed consolidation and bronchiectasis involving the lateral segment of the right middle lobe and a larger surrounding zone of hazy airspace opacities [Figure 1] probably representing hemorrhage. An Echelon-14 microcatheter (MTI, Irvine, CA, USA) was advanced coaxially through the existing 5-French diagnostic catheter.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Four years ago, he had been treated for pulmonary tuberculosis.
+2. Definitive treatment: Two earlier episodes, 6 and 4 years earlier, were conservatively managed with antibiotics.
+3. Definitive treatment: A hypertrophied right internal mammary artery (IMA) was noted supplying a complex vascular malformation in the right middle lobe [Figure 2] via large pleural and phrenic...
+4. Definitive treatment: We decided to undertake angiographic evaluation and embolization of this malformation.","Impression: A 30-year-old man with a history of necrotizing pneumonia in infancy was admitted to the hospital with a 1-month history of cough and fever.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: He was treated with intravenous antibiotics, and the fever subsided.
+2. Definitive treatment: He was treated with intravenous antibiotics, and the fever subsided.
+3. Definitive treatment: He was treated with intravenous antibiotics, and the fever subsided.
+4. Definitive treatment: He was treated with intravenous antibiotics, and the fever subsided."
+adapted (best),file_0005136,ct,Chylotorax due to juvenile paracoccidioidomycosis.,(B) Chest CT scan showing a mass in the left lung.,"Impression: Physical examination revealed that the liver was palpable, 4 cm below the right costal margin, with palpable lymph nodes, 1-3 cm in all superficial chains, mobile, and painful. Imaging tests performed during hospital admission revealed mesenteric, retroperitoneal, pelvic, inguinal, mediastinal, and hilar lymphadenopathy, hepatosplenomegaly, and large-volume ascites (Figure 1).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Furthermore, the patient complained of ventilatory-dependent pain in the right hemithorax and low dysphagia with solid food intake.
+2. Immediate stabilisation: Chylous ascites was characterized by comparing lipid levels in these fluids to serum levels (Table 1).
+3. Immediate stabilisation: On day 33 of hospitalization, the patient presented with deteriorated ventilatory status, necessitating orotracheal intubation, resulting in a 14-day stay in the intensive care...
+4. Immediate stabilisation: After the procedure, the patient developed tachypnea and chest pain, necessitating supplemental oxygen therapy.","Impression: A 16-year-old male was referred to the thoracic surgery department for a left lung mass.
+Suggested next steps (most to least suitable):
+1. Investigate: A chest X-ray revealed a mass in the left lung (Figure 1A).
+2. Definitive treatment: The patient underwent a bronchoscopy with biopsy, which revealed a poorly differentiated carcinoma.
+3. Definitive treatment: The patient underwent a left upper lobectomy with mediastinal lymph node dissection."
+adapted (best),file_0031255,ct,Computed tomography of the abdomen showing foreign materials in the stomach and small intestines.,CT scan of the abdomen.,"Impression: A 45-year-old Nigerian patient was admitted to the emergency unit in our hospital, following resuscitation at the airport transit hall due to convulsion, loss of consciousness and cardiopulmonary arrest. Endoscopic examination confirmed retention of 20-25 pieces of 5 x 4 cm white, capsule-shaped packets in the stomach of the patient, who was intubated under intensive care conditions (fig.
+Suggested next steps (most to least suitable):
+1. Not specified in source case; senior clinician review advised.","Impression: The patient was admitted to the hospital and underwent a physical examination. The patient was diagnosed with a right lower quadrant mass, and a CT scan of the abdomen was performed.
+Suggested next steps (most to least suitable):
+1. Investigate: A CT scan of the abdomen was performed, which revealed a 10.5 x 8.5 x 7.5 cm mass in the right lower quadrant of the abdomen.
+2. Definitive treatment: The patient was referred to the surgical department for a second opinion.
+3. Definitive treatment: The patient underwent a laparotomy and the mass was found to be a 10.5 x 8.5 x 7.5 cm mass in the right lower quadrant of the abdomen."
+adapted (best),file_0032649,ct,A) Demonstrates conglomerate of para-aortic retroperitoneal lymphadenopathy at diagnosis of primitive neuroectodermal tumor. Patient went on to receive cheomtherapy with VAC/IE.,CT scan of the abdomen showing a large left retroperitoneal mass.,"Impression: A pre-operative computed tomography (CT) of the chest, abdomen, and pelvis revealed extensive retroperitoneal lymphadenopathy, including a confluence of tissue measuring 9.7x7.4 cm, as well as scattered mediastinal lymphadenopathy. The supraclavicular node was biopsied, which demonstrated a poorly differentiated high grade neoplasm though the definitive diagnosis remained in question.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: A 33 year-old man underwent right radical orchiectomy after presenting with severe back pain and right testicular swelling.
+2. Definitive treatment: Surgery was followed by three cycles of bleomycin, etoposide and cisplatin (BEP).
+3. Definitive treatment: He then underwent retroperitoneal lymph node dissection (RPLND), which showed metastatic mature teratoma in multiple lymph nodes without any residual GCT.
+4. Definitive treatment: The patient was not initially a candidate for surgical resection.","Impression: A 33-year-old man was referred to our hospital with a 1-year history of left flank pain and a 2-month history of left lower extremity weakness.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a left retroperitoneal mass resection.
+2. Definitive treatment: The patient was diagnosed with a left retroperitoneal mass and underwent a left retroperitoneal mass resection.
+3. Definitive treatment: The patient was diagnosed with a left retroperitoneal mass and underwent a left retroperitoneal mass resection.
+4. Definitive treatment: The patient was diagnosed with a left retroperitoneal mass and underwent a left retroperitoneal mass resection."
+adapted (best),file_0069269,ultrasound,"B-scan ultrasonography of the left eye. . Note: The retina was thought to be not detached, and high-intensity opacities of the vitreous body were also absent.",Ultrasound of the left eye.,"Impression: A laboratory workup revealed a white blood cell count of 8,830/microL and a C-reactive protein (CRP) level of 1.32 mg/dL.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: We scheduled a blood evaluation and culture and a culture of fluid from the anterior chamber of the left eye.
+2. Immediate stabilisation: Despite best efforts to stabilize her whole-body condition, she passed away within 1 month.
+3. Investigate: Candida was detected after 45 h of blood culture (there was no susceptibility test result at this time); however, no microbe was cultured from the aqueous humor of the anterior...
+4. Definitive treatment: A 92-year-old woman, with no history of a systemic or ophthalmic disorder, no history of any prior operation, and no dementia, underwent cardiovascular surgery (placement of a...","Impression: The patient was diagnosed with a right-sided inferior rectus muscle contracture and underwent right inferior rectus muscle release surgery.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was diagnosed with a right-sided inferior rectus muscle contracture and underwent right inferior rectus muscle release surgery."
+adapted (best),file_0047351,acute_photo,Symphysis block graft with cancellous bone chips placed and stabilised using single screw apical to implants.,Clinical photograph showing the implant placement in the mandibular right central incisor region.,"Impression: Intraoral examination revealed no soft tissue dehiscence noted in the concerned area. After hemostasis, the examination revealed completely denuded buccal aspect of the implant in relation to 41 (Figure 2).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The graft was stabilised over the buccal aspect of implants using titanium screw away from implants (Figure 4).
+2. Immediate stabilisation: Antibiotics and analgesics were prescribed to the patient.
+3. Definitive treatment: The patient had undergone surgical placement of 2 implants in mandibular anterior region 2 months back.
+4. Definitive treatment: The patient was ready for the surgery under local anesthesia.","Impression: The patient was diagnosed with a Class II malocclusion with a deep overbite and a Class III skeletal pattern.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was referred to the Department of Oral and Maxillofacial Surgery for a surgical correction of the skeletal deformity."
+adapted (best),file_0119484,ct,Two-team approach surgical scenario setting.,Surgical approach.,"Impression: An euthyroid, asymptomatic and previously healthy 57-year old male patient was referred due to the incidental finding of a posterior mediastinal mass, flanking the right upper lobe artery (Figure 1). Due to a connection to the thyroid by a small tissue bridge, the diagnosis of a RSG with PME was confirmed by iodine-123 scintigraphy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated with a single lumen endotracheal tube and a bronchial blocker for single lung ventilation.
+2. Immediate stabilisation: For the second part the patient was placed in the left lateral decubitus position with one-lung ventilation of the left side.
+3. Definitive treatment: Surgery followed a two-step procedure: The first part was performed by the endocrine surgery team.
+4. Definitive treatment: Three 10 mm trocars were placed by the thoracic surgery team, standing on the right side of the table (Figure 2): a camera port at the seventh intercostal space in the...","Impression: The patient was diagnosed with a right-sided paraspinal mass with a diameter of 10 cm, which was suspected to be a malignant tumor.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a right-sided paraspinal mass resection, and the pathological diagnosis was a malignant tumor.
+2. Definitive treatment: The patient underwent a right-sided paraspinal mass resection, and the pathological diagnosis was a malignant tumor."
+adapted (best),file_0144096,acute_photo,Field biopsy with the extraction of 12 cutaneous tissue samples from the wound margin.,Preoperative view of the occipital skull cap defect.,"Impression: A 66-year-old patient was presented as an emergency case at an external neurological clinic due to noticeable neurological symptoms, including right-sided neglect. Furthermore, the initial diagnosis of type II diabetes mellitus was made with significant hyperglycaemia (blood glucose level of 30.4 mmol/L, HbA1c of 10.8%).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: After ruling out intracranial bleeding, infarction, and cerebrospinal fluid circulation disorders through imaging, the patient was transferred to our clinic for evaluation of...
+2. Investigate: Magnetic resonance imaging (MRI) and computed tomography (CT) scans were performed to rule out intracranial processes.
+3. Investigate: To exclude the possibility of scar carcinoma, a field biopsy was initially conducted, involving the collection of 12 cutaneous tissue samples from the wound margins (see Figure 3).
+4. Definitive treatment: According to the patient's medical history, in 2010, he had been treated by otolaryngologists for an extensive nuchal abscess (approximately 10 x 10 cm) with early necrotizing...","Impression: The patient was diagnosed with a right occipital skull cap defect with dura mater exposure.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was referred to our hospital for further treatment.
+2. Definitive treatment: The patient underwent a cranioplasty with a titanium mesh and a silicone implant."
+adapted (best),file_0132920,x_ray,Radiolucency of the metacarpal head of the third finger (arrow).,Radiograph of the right hand.,"Impression: A 50-year-old housewife consulted a family doctor for her swelling around the A1 pulley in the right third finger and diagnosed as a trigger finger, and the lesion was treated by a tendon sheath injection. Magnetic resonance imaging revealed a mass of low intensity on T1 and high intensity on STIR sequences (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Based on these findings, giant cell tumor of the tendon sheath (GCTTS) was suspected and a subsequent resection of the tumor was scheduled.
+2. Definitive treatment: At the surgery, the tumor was identified adjacent to the flexor tendon after a careful palmar approach.
+3. Definitive treatment: ROM-based training was initiated from the next day of the surgery.","Impression: The patient was diagnosed with a soft tissue tumor of the right hand, and a biopsy was performed. Histopathological examination revealed a diagnosis of a benign fibrosarcoma.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a wide local excision of the tumor, and the pathology report was consistent with the diagnosis of a benign fibrosarcoma."
+adapted (best),file_0156671,ultrasound,"Endoscopic ultrasonography and resected lesions. (A,B) Endoscopic ultrasonography shows two hypoechoic lesions (A measuring 5.5*4.3 mm and B measuring 8.4*6.4 mm) originating from muscularis propria of the duodenal bulb.",Endoscopic ultrasound (EUS) image of the SMT.,"Impression: Endoscopic ultrasonography revealed two hypoechoic lesions originating from the muscularis propria of the duodenal bulb (Figures 1A,B). Pathologic examination (Figure 4A) by hematoxylin-eosin staining (Figure 4B) and immunohistochemistry (Figures 4C-F) that were positive for Ki-67(< 3%), the cluster of differentiation 56 (CD56), chromogranin A (CgA), and synaptophysin were both consistent with a NET.
+Suggested next steps (most to least suitable):
+1. Disposition: A 59-year-old woman was referred to our hospital following the discovery of two submucosal tumors (SMTs) in the duodenal bulb during a routine gastroscopy.","Impression: The patient was diagnosed with SMT by EUS and biopsy.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent ESD of the SMT."
+adapted (best),file_0147026,x_ray,Coronary angiography after first cardiac arrest episode. (A) Left coronary artery.,Coronary angiography showing a proximal LAD occlusion (red arrow) and a proximal LCX occlusion (blue arrow).,"Impression: Given the clinical picture, ECGs, and coronary angiography findings, a likely diagnosis of vasospastic angina was made and the patient was started on nifedipine and nitroglycerin transdermal patch.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: He underwent urgent coronary angiography aided by optical coherence tomography (OCT) and a drug-eluting stent was placed in the distal segment of the left anterior descending...
+2. Disposition: The patient was admitted to the coronary intensive care unit and during his stay he had two further episodes of sudden chest pain at rest, which progressed to cardiac arrest,...
+3. Disposition: The patient remained under observation for another week with no further episodes.","Impression: The patient was resuscitated with 120 J biphasic defibrillation and 150 J biphasic defibrillation, with no return of spontaneous circulation (ROSC).
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was resuscitated with 120 J biphasic defibrillation and 150 J biphasic defibrillation, with no return of spontaneous circulation (ROSC).
+2. Definitive treatment: The patient was resuscitated with 120 J biphasic defibrillation and 150 J biphasic defibrillation, with no return of spontaneous circulation (ROSC).
+3. Definitive treatment: The patient was resuscitated with 120 J biphasic defibrillation and 150 J biphasic defibrillation, with no return of spontaneous circulation (ROSC).
+4. Definitive treatment: The patient was resuscitated with 120 J biphasic defibrillation and 150 J biphasic defibrillation, with no return of spontaneous circulation (ROSC)."
+adapted (best),file_0137143,ultrasound,(a and b) Evaluation of the blood flow of the donor artery using ultrasonography which revealed a prominent decrease in blood flow during mouth opening.,(a) Color Doppler ultrasound of the left common carotid artery.,"Impression: A 60-year-old man who is a smoker with a medical history of hypertension, hyperlipidemia, and diabetic mellitus was transferred to our hospital with a diagnosis of acute ischemic stroke secondary to a left cervical internal carotid artery occlusion. Furthermore, MRA revealed a diminished signal intensity of the donor artery [Figures 3f-h].
+Suggested next steps (most to least suitable):
+1. Investigate: Cerebral angiography was performed to examine the cerebral blood flow in the left hemisphere [Figures 2ac].
+2. Investigate: MRI was immediately performed and showed no new lesions.
+3. Definitive treatment: One of his pertinent medical histories was a left-sided depressed fracture in which he underwent reduction surgery during childhood.
+4. Definitive treatment: Dual antiplatelet therapy (aspirin 100 mg and clopidogrel 75 mg) was administered, and rehabilitation was started.","Impression: The patient was diagnosed with left middle cerebral artery (MCA) infarction and underwent thrombolysis with intravenous alteplase (0.9 mg/kg, maximum 90 mg) within 4.5 hours of symptom onset.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with intravenous alteplase (0.9 mg/kg, maximum 90 mg) within 4.5 hours of symptom onset."
+adapted (best),file_0027288,x_ray,X-ray chest Posteroanterior view showing irregular diffuse deposition of mercury in the subcutaneous plane.,Chest X-ray showing multiple nodules in the left lower lobe.,"Impression: Physical examination revealed a thin built male with stable vital signs. Microscopy-Hematoxylin and Eosin stained sections revealed stratified squamous epithelium showing hyperkeratosis and epitheliomatous hyperplasia.
+Suggested next steps (most to least suitable):
+1. Investigate: Gold-lysis test, blood, and urine mercury levels, energy-dispersive X-ray analysis and scanning electron microscopy were not carried out in our case.
+2. Definitive treatment: The patient underwent surgical excision of the areas of skin discoloration and soft-tissue induration.
+3. Disposition: After minute observation some shiny material was seen in the few tissue bits [Figure 5].","Impression: A 23-year-old male patient presented to dermatology out-patient department with chief complaints of nodular, erythematous lesions over the left forearm, and anterior chest wall below the left nipple, of 4 months duration.
+Suggested next steps (most to least suitable):
+1. Investigate: A chest X-ray was done which revealed multiple nodules in the left lower lobe (Figure 1).
+2. Definitive treatment: The patient was diagnosed as having multiple myeloma and was treated with bortezomib, lenalidomide, and dexamethasone."
+adapted (best),file_0023077,acute_photo,"Intubated state after release of the neck and mouth contractures. The solid line is drawn a transverse incision line under local anesthesia. And the part between a solid line and a dotted line is released area. ; this requires dissecting nearly whole circumference of the neck, leaving a large, stellate wound involving the lower face, the neck, the upper chest.","Severe scar contractures involving neck, face, anterior chest, and both shoulders including upper arms.","Impression: A 41-year-old man was hospitalized with severe scar contracture due to flame burn injury to neck and chest three years ago. Preoperative X-rays and a computed tomography (CT) scan for assessing his airway passage and related structures revealed marked thickening of the soft tissues around the neck, without distortion or stenosis of the upper airway and the trachea.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: We consulted an otolaryngologist for airway evaluation, but endoscopic examination of the airway could not be performed because of the narrow external nares and the small oral...
+2. Immediate stabilisation: In preoperative airway examination, the width from upper incisor to lower teeth was less than 1 cm.
+3. Immediate stabilisation: It was difficult to perform face mask ventilation because of nearly fixed neck movement and regressed mandible.
+4. Immediate stabilisation: For the same reason, conventional laryngoscopic intubation was thought to be impossible.","Impression: The patient was referred to our department for surgical correction of the severe scar contractures.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent extensive surgical release of the scar contractures.
+2. Definitive treatment: The patient underwent extensive surgical release of the scar contractures.
+3. Definitive treatment: The patient underwent extensive surgical release of the scar contractures.
+4. Definitive treatment: The patient underwent extensive surgical release of the scar contractures."
+adapted (best),file_0156414,ultrasound,"Ultrasound image of atypical parathyroid adenoma misdiagnosed as ""thyroid malignant tumor"".",Ultrasound image of the thyroid gland.,"Impression: The ultrasound revealed a left lobe thyroid nodule (ACR-TIRADS 5type).Cervical enhanced CT revealed a left medial paratracheal thyroid space occupying lesion ( Figure 3 ). ECT diagnosis: Increased distribution of imaging agents in the upper left lobe of the thyroid, the possibility of hyperparathyroidism is high ( Figure 4 ).
+Suggested next steps (most to least suitable):
+1. Investigate: Biochemical findings indicated that the patient had raised iPTH, elevated blood calcium, and decreased blood phosphorus, which, together with imaging and laboratory tests,...
+2. Definitive treatment: Because the patient was nervous and concerned about the risk of tumor cell spillage, she refused to do FNA and wanted to accomplish the treatment through surgery as soon as...
+3. Definitive treatment: As a result, the patient was admitted and had surgery under general anesthesia.
+4. Definitive treatment: The thyroid surgeon considered the intraoperative pathological suggestion of capsule invasion, which was inconsistent with the typical parathyroid adenoma and had malignant...","Impression: Physical examination revealed a hard, non-tender, mobile mass in the right lobe of the thyroid gland, measuring approximately 3.5 cm in diameter.
+Suggested next steps (most to least suitable):
+1. Investigate: The patient underwent a fine needle aspiration biopsy of the thyroid nodule, which revealed a diagnosis of papillary thyroid carcinoma.
+2. Investigate: The patient underwent a fine needle aspiration biopsy of the thyroid nodule, which revealed a diagnosis of papillary thyroid carcinoma.
+3. Investigate: The patient underwent a fine needle aspiration biopsy of the thyroid nodule, which revealed a diagnosis of papillary thyroid carcinoma.
+4. Investigate: The patient underwent a fine needle aspiration biopsy of the thyroid nodule, which revealed a diagnosis of papillary thyroid carcinoma."

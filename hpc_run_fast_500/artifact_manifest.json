@@ -1,0 +1,33 @@
+{
+  "run_dir": "/scratch/e1155813/ed_vlm/runs/hpc_run_fast_copy_thing",
+  "artifacts": {
+    "huggingface_safetensors_adapter": {
+      "status": "available",
+      "path": "/scratch/e1155813/ed_vlm/runs/hpc_run_fast_copy_thing/huggingface_adapter",
+      "files": [
+        "adapter_model.safetensors",
+        "adapter_config.json"
+      ]
+    },
+    "pth_adapter_package": {
+      "status": "available",
+      "path": "/scratch/e1155813/ed_vlm/runs/hpc_run_fast_copy_thing/ed_vlm_hpc.pth"
+    },
+    "pth_merged_full_model": {
+      "status": "not_requested",
+      "path": null
+    },
+    "gguf": {
+      "status": "not_supported_for_this_pipeline",
+      "reason": "Generic GGUF conversion does not preserve this multimodal VLM adapter and processor."
+    },
+    "onnx": {
+      "status": "not_supported_for_this_pipeline",
+      "reason": "A validated multimodal export graph is required."
+    },
+    "tflite": {
+      "status": "not_supported_for_this_pipeline",
+      "reason": "The full multimodal decoder and image processor are not exported here."
+    }
+  }
+}
