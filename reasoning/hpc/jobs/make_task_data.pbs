@@ -1,0 +1,12 @@
+#!/bin/bash
+#PBS -N task_data
+#PBS -j oe
+# Option 2, step 1: plain MedGemma (teacher) writes training examples in the app's own formats from TRAINING
+# patients (2,000 triage JSON + 400 four-turn consultations), filtered for quality -> data/processed/task_*.jsonl.
+# Live progress: reasoning/outputs/logs/task_data_live.log
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=10:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/make_task_data.pbs
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it
+cd reasoning/src
+"$VENV/bin/python" -u make_task_data.py --mode full --batch 16 --triage 2000 --chats 400 2>&1 | tee ../outputs/logs/task_data_live.log

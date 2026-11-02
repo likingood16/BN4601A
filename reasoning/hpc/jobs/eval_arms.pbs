@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -N eval_arms
+#PBS -j oe
+# Final comparison: base vs the LAST stage of each LoRA arm (val loss per source + MedQA, full precision).
+# Queued to start only after the mixed job finishes:
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=04:00:00 -W depend=afterok:<mixed job id> ...
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it
+ADAPTERS="mixed/stage12 emergency/stage3 two_stage/stage2"
+for a in $ADAPTERS; do
+  [ -f "reasoning/models/lora/$a/adapter/adapter_model.safetensors" ] || { echo "missing $a - is that arm finished?"; exit 1; }
+done
+cd reasoning/src
+"$VENV/bin/python" evaluate.py --mode full --per-source 100 --medqa $ADAPTERS
