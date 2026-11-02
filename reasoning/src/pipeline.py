@@ -61,12 +61,17 @@ class EDPipeline:
         decision = self.decide(embed_one(self.model, self.processor, card), out)
         visit = Visit(card=card, decision=decision, ed=ed_assessment(patient))
         if explain:
-            guided = card_with_urgency(card, decision.p_urgent, decision.flagged, decision.floor_flag)
-            raw = ask_messages(self.model, self.processor, _messages(TRIAGE_SYSTEM, guided), 2048)
-            # the decision above stands even if MedGemma's explanation can't be read
-            visit.explanation = parse_triage(final_answer(raw)) or {"valid_json": False, "reasoning": NO_ANSWER}
-            visit.explanation["cut_off"] = cut_off(raw)
+            self.explain(visit)
         return visit
+
+    def explain(self, visit):
+        """MedGemma explains the decision. Separate step: the decision is quick, the writing can take minutes."""
+        d = visit.decision
+        guided = card_with_urgency(visit.card, d.p_urgent, d.flagged, d.floor_flag)
+        raw = ask_messages(self.model, self.processor, _messages(TRIAGE_SYSTEM, guided), 2048)
+        # the decision stands even if MedGemma's explanation can't be read
+        visit.explanation = parse_triage(final_answer(raw)) or {"valid_json": False, "reasoning": NO_ANSWER}
+        visit.explanation["cut_off"] = cut_off(raw)
 
     def read_image(self, visit, path, image_type):
         """Stage 2: any image. Its reading goes on the record, so the chat and SBAR can use it."""

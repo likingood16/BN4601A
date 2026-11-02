@@ -329,6 +329,32 @@ urgency line):
   explanation) was fixed, but the re-run was stopped before that patient finished, so the fix isn't confirmed.
   Cato's model has not yet read an image in the pipeline. The full HPC checks have not run (vanda under maintenance).
 
+## 5f. App design: a triage desk, checked against real practice (`reasoning/app/`, 2 Nov 2026)
+- **First version** was four tabs built around the pipeline. Compared with published triage practice it was missing
+  nurse override, a patient queue, time targets, a critical-look shortcut and repeat vitals, so it was rebuilt as one screen.
+- **What the screen does, and why:**
+  | Feature | Basis |
+  |---|---|
+  | Waiting list sorted by urgency, with waiting times | Paediatric ED tool needed waiting time, test status, age and a priority (PMC7501580) |
+  | Critically ill button, no typing | CTAS starts with a "critical look" (CJEM 2004) |
+  | Accept, or Change level with a required reason | Nurse judgment and override kept in e-triage (US patent 12148529); "human in control" (course Responsible AI slides) |
+  | Complaint pick-list, with typing allowed | Drop-downs in e-triage; standard complaint lists (CEDIS, HL7 CTAS). Our list is our own short one |
+  | Time to see a doctor and recheck interval by level | Canadian CTAS targets (PMC6975254, HL7 CTAS) |
+  | Repeat vitals saved separately, first level unchanged | CTAS records reassessment separately (HL7 CTAS). Also why our arrival card is frozen |
+- **Limits to state:**
+  - Singapore uses PACS P1–P4 (KTPH); our models were trained on 5-level KTAS and NHAMCS labels. The PACS label on screen is
+    our own conversion and is untested.
+  - The time targets are Canadian; we found no public Singapore targets.
+  - Evidence on AI triage screens is thin, and no nurse or clinician has tried this screen.
+- **Testing:** 63 automated button checks passed in test mode (fake written answers and a fake urgency score), and most
+  buttons were also clicked in a real browser. Browser testing found problems the automated checks missed: blank vitals
+  sent as 0, a level choice carrying over between patients, and Accept able to lower a critically ill patient. All fixed.
+  The real models have not yet run through the app.
+- **Sources:** https://www.nhghealth.com.sg/find-care/Service/ktph-acute-emergency-care ;
+  https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7501580/ ;
+  https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/12148529 ;
+  https://terminology.hl7.org/en/ECS_MR-CTAS.html ; https://pmc.ncbi.nlm.nih.gov/articles/PMC6975254/table/t1
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.
