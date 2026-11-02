@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -N train_task
+#PBS -j oe
+# Option 2, step 2: train the TASK adapter on the teacher data (+2,000 old examples so nothing is forgotten),
+# 2 passes, starting from the mixed adapter. Long examples (4-turn chats) -> max length 3,072 tokens, small batch.
+# Submitted to start only after task_data finishes OK:  qsub -W depend=afterok:<task_data job id> ...
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it
+test -s reasoning/data/processed/task_train.jsonl || { echo "no task data - stop"; exit 1; }
+"$VENV/bin/python" -u reasoning/src/lora_train.py --arm task --init-from reasoning/models/lora/mixed/stage12 \
+    --epochs 2 --replay 2000 --stages 99 --max-hours 9 --lr "$LR" --batch 2 --grad-acc 8 --max-seq-len 3072 \
+    --ckpt-dir reasoning/models/lora/task/run 2>&1 | tee reasoning/outputs/logs/train_task_live.log

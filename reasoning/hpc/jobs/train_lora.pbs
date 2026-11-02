@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -N bn4601a_lora
+#PBS -j oe
+# One LoRA arm on one GPU, all its stages in one job (saves every 30 min; re-submit to continue if stopped).
+# Submitted by submit.sh, e.g.:  bash reasoning/hpc/submit.sh lora mixed
+# Variables passed in: ARM (mixed | emergency | two_stage), INIT_FROM (optional folder), TWO_STAGE_SIZE (optional)
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it
+nvidia-smi --query-gpu=name,memory.total --format=csv
+EXTRA=()
+[ -n "$INIT_FROM" ] && EXTRA+=(--init-from "$INIT_FROM")
+[ -n "$TWO_STAGE_SIZE" ] && EXTRA+=(--two-stage-size "$TWO_STAGE_SIZE")
+"$VENV/bin/python" reasoning/src/lora_train.py --arm "$ARM" --stages 99 --max-hours 46 --lr "$LR" \
+    --ckpt-dir "reasoning/models/lora/$ARM/run" $TRAIN_BATCH "${EXTRA[@]}"

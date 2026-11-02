@@ -1,0 +1,11 @@
+#!/bin/bash
+#PBS -N test_stages
+#PBS -j oe
+# Option 3: do EARLIER stages of the mixed adapter keep the format but stay more careful? Same tests as test_all
+# (answers.py) plus test A2 (triage level given the head's urgency decision), base vs mixed stages 1, 6 and 12.
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=08:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/test_stages.pbs
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it
+cd reasoning/src
+"$VENV/bin/python" -u answers.py --mode full --batch 16 --tag stages mixed/stage1 mixed/stage6 mixed/stage12 2>&1 | tee ../outputs/logs/test_stages_live.log

@@ -1,0 +1,52 @@
+{
+  "created": "2026-10-18",
+  "features": [
+    "age",
+    "is_male",
+    "injured",
+    "mental",
+    "nrs_pain",
+    "sbp",
+    "dbp",
+    "hr",
+    "rr",
+    "temp_c",
+    "spo2",
+    "news2"
+  ],
+  "urgent_definition": "ktas_expert <= 2",
+  "urgent_model": {
+    "type": "hgb",
+    "params": {
+      "max_depth": 3,
+      "learning_rate": 0.03,
+      "max_iter": 300,
+      "min_samples_leaf": 20
+    },
+    "cv_auroc_dev": 0.83
+  },
+  "level_model": {
+    "max_depth": 3,
+    "max_iter": 100,
+    "class_weight": null,
+    "cv_qwk_dev": 0.446
+  },
+  "threshold": 0.1401,
+  "threshold_rule": "flags 80% of urgent patients (dev, out-of-fold)",
+  "floor_if_flagged": 3,
+  "test_results": {
+    "auroc": {
+      "NEWS2": 0.694,
+      "Logistic regression": 0.79,
+      "Gradient boosting": 0.779,
+      "Triage nurse (KTAS_RN)": 0.915
+    },
+    "n_test": 190,
+    "n_test_urgent": 37
+  },
+  "versions": {
+    "sklearn": "1.9.1",
+    "pandas": "3.0.5"
+  },
+  "split_seed": 42
+}

@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -N bn4601a_probe
+#PBS -j oe
+#PBS -l walltime=00:10:00
+# 10-minute test job: which GPU / driver do jobs get, and does our Python see it?
+# Submitted by submit.sh probe (queue + resources come from hpc.conf).
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+echo "node: $(hostname)"
+nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv
+nvidia-smi | grep "CUDA Version"
+if [ -x "$VENV/bin/python" ]; then
+  "$VENV/bin/python" -c "import torch; print('torch', torch.__version__, '| cuda ok:', torch.cuda.is_available(), '|', torch.cuda.get_device_name(0) if torch.cuda.is_available() else '', '| bf16:', torch.cuda.is_available() and torch.cuda.is_bf16_supported())"
+  "$VENV/bin/python" -c "import unsloth; from unsloth import FastModel; print('unsloth OK', unsloth.__version__)"
+else
+  echo "venv not set up yet (run hpc/setup_once.sh on the login node)"
+fi
