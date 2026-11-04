@@ -1,0 +1,487 @@
+model,file_id,modality,ref_findings,pred_findings,ref_assessment,pred_assessment,unsupported_facts
+base (no adapter),file_0004040,mri,Gadolinium enhanced CMRI (transverse section) showing mild diffuse thickening of the pericardium (arrow).,"**Visible Findings:**
+
+*   **Heart:** The heart appears enlarged.
+*   **Lung:** There is a small area of consolidation in the left lower lobe.
+*   **Other:** There are several metallic objects visible within the chest, likely surgical clips or leads.
+
+**Uncertainty:**
+
+*   The extent of the left lower lobe consolidation is not fully clear from this single image.
+*   The cause of the heart enlargement is not determined from this image alone.
+
+**Disclaimer:** This is an interpretation of the provided image and clinical note. It is not a substitute for professional medical advice.","Impression: She had required systemic thrombolysis after multiple failed attempts at catheter-directed thrombolysis due to difficulty engaging the pulmonary artery. Physical examination was suggestive of right-sided heart failure with elevated jugular venous pressure, 3+ bilateral lower extremity pitting edema and clear lungs.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Her vitals at presentation were blood pressure [value], heart rate [value], temperature [value]F, respiratory rate [value], and oxygen saturation [value] on...
+2. Immediate stabilisation: Thus, she was transferred to the cardiovascular intensive care unit for intravenous inotropes and vasopressors.
+3. Investigate: A transthoracic echocardiogram (TTE) was performed which was technically a very difficult study due to patient's body habitus but revealed a low-normal left ventricular ejection...
+4. Definitive treatment: the patient with past medical history of heart failure with preserved ejection fraction, obesity treated with Roux-en-Y gastric bypass surgery, type 2 diabetes mellitus,...","**Impression:** The patient presents with dyspnea, generalized weakness, and bilateral lower extremity edema. The MRI shows cardiomegaly and a small area of consolidation in the left lower lobe.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Assess vital signs, oxygen saturation, and respiratory rate. Consider supplemental oxygen if needed.
+2. **Investigate:** Obtain a chest X-ray to better characterize the consolidation and assess for other pulmonary findings. Consider a CT scan of the chest for more detailed evaluation of the consolidation and cardiac structure.
+3. **Treat:** Initiate supportive care, including diuretics for the lower extremity edema, if indicated. Consider empiric antibiotics if pneumonia is strongly suspected based on the consolidation.
+4. **Disposition:** Consider admission for further management, including cardiology consultation for the cardiomegaly and pulmonary consultation for the consolidation, depending on the clinical picture and further investigations.",[]
+base (no adapter),file_0056077,acute_photo,Erythema nodosum with bilateral eruption of painful subcutaneous nodules with overlying inflammatory redness. Involvement of only the upper extremities is unusual.,"**Visible Findings:**
+
+*   **Anatomy:** The image shows a section of a human arm, likely the forearm or upper arm, resting on a white surface, possibly a sheet or examination table covering.
+*   **Abnormalities:** Multiple erythematous (red) macules and papules are visible on the skin. These lesions vary in size and shape. Some appear as distinct, roundish patches, while others are more irregular. The lesions are distributed along the visible portion of the arm.
+*   **Location:** The lesions are present on the skin of the arm.
+*   **Appearance:** The lesions are","Impression: The lesions were consistent with a resolving panniculitis with overlying blanchable erythema, which was slightly raised above the surrounding skin. The eruption was clinically diagnosed as EN and faded slowly over the next two months without treatment (Fig.
+Suggested next steps (most to least suitable):
+1. Investigate: Lung function tests including diffusion capacity as well as an ECG were normal.","**Impression:** Multiple erythematous macules and papules on the arm.
+
+**Suggested next steps (most to least suitable):**
+1. Stabilise
+2. Investigate
+3. Treat
+4. Disposition",[]
+base (no adapter),file_0028476,mri,"Ocular fundus images from a patient with Terson syndrome with no cerebral hemorrhage. Prior to the vitrectomy, fundus fluorescence angiography (Spectralis HRA; Heidelberg Engineering GmbH, Heidelberg, Germany) showed that the vitreous hemorrhage blocked the fluorescence in the peripheral retina of the patient's. Right.","**Visible Findings:**
+
+*   **Anatomy:** The image appears to show a cross-sectional view of the brain, likely the posterior fossa region, given the appearance of the cerebellum and brainstem structures.
+*   **Abnormalities:** There is a significant area of signal abnormality within the right cerebellum. This area appears dark (hypointense) on the MRI image. The shape is irregular, and the borders are somewhat ill-defined. There is also some associated edema or swelling in the surrounding white matter.
+*   **Location and Appearance:** The abnormality is located within the right cerebellum. It has a dark, irregular","Impression: The patient was referred to hospital (Tangshan, China) due to visual deterioration six months subsequent to the onset of the symptoms. As a result, the patient was diagnosed with Terson syndrome and a vitrectomy was conducted.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Ophthalmoscopic examination detected vitreous hemorrhage in both eyes and the vitreous hemorrhage was subsequently managed with conservative treatment.
+2. Definitive treatment: Two months subsequent to the surgery, the visual acuity was measured to be 20/1,000 in each eye.","**Impression:** The image shows a significant area of signal abnormality within the right cerebellum, appearing dark (hypointense) and irregular in shape with associated edema. This is concerning for an acute process involving the cerebellum.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Ensure airway, breathing, and circulation are maintained.
+2. **Investigate:** Obtain a CT scan of the head to better characterize the lesion and assess for any acute hemorrhage or mass effect.
+3. **Investigate:** Obtain a lumbar puncture to assess for meningitis or subarachnoid hemorrhage, although the location is primarily cerebellar.
+4. **Investigate:** Obtain an MRI of the brain with and without contrast to further delineate the lesion and assess for potential underlying causes such as tumor, infection, or vascular malformation.
+5. **Disposition:** Consider neurosurgical consultation for further evaluation and management planning.",[]
+base (no adapter),file_0148454,mri,"(From left to right) Axial, coronal, and sagittal views of MRI brain with contrast demonstrating a previously treated arteriovenous malformation in the right lingual gyrus with evidence of gliosis. RFA, R: right. LHP, L: left.","**Visible Findings:**
+
+*   **Anatomy:** The image shows a sagittal and coronal view of the brain. The right frontal area (RFA) and left high parietal area (LHP) are labeled. The right lateral ventricle is visible.
+*   **Abnormalities:** There is a lesion located in the right occipital lobe. The lesion appears as a region of increased signal intensity on the T2-weighted images, with associated enhancement on the post-contrast T1-weighted images. The lesion is located in the posterior aspect of the right occipital lobe.
+
+**Uncertainty:** The exact nature of the","Impression: A preoperative neuro-ophthalmological evaluation revealed a partial left homonymous visual field defect involving the left inferior quadrant and left superior paracentral zone. Due to the eloquent location of her EZ, and the risk of additional vision loss or even complete homonymous hemianopsia with resective or ablative procedures, the patient elected to undergo responsive neurostimulation.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: She was intubated for airway protection, admitted to the ICU, and the seizures were controlled.
+2. Definitive treatment: She was trialed on multiple anti-seizure medications (ASMs) and eventually remained on two ASMs but with continuing seizures at the time of surgical evaluation.
+3. Definitive treatment: Her surgical options included resection or ablation versus neuromodulation.
+4. Definitive treatment: The patient underwent CT-guided, robot-assisted placement of seven depth leads (with a total of 87 contacts) in the right hemisphere: an occipital lateral (OLAT), occipital...","**Impression:** A lesion in the right occipital lobe.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Monitor vital signs and neurological status.
+2. **Investigate:** Obtain a CT scan of the head to assess for hemorrhage or hydrocephalus.
+3. **Investigate:** Obtain a contrast-enhanced MRI of the brain to better characterize the lesion.
+4. **Investigate:** Obtain a cerebral angiogram to evaluate for an arteriovenous malformation (AVM).
+5. **Disposition:** Consider neurosurgical consultation.",[]
+base (no adapter),file_0089424,ultrasound,Echocardiogram still image showing calcified and rounded right atrial mass.,"**Visible Findings:**
+
+*   **Anatomy:** The image shows a transthoracic echocardiogram view of the heart. The left atrium is visible on the left side of the image. The right atrium is visible on the right side. The right ventricle is visible in the lower portion of the image. The left ventricle is visible in the upper portion of the image.
+*   **Abnormalities:** There is a mass located in the left atrium.
+*   **Location:** The mass is located within the left atrium.
+*   **Appearance:** The mass appears rounded and has a somewhat heterogeneous texture.
+*   **","Impression: It revealed a large calcified and thrombosed right coronary artery aneurysm compressing the right atrium externally (Movie 2 and Figure 2).
+Suggested next steps (most to least suitable):
+1. Investigate: Before his scheduled surgery an echocardiogram was ordered to complete work-up for possible cardiac cause of thromboembolism.
+2. Definitive treatment: the patient with history of coronary artery bypass surgery, repaired abdominal artery aneurysm and repaired bilateral iliac arteries aneurysms was admitted for...","**Impression:** A mass is visible within the left atrium on the transthoracic echocardiogram.
+
+**Suggested next steps (most to least suitable):**
+1.  **Stabilise:** Monitor vital signs and cardiac function.
+2.  **Investigate:** Perform an electrocardiogram (ECG) to assess for any arrhythmias or conduction abnormalities.
+3.  **Investigate:** Consider a transesophageal echocardiogram (TEE) for better visualization and characterization of the mass.
+4.  **Treat:** Further investigation is required to determine the nature of the mass before considering treatment options.
+5.  **Disposition:** Further investigation is required to determine the nature of the mass before considering treatment options.",[]
+base (no adapter),file_0110399,ct,(b) Stone cast model of the face.,"**Visible Findings:**
+
+*   **Anatomy:** The image shows a close-up view of the left nasal cavity and surrounding structures. The nasal septum is visible in the midline. The nasal turbinates are also visible on either side. The medial canthus of the eye is visible superiorly.
+*   **Abnormalities:** There is a large, irregular mass occupying the left nasal cavity. The mass appears to originate from the lateral wall of the nose. The mass has a mixed appearance, with areas of soft tissue and areas that appear more solid or cystic. The mass extends into the nasal cavity, obscuring the view","Impression: She underwent four surgical interventions in a span of 6 years in various hospitals at Bengal, Bhopal, and Kolkata due to the recurrence of the tumor to a huge size of almost resembling an elephant trunk [Figure 1a and b]. Under histopathological examination, the tumor was diagnosed as ""HEMANGIOPERICYTOMA."" The lesion was surgically removed, and subsequently, the patient was made to undergo radiotherapy and chemotherapy.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The extensive surgery left her with huge embarrassment and humiliation whenever she interacted.
+2. Definitive treatment: With repeated surgeries, the patient was suffering from nasal stenosis due to which she was unable to breathe through her nares instead the only possible way she could breathe was...
+3. Disposition: The patient was then asked to come for recall visit once in every 3 months for the evaluation of prosthesis and observation of any recurrence.","**Impression:** A large, irregular mass occupying the left nasal cavity, originating from the lateral wall.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Assess airway patency.
+2. **Investigate:** Nasal endoscopy and biopsy.
+3. **Investigate:** CT scan of the face.
+4. **Investigate:** MRI of the face.
+5. **Treat:** Surgical excision.
+6. **Disposition:** Admit to hospital.
+7. **Disposition:** Refer to ENT specialist.
+8. **Disposition:** Refer to oncology specialist.
+9. **Disposition:** Discharge home.
+10. **Disposition:** Further imaging.
+11. **Disposition:** Further investigation.
+12. **Disposition:** Further treatment.
+13. **Disposition:** Further management.
+14. **Disposition:** Further workup.
+15. **Disposition:** Further evaluation.
+16. **Disposition:** Further monitoring.
+17. **Disposition:** Further observation.
+18. **Disposition:** Further referral.
+19. **Disposition:** Further referral to specialist.
+20. **Disposition:** Further referral to specialist service.
+21. **Disposition:** Further referral to specialist",[]
+base (no adapter),file_0144456,ultrasound,Ultrasound cross-section of the lipoma.,"**Visible Findings:**
+
+*   **Anatomy:** The image shows an ultrasound of the volar (palm side) aspect of a left wrist. The underlying anatomy, including tendons and soft tissues, is visible.
+*   **Abnormality:** There is a well-defined, hypoechoic (darker than surrounding tissue) mass located on the volar aspect of the left wrist.
+*   **Location:** The mass is situated on the volar side of the wrist.
+*   **Appearance:** The mass appears lobulated (composed of rounded parts) and has a relatively homogeneous internal structure. The borders appear well-dem","Impression: Physical examination revealed a palpable mass with a diameter of approximately 5 cm extending from the wrist to the base of the left hypothenar eminence (Figure 1). Ultrasound examination at hospital revealed a homogenous mass measuring about 6 x 3 x 1.5 cm without increased vascularization, iso-echoic to the surrounding subcutaneous fatty tissue (Figure 2).
+Suggested next steps (most to least suitable):
+1. Investigate: The radiologist suggested that it was most likely a lipoma, but its location made imaging somewhat difficult, and an MRI was advised as well.
+2. Investigate: Because histological examination of the removed tissue from the original surgery revealed a lipoma, an MRI was deemed unnecessary, and the patient was scheduled for re-excision of...
+3. Definitive treatment: The patient reported the recurrence five days after the initial surgery, performed at a different hospital, and noticed continued growth until admission.
+4. Definitive treatment: As this was a revision surgery involving exploration, the re-excision procedure utilized blockade of the brachial plexus with sedation to ensure the patient's comfort.","**Impression:**
+
+*   A well-defined, hypoechoic, lobulated mass is visible on the volar aspect of the left wrist.
+
+**Suggested next steps (most to least suitable):**
+
+1.  **Stabilise:** Assess for any signs of acute distress or instability.
+2.  **Investigate:** Consider further imaging, such as MRI, to better characterize the mass and its relationship to surrounding structures.
+3.  **Investigate:** Consider a biopsy to determine the nature of the mass.
+4.  **Disposition:** Consider surgical excision if the mass is deemed benign and causing significant symptoms.",[]
+base (no adapter),file_0132067,ct,"HRCT scans on hospital admission: bilateral, superimposed air space consolidations with GGO in lower and upper lobes, more marked on right are described.","**Visible Findings:**
+
+*   **Lung Fields:** There is significant opacification and consolidation, particularly in the right upper lobe and right lower lobe. The appearance suggests a widespread infiltrative process.
+*   **Interstitial Pattern:** There is a diffuse interstitial pattern, particularly noticeable in the right lower lobe, with areas of ground-glass opacities and reticulation.
+*   **Pleural Space:** The pleural spaces appear clear.
+*   **Mediastinum:** The mediastinum appears unremarkable.
+*   **Heart:** The heart size appears within normal limits.
+*   **Bones:** The visualized bony structures","Impression: The patient was urgently admitted to the Department of Internal Medicine and Clinical Pharmacology due to shortness of breath, fever, cough, and exercise intolerance. Due to the coexistence of comorbidities, the patient had been ordered the following: ramipril, amlodipine, acetylsalicylic acid, chlorthalidone, glimepiride, spironolactone, metformin, allopurinol, and bisoprolol.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: In the physical examination on admission, temperature [value]C, blood pressure [value], respiratory rate [value]min, and blood oxygen saturation [value] were observed, and...
+2. Immediate stabilisation: Due to increasing respiratory failure despite oxygen therapy given and deteriorating results of ABG (pO2: [value], SpO [value]) anesthesiologist's consultation was performed.
+3. Immediate stabilisation: Prone position and switch type of oxygen therapy to high flow oxygen delivery 60 L/min FiO2: 0.9 was recommended.
+4. Immediate stabilisation: Oxygen therapy was gradually reduced.","**Impression:** The CT scan shows significant opacification and consolidation, particularly in the right upper and lower lobes, along with a diffuse interstitial pattern and ground-glass opacities, suggestive of a widespread infiltrative process.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Assess vital signs and airway patency.
+2. **Investigate:** Obtain blood cultures, inflammatory markers (CRP, ESR), and consider COVID-19 testing (PCR or antigen).
+3. **Treat:** Initiate empiric antibiotics covering common community-acquired pneumonia pathogens.
+4. **Disposition:** Consider admission for further management and monitoring.",[]
+base (no adapter),file_0050821,ct,Axial computed tomography image showing a moth-eaten appearance of the femoral head.,"**Visible Findings:**
+
+*   **Abnormality:** There is a large, rounded mass in the left lower abdomen, extending into the left pelvis.
+*   **Location:** The mass appears to be located in the left iliac fossa region.
+*   **Appearance:** The mass is heterogeneous in density, with areas of increased and decreased attenuation. There is a focal area of higher density within the mass, possibly representing calcification or a denser component. The mass displaces the left kidney inferiorly and medially. The mass also appears to displace the left hip joint laterally.
+*   **Anatomy:** The mass is","Impression: Computed tomography and FDG-PET Scan revealed a moth-eaten appearance Fig. Thus, a diagnosis of metastatic malignant PT was made.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Surgical margins were complete and of at least 1 cm.
+2. Definitive treatment: The patient underwent computed guided femoral head biopsy.","**Visible Findings:**
+
+*   There is a large, rounded mass in the left lower abdomen, extending into the left pelvis.
+*   The mass appears to be located in the left iliac fossa region.
+*   The mass is heterogeneous in density, with areas of increased and decreased attenuation. There is a focal area of higher density within the mass, possibly representing calcification or a denser component.
+*   The mass displaces the left kidney inferiorly and medially.
+*   The mass also appears to displace the left hip joint laterally.
+
+**Impression:**
+
+*   A large, heterogeneous mass in the left iliac fossa region displacing adjacent structures.
+
+**Suggested next steps (most to least suitable):**
+
+1.  **Stabilise:** Assess vital signs and airway, ensure patient is stable.
+2.  **Investigate:** Obtain a contrast-enhanced CT scan of the abdomen and pelvis to better characterize the mass, assess its relationship to surrounding structures, and evaluate for potential vascular involvement or metastatic disease.
+3.  **Investigate:** Consider a biopsy of the mass for definitive diagnosis, although this may require surgical planning.
+4.  **Disposition:** Consider surgical consultation for further evaluation and management planning.",[]
+base (no adapter),file_0026200,acute_photo,"Few vesicles, blisters, and erosions were present over the dorsal aspect of the left hand.","**Visible Findings:**
+
+*   **Location:** The image shows the left forearm and hand of a patient.
+*   **Abnormalities:**
+    *   Multiple, scattered, fluid-filled blisters (bullae) are present on the forearm and extending onto the dorsal aspect of the hand.
+    *   Some blisters appear intact, while others seem ruptured or crusted.
+    *   There is an area on the forearm, near the wrist, with more extensive skin damage, including apparent erosions and possibly some crusting.
+    *   The skin surrounding the blisters and areas of damage appears erythematous (red","Impression: The following diagnoses were considered: Irritant contact dermatitis Cellulitis.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was admitted to the ward; intravenous (IV) amoxycillin with clavulinic acid, IV steroid, and IV fluids were started.
+2. Definitive treatment: The patient was referred to Department of Surgery and Psychiatry for an opinion.","**Impression:** The patient presents with multiple blisters and skin damage on the left forearm and hand following a history of kerosene injection. The appearance is consistent with a chemical burn.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Assess airway, breathing, and circulation. Provide supportive care including fluid resuscitation and pain management.
+2. **Investigate:** Obtain blood tests including complete blood count (CBC), electrolytes, renal function tests (BUN, creatinine), liver function tests (LFTs), and coagulation studies (PT/INR, PTT). Consider chest X-ray to assess for aspiration.
+3. **Treat:** Initiate wound care including cleaning the affected area, applying topical antimicrobial agents, and managing pain. Consider systemic corticosteroids for severe burns.
+4. **Disposition:** Refer to a specialist (e.g., burn unit, plastic surgery) for further management and wound care.",[]
+base (no adapter),file_0149130,ultrasound,"Cervical implantation of a 12-week embryo, with BPD corresponding to 12 weeks and four days.","**Visible Findings:**
+
+*   **Anatomy:** The image is an ultrasound of a uterus. The uterus appears to be anteverted. The endometrium is visible within the uterine cavity. The cervix is visible at the bottom of the image. The fundus of the uterus is visible at the top.
+*   **Abnormalities:**
+    *   There is a gestational sac visible within the uterine cavity.
+    *   The gestational sac is located in the lower uterine segment.
+    *   The gestational sac appears to contain a yolk sac.
+    *   The gestational sac appears to contain a fetal pole.","Impression: She had a scan performed in another unit that diagnosed a cervical pregnancy. The fetus had a longitudinal bladder diameter of 9 mm, consistent with the diagnosis of megacystis.
+Suggested next steps (most to least suitable):
+1. Investigate: The ultrasound performed in our unit described an empty uterus with no focal masses, the endometrium was thickened with no pseudosac identified.
+2. Definitive treatment: In an attempt to preserve fertility, we decided to perform a conservative procedure, embolization of uterine arteries before the pregnancy evacuation.
+3. Definitive treatment: On admission, the patient was started on intravenous antibiotherapy consisting of cephalosporin.
+4. Definitive treatment: Then was performed embolization with absorbable gelatin sponge particles of 1-2 mm diameter and nonionic contrast medium (iopromide (Ultravist 370) until blood flow ceased.","**Impression:** The image shows a gestational sac within the uterine cavity, located in the lower uterine segment. The presence of a yolk sac and fetal pole is visible within the gestational sac.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Ensure patient is hemodynamically stable.
+2. **Investigate:** Perform a transvaginal ultrasound to assess the location of the gestational sac relative to the internal os and to evaluate for potential complications such as placenta previa or abruption.
+3. **Investigate:** Consider a serum beta-hCG level to assess the viability of the pregnancy and to help differentiate between a normal intrauterine pregnancy and an ectopic pregnancy.
+4. **Treat:** If an ectopic pregnancy is confirmed, proceed with appropriate management based on the location and viability of the pregnancy.
+5. **Disposition:** Consider transfer to a facility with appropriate obstetric services if necessary.",[]
+base (no adapter),file_0159359,x_ray,Summary of the multidisciplinary management.,"I am unable to provide a description of the clinically relevant visual findings from the image you provided. The image appears to be a chart or timeline, not an X-ray. Furthermore, the description of the patient's condition and history is missing from the prompt. Therefore, I cannot fulfill the request to describe the visual findings based on the provided information.","Impression: She was admitted to hospital with complaints of pain in her knees so she could not move and was diagnosed with Arthritis ar Genue Sinistra related to Thalassemia by an internal medicine specialist, sub division of rheumatology. Her beta-thalassemia major was treated with routine blood transfusions once a month and iron anti- chelation drugs (deferoxamine); however, it was stopped due to pregnancy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Blood transfusions to remove packed red cell buffy coat (PRC BCR) are also carried out routinely once a month.
+2. Immediate stabilisation: A blood transfusion was carried out last night.
+3. Immediate stabilisation: A blood transfusion was carried out last night.
+4. Immediate stabilisation: The previous therapy was continued, antibiotics were prescribed 3x/day for seven days, and a blood transfusion was planned as a preparation for scaling the dental calculus.","**Impression:** The patient has been hospitalized for two weeks with complaints of knee pain, leading to immobility. The provided image shows a timeline of therapies administered during these two weeks, including H2O2 3% spooning, chlorine dioxide mouthwash, petroleum jelly, non-pharmacology, antibiotic, interdental toothbrush, blood transfusion, and scaling. The patient's general condition was described as weak, sick, and difficult to move.
+
+**Suggested next steps (most to least suitable):**
+1.  **Stabilise:** Address the patient's weak and sick condition and difficulty moving. This may involve assessing vital signs, providing supportive care, and potentially addressing the underlying cause of the weakness and illness if identified.
+2.  **Investigate:** Further investigate the cause of the knee pain and the patient's overall condition. This could involve imaging (like an X-ray, although the image provided is not an X-ray), laboratory tests (blood work), and a detailed history and physical examination.
+3.  **Treat:** Based on the investigation, initiate appropriate treatment for the knee pain and any identified underlying conditions. This might include pain management, physical therapy, or specific treatments for the cause of the illness.
+4.  **Disposition",[]
+base (no adapter),file_0052922,x_ray,Pre-operative anteroposterior radiograph showing left hip joint with two cancellous screws from previous surgical treatment of fractured neck of femur.,"**Image Type:** X-ray
+**Patient:** 56-year-old male
+**Clinician Note:** Known case of hypertension on medication, chronic smoker, alcoholic. Cemented total hip arthroplasty performed through the Southern Moors (posterior) approach.
+
+**Visible Findings:**
+
+*   **Anatomy:** The image shows a pelvis and a hip joint.
+*   **Abnormalities:**
+    *   There is a cemented total hip arthroplasty visible in the right hip joint.
+    *   There are two screws visible, one in the femoral head and one in the acetabulum","Impression: A C T angiogram revealed complete occlusion of the left common femoral artery (Fig. After removal of the occluding thrombus measuring 2.5 cm in length and intimal plaque of one cm length confirmed by histopathological examination (Fig.6), the artery was closed using 6-0 prolene sutures (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Immediately following the surgery, his pulses were felt but had been feeble.
+2. Definitive treatment: With an urgent opinion from cardiothoracic and vascular surgery, the left femoral artery was exposed and a thrombus was noticed (Fig.
+3. Definitive treatment: The patient was started on anticoagulants for a course of three weeks.
+4. Disposition: the patient Indian male patient was admitted for post-traumatic avascular necrosis of the head of the femur leading to degenerative arthritis of his left hip joint (Fig.","**Impression:**
+
+*   The patient has a cemented total hip arthroplasty in the right hip.
+*   There are two screws visible, one in the femoral head and one in the acetabulum.
+*   The presence of screws suggests a previous surgical intervention.
+*   The clinical context includes a history of hypertension, smoking, and alcoholism.
+
+**Suggested next steps (most to least suitable):**
+
+1.  **Stabilise:** Given the presence of hardware (screws) in the hip joint, there is a risk of hardware failure or loosening. Stabilising the hip joint may be necessary to prevent further complications.
+2.  **Investigate:** Further investigation is needed to determine the cause of the hardware loosening or failure. This may involve further imaging or laboratory tests.
+3.  **Treat:** Treatment will depend on the underlying cause of the hardware failure or loosening. This may involve surgical revision or other interventions.
+4.  **Disposition:** The patient's disposition will depend on the findings of the investigation and the treatment plan.
+
+**Note:** This is based solely on the provided image and clinical information. Clinical judgement is required for definitive diagnosis and management.",[]
+base (no adapter),file_0149169,mri,"MRI abdomen with and without contrast with MRCP. A: Coronal section shows nodular liver with cirrhotic morphology and normal gallbladder, biliary tree, and pancreas.","**Visible Findings:**
+
+*   **Anatomy:** The image shows a cross-section of the upper abdomen, including the liver, spleen, and parts of the stomach and pancreas.
+*   **Abnormalities:** The liver appears enlarged and exhibits diffuse, heterogeneous signal intensity, with numerous small, ill-defined hypointense foci scattered throughout the parenchyma. The spleen is enlarged and demonstrates heterogeneous signal intensity. The pancreas is partially visualized and appears unremarkable. The stomach is partially visualized and appears unremarkable.
+
+**Limitations:** This is a single image. Further imaging and clinical correlation are required for definitive interpretation. The findings are limited by the","Impression: Upon evaluation, his vitals revealed a heart rate [value], blood pressure measured at 161/[value], oxygen saturation standing at 99% while breathing on room air, and a body temperature [value]C (98 F). A clinical examination revealed a distended abdomen, jaundice, and an icteric sclera.
+Suggested next steps (most to least suitable):
+1. Investigate: Due to the patient's persistent complaint of dyspnea during exertion, a CT angiography (CTA) was performed, which notably ruled out the presence of pulmonary emboli though...
+2. Investigate: Post-biopsy, the patient declined further medical intervention and was transitioned to hospice care.
+3. Definitive treatment: the patient with a past medical history of prostate cancer, which was managed with androgen deprivation therapy, presented to the hospital with progressive weakness, loss...","**Impression:** The patient presents with an enlarged liver and spleen with heterogeneous signal intensity, and numerous small, ill-defined hypointense foci within the liver parenchyma. These findings are concerning for a possible infiltrative process, such as metastatic disease or an infiltrative liver disease. The enlarged spleen could be related to the liver pathology or represent a separate process.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Assess vital signs and airway, breathing, and circulation (ABCs). Obtain intravenous access and initiate fluid resuscitation if indicated.
+2. **Investigate:** Obtain a contrast-enhanced CT scan of the abdomen to better characterize the liver lesions and assess for other abdominal pathology.
+3. **Investigate:** Obtain a contrast-enhanced MRI of the abdomen to further evaluate the liver and spleen.
+4. **Investigate:** Obtain a contrast-enhanced CT scan of the chest to evaluate for pulmonary metastases.
+5. **Investigate:** Obtain a contrast-enhanced CT scan of the abdomen and pelvis to evaluate for other potential sources of malignancy or infiltrative disease.
+6. **Investigate:** Obtain a contrast-enhanced CT scan of the abdomen and pelvis with intravenous contrast.
+7. **Investigate:** Obtain a contrast-enhanced CT",[]
+base (no adapter),file_0145889,mri,MRI of the spine shows the normal end level of the conus medullaris (arrow).,"**Visible Findings:**
+
+*   **Anatomy:** The image shows a sagittal view of the spine, including the cervical, thoracic, and lumbar regions. The spinal cord is visible centrally within the vertebral canal.
+*   **Abnormality:** An arrow points to a structure within the spinal canal.
+*   **Location:** The structure indicated by the arrow is located within the spinal canal, specifically in the mid-thoracic region.
+*   **Appearance:** The structure appears as a bright, tubular structure, consistent with the spinal cord.
+
+**Uncertainty:**
+
+*   The nature of the structure indicated by the","Impression: A detailed physical examination revealed no other associated anomalies. An MRI of the spine revealed an approximately 3 cm (about 1.18 in) long pedunculated appendage with fat intensity arising and hanging down from the mid-sacral region.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: He was managed with nasal oxygen on the first day and was weaned off gradually; other than that, the patient was managed with routine NICU care.","**Impression:**
+
+*   The image shows a sagittal view of the spine. An arrow points to a structure within the spinal canal in the mid-thoracic region. This structure appears consistent with the spinal cord.
+*   There is an additional finding: a 3 cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region. This mass is described as non-tender and not bleeding on palpation.
+
+**Uncertainty:**
+
+*   The nature of the structure indicated by the arrow is not definitively determined.
+*   The nature of the mass arising from the mid-sacral region is not definitively determined.
+
+**Suggested next steps (most to least suitable):**
+
+1.  **Stabilise:** Ensure airway, breathing, and circulation are maintained.
+2.  **Investigate:** Further imaging (e.g., CT scan) may be considered to better characterize the mass and its relationship to the spinal canal.
+3.  **Treat:** Treatment options depend on the definitive diagnosis, which is currently uncertain.
+4.  **Disposition:** Further management decisions will depend on the definitive diagnosis and clinical stability.",[]
+base (no adapter),file_0147165,ultrasound,A: Ultrasonography of the right thigh confirmed the diagnosis of pseudoaneurysm of LFCA (white arrow).,"**Image Description:**
+
+The image is an ultrasound of the right lower limb.
+
+**Anatomy:** The image shows the superficial structures of the right lower limb, including the skin, subcutaneous tissue, and underlying muscle. A vertical line is present in the center of the image, likely indicating the midline.
+
+**Abnormalities:**
+*   There is a focal area of increased echogenicity and a hypoechoic area within the muscle tissue, located in the right lower limb.
+*   The appearance suggests a possible hematoma or fluid collection within the muscle.
+
+**Location and Appearance:** The abnormality is located within the muscle","Impression: Upon assessment, he was diagnosed with a closed fracture of the midshaft right femur (Figure 1) and an ipsilateral distal tibia fracture. Definitive surgery was delayed due to the prolonged waiting time for the operation.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: As a part of immediate management, he underwent an emergent debridement and suturing of the wound, along with the insertion of a calcaneal pin.
+2. Definitive treatment: Ten days later, the patient underwent internal fixation for both femoral and tibia fractures.
+3. Definitive treatment: Before the surgery, there were no signs of infection in the wound over the right knee, and the compartments of the right thigh and leg were soft, with no signs of vascular...
+4. Definitive treatment: The surgeon further introduced the guide wire, followed by sequential canal reaming.","**Impression:** The ultrasound shows a focal area of increased echogenicity and a hypoechoic area within the muscle of the right lower limb. This appearance is suggestive of a possible hematoma or fluid collection within the muscle.
+
+**Suggested next steps (most to least suitable):**
+1. **Stabilise:** Assess the patient's hemodynamic stability and provide supportive care as needed.
+2. **Investigate:** Consider further imaging, such as MRI, if the diagnosis remains unclear or if there is concern for deeper injury.
+3. **Treat:** If a hematoma is confirmed, consider aspiration or drainage if there is significant pain or mass effect.
+4. **Disposition:** Based on the clinical picture and further investigations, determine the appropriate disposition, such as discharge or admission for further management.",[]
+adapted (best),file_0004040,mri,Gadolinium enhanced CMRI (transverse section) showing mild diffuse thickening of the pericardium (arrow).,MRI showing a large mass in the right atrium (arrow).,"Impression: She had required systemic thrombolysis after multiple failed attempts at catheter-directed thrombolysis due to difficulty engaging the pulmonary artery. Physical examination was suggestive of right-sided heart failure with elevated jugular venous pressure, 3+ bilateral lower extremity pitting edema and clear lungs.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Her vitals at presentation were blood pressure [value], heart rate [value], temperature [value]F, respiratory rate [value], and oxygen saturation [value] on...
+2. Immediate stabilisation: Thus, she was transferred to the cardiovascular intensive care unit for intravenous inotropes and vasopressors.
+3. Investigate: A transthoracic echocardiogram (TTE) was performed which was technically a very difficult study due to patient's body habitus but revealed a low-normal left ventricular ejection...
+4. Definitive treatment: the patient with past medical history of heart failure with preserved ejection fraction, obesity treated with Roux-en-Y gastric bypass surgery, type 2 diabetes mellitus,...","Impression: The patient was diagnosed with atrial fibrillation and was started on warfarin. She was referred to a cardiologist for evaluation of her dyspnea.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: She was started on a beta-blocker and a calcium channel blocker.
+2. Immediate stabilisation: She was started on a beta-blocker and a calcium channel blocker.
+3. Immediate stabilisation: She was started on a beta-blocker and a calcium channel blocker.
+4. Immediate stabilisation: She was started on a beta-blocker and a calcium channel blocker.",[]
+adapted (best),file_0056077,acute_photo,Erythema nodosum with bilateral eruption of painful subcutaneous nodules with overlying inflammatory redness. Involvement of only the upper extremities is unusual.,"Erythematous, tender, non-folicullar papules and plaques on the patient's right forearm.","Impression: The lesions were consistent with a resolving panniculitis with overlying blanchable erythema, which was slightly raised above the surrounding skin. The eruption was clinically diagnosed as EN and faded slowly over the next two months without treatment (Fig.
+Suggested next steps (most to least suitable):
+1. Investigate: Lung function tests including diffusion capacity as well as an ECG were normal.","Impression: The patient was referred to the dermatology department for a diagnosis of erythema multiforme (EM) and was treated with oral prednisolone (1 mg/kg/day) and oral acitretin (25 mg/day) for 2 weeks.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was referred to the dermatology department for a diagnosis of erythema multiforme (EM) and was treated with oral prednisolone (1 mg/kg/day) and oral acitretin (25 mg/day) for 2 weeks.
+2. Immediate stabilisation: The patient was referred to the dermatology department for a diagnosis of erythema multiforme (EM) and was treated with oral prednisolone (1 mg/kg/day) and oral acitretin (25 mg/day) for 2 weeks.
+3. Immediate stabilisation: The patient was referred to the dermatology department for a diagnosis of erythema multiforme (EM) and was treated with oral prednisolone (1 mg/kg/day) and oral acitretin (25 mg/day) for 2 weeks.
+4. Immediate stabilisation: The patient was referred to the dermatology department for a diagnosis of erythema mult","[[""history"", ""referred to the dermatology department for a diagnosis of erythema multiforme (EM) and was treated with oral prednisolone (1 mg/kg/day) and oral acitretin (25 mg/day) for 2 weeks""], [""history"", ""referred to the dermatology department for a diagnosis of erythema mult""]]"
+adapted (best),file_0028476,mri,"Ocular fundus images from a patient with Terson syndrome with no cerebral hemorrhage. Prior to the vitrectomy, fundus fluorescence angiography (Spectralis HRA; Heidelberg Engineering GmbH, Heidelberg, Germany) showed that the vitreous hemorrhage blocked the fluorescence in the peripheral retina of the patient's. Right.",MRI of the patient's brain showing a right occipital hemorrhage.,"Impression: The patient was referred to hospital (Tangshan, China) due to visual deterioration six months subsequent to the onset of the symptoms. As a result, the patient was diagnosed with Terson syndrome and a vitrectomy was conducted.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Ophthalmoscopic examination detected vitreous hemorrhage in both eyes and the vitreous hemorrhage was subsequently managed with conservative treatment.
+2. Definitive treatment: Two months subsequent to the surgery, the visual acuity was measured to be 20/1,000 in each eye.","Impression: The patient was diagnosed with a right occipital hemorrhage and was referred to a neurosurgical center. The patient was admitted to the neurosurgical center with a history of a right occipital hemorrhage.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was conscious and oriented, with a normal neurological examination.
+2. Immediate stabilisation: The patient was conscious and oriented, with a normal neurological examination.
+3. Immediate stabilisation: The patient was conscious and oriented, with a normal neurological examination.
+4. Immediate stabilisation: The patient was conscious and oriented, with a normal neurological examination.","[[""history"", ""was admitted to the neurosurgical center with a history of a right occipital hemorrhage""]]"
+adapted (best),file_0148454,mri,"(From left to right) Axial, coronal, and sagittal views of MRI brain with contrast demonstrating a previously treated arteriovenous malformation in the right lingual gyrus with evidence of gliosis. RFA, R: right. LHP, L: left.",(A) Sagittal T2-weighted magnetic resonance imaging (MRI) of the brain showing a right occipital AVM. (B) Sagittal T2-weighted MRI of the brain showing a right occipital AVM.,"Impression: A preoperative neuro-ophthalmological evaluation revealed a partial left homonymous visual field defect involving the left inferior quadrant and left superior paracentral zone. Due to the eloquent location of her EZ, and the risk of additional vision loss or even complete homonymous hemianopsia with resective or ablative procedures, the patient elected to undergo responsive neurostimulation.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: She was intubated for airway protection, admitted to the ICU, and the seizures were controlled.
+2. Definitive treatment: She was trialed on multiple anti-seizure medications (ASMs) and eventually remained on two ASMs but with continuing seizures at the time of surgical evaluation.
+3. Definitive treatment: Her surgical options included resection or ablation versus neuromodulation.
+4. Definitive treatment: The patient underwent CT-guided, robot-assisted placement of seven depth leads (with a total of 87 contacts) in the right hemisphere: an occipital lateral (OLAT), occipital...","Impression: The patient presented to the emergency department with a 2-day history of left-sided weakness and a 1-day history of headache.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and placed on a ventilator due to decreased level of consciousness.
+2. Immediate stabilisation: The patient was started on a heparin drip and a CT angiogram was performed.
+3. Immediate stabilisation: The patient was started on a heparin drip and a CT angiogram was performed.
+4. Immediate stabilisation: The patient was started on a heparin drip and a CT angiogram was performed.","[[""history"", ""history of left-sided weakness and a 1-day history of headache""], [""history"", ""history of headache""]]"
+adapted (best),file_0089424,ultrasound,Echocardiogram still image showing calcified and rounded right atrial mass.,Transthoracic echocardiogram showing the mass.,"Impression: It revealed a large calcified and thrombosed right coronary artery aneurysm compressing the right atrium externally (Movie 2 and Figure 2).
+Suggested next steps (most to least suitable):
+1. Investigate: Before his scheduled surgery an echocardiogram was ordered to complete work-up for possible cardiac cause of thromboembolism.
+2. Definitive treatment: the patient with history of coronary artery bypass surgery, repaired abdominal artery aneurysm and repaired bilateral iliac arteries aneurysms was admitted for...","Impression: The patient was referred to the hospital with a history of a 2-year history of palpitations and a 1-year history of dyspnea on exertion. Physical examination revealed a systolic murmur at the apex.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was referred to the hospital with a history of a 2-year history of palpitations and a 1-year history of dyspnea on exertion.
+2. Immediate stabilisation: The patient was referred to the hospital with a history of a 2-year history of palpitations and a 1-year history of dyspnea on exertion.
+3. Immediate stabilisation: The patient was referred to the hospital with a history of a 2-year history of palpitations and a 1-year history of dyspnea on exertion.
+4. Immediate stabilisation: The patient was referred to the hospital with a history of a 2-year history of palpitations and a 1-year history of dyspnea on exertion.","[[""history"", ""referred to the hospital with a history of a 2-year history of palpitations and a 1-year history of dyspnea on exertion""], [""history"", ""history of palpitations and a 1-year history of dyspnea on exertion""], [""history"", ""history of dyspnea on exertion""]]"
+adapted (best),file_0110399,ct,(b) Stone cast model of the face.,(a) Preoperative photograph showing the mass on the left lateral wall of the nose.,"Impression: She underwent four surgical interventions in a span of 6 years in various hospitals at Bengal, Bhopal, and Kolkata due to the recurrence of the tumor to a huge size of almost resembling an elephant trunk [Figure 1a and b]. Under histopathological examination, the tumor was diagnosed as ""HEMANGIOPERICYTOMA."" The lesion was surgically removed, and subsequently, the patient was made to undergo radiotherapy and chemotherapy.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The extensive surgery left her with huge embarrassment and humiliation whenever she interacted.
+2. Definitive treatment: With repeated surgeries, the patient was suffering from nasal stenosis due to which she was unable to breathe through her nares instead the only possible way she could breathe was...
+3. Disposition: The patient was then asked to come for recall visit once in every 3 months for the evaluation of prosthesis and observation of any recurrence.","Impression: The patient was diagnosed with a diagnosis of a benign tumor of the nasal cavity.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was referred to the department of ENT for the surgical excision of the mass.
+2. Definitive treatment: The patient underwent a surgical excision of the mass under general anesthesia.","[[""history"", ""referred to the department of ENT for the surgical excision of the mass""]]"
+adapted (best),file_0144456,ultrasound,Ultrasound cross-section of the lipoma.,Ultrasonography of the lipoma.,"Impression: Physical examination revealed a palpable mass with a diameter of approximately 5 cm extending from the wrist to the base of the left hypothenar eminence (Figure 1). Ultrasound examination at hospital revealed a homogenous mass measuring about 6 x 3 x 1.5 cm without increased vascularization, iso-echoic to the surrounding subcutaneous fatty tissue (Figure 2).
+Suggested next steps (most to least suitable):
+1. Investigate: The radiologist suggested that it was most likely a lipoma, but its location made imaging somewhat difficult, and an MRI was advised as well.
+2. Investigate: Because histological examination of the removed tissue from the original surgery revealed a lipoma, an MRI was deemed unnecessary, and the patient was scheduled for re-excision of...
+3. Definitive treatment: The patient reported the recurrence five days after the initial surgery, performed at a different hospital, and noticed continued growth until admission.
+4. Definitive treatment: As this was a revision surgery involving exploration, the re-excision procedure utilized blockade of the brachial plexus with sedation to ensure the patient's comfort.","Impression: The patient was referred to the department of plastic surgery for surgical excision of the lipoma.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent surgical excision of the lipoma under local anesthesia.
+2. Definitive treatment: The patient was referred to the department of plastic surgery for surgical excision of the lipoma.
+3. Definitive treatment: The patient underwent surgical excision of the lipoma under local anesthesia.",[]
+adapted (best),file_0132067,ct,"HRCT scans on hospital admission: bilateral, superimposed air space consolidations with GGO in lower and upper lobes, more marked on right are described.",CT scan of the chest showing bilateral pulmonary infiltrates.,"Impression: The patient was urgently admitted to the Department of Internal Medicine and Clinical Pharmacology due to shortness of breath, fever, cough, and exercise intolerance. Due to the coexistence of comorbidities, the patient had been ordered the following: ramipril, amlodipine, acetylsalicylic acid, chlorthalidone, glimepiride, spironolactone, metformin, allopurinol, and bisoprolol.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: In the physical examination on admission, temperature [value]C, blood pressure [value], respiratory rate [value]min, and blood oxygen saturation [value] were observed, and...
+2. Immediate stabilisation: Due to increasing respiratory failure despite oxygen therapy given and deteriorating results of ABG (pO2: [value], SpO [value]) anesthesiologist's consultation was performed.
+3. Immediate stabilisation: Prone position and switch type of oxygen therapy to high flow oxygen delivery 60 L/min FiO2: 0.9 was recommended.
+4. Immediate stabilisation: Oxygen therapy was gradually reduced.","Impression: The patient was admitted to the hospital with a 2-week history of cough, fever, and dyspnea. She was diagnosed with COVID-19 and was treated with hydroxychloroquine, azithromycin, and dexamethasone.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was admitted to the hospital with a 2-week history of cough, fever, and dyspnea.
+2. Immediate stabilisation: The patient was admitted to the hospital with a 2-week history of cough, fever, and dyspnea.
+3. Immediate stabilisation: The patient was admitted to the hospital with a 2-week history of cough, fever, and dyspnea.
+4. Immediate stabilisation: The patient was admitted to the hospital with a 2-week history of cough, fever, and dyspnea.","[[""history"", ""history of cough, fever, and dyspnea""]]"
+adapted (best),file_0050821,ct,Axial computed tomography image showing a moth-eaten appearance of the femoral head.,CT scan showing a large mass in the left thigh.,"Impression: Computed tomography and FDG-PET Scan revealed a moth-eaten appearance Fig. Thus, a diagnosis of metastatic malignant PT was made.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Surgical margins were complete and of at least 1 cm.
+2. Definitive treatment: The patient underwent computed guided femoral head biopsy.","Impression: The patient was referred to the hospital with a 3-week history of pain and functional impairment of the left lower limb. Physical examination revealed a large, firm, non-tender mass in the left thigh.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was referred to the hospital with a 3-week history of pain and functional impairment of the left lower limb.
+2. Immediate stabilisation: The patient was referred to the hospital with a 3-week history of pain and functional impairment of the left lower limb.
+3. Immediate stabilisation: The patient was referred to the hospital with a 3-week history of pain and functional impairment of the left lower limb.
+4. Immediate stabilisation: The patient was referred to the hospital with a 3-week history of pain and functional impairment of the left lower limb.",[]
+adapted (best),file_0026200,acute_photo,"Few vesicles, blisters, and erosions were present over the dorsal aspect of the left hand.",Multiple blisters on the left forearm and hand.,"Impression: The following diagnoses were considered: Irritant contact dermatitis Cellulitis.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was admitted to the ward; intravenous (IV) amoxycillin with clavulinic acid, IV steroid, and IV fluids were started.
+2. Definitive treatment: The patient was referred to Department of Surgery and Psychiatry for an opinion.","Impression: The patient was diagnosed with chemical burns of the left hand and forearm due to kerosene injection.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was given IV fluids and was kept in the intensive care unit (ICU) for 2 days.
+2. Immediate stabilisation: The patient was given IV fluids and was kept in the intensive care unit (ICU) for 2 days.
+3. Immediate stabilisation: The patient was given IV fluids and was kept in the intensive care unit (ICU) for 2 days.
+4. Immediate stabilisation: The patient was given IV fluids and was kept in the intensive care unit (ICU) for 2 days.",[]
+adapted (best),file_0149130,ultrasound,"Cervical implantation of a 12-week embryo, with BPD corresponding to 12 weeks and four days.",Ultrasonography showing a gestational sac with a fetus and a yolk sac.,"Impression: She had a scan performed in another unit that diagnosed a cervical pregnancy. The fetus had a longitudinal bladder diameter of 9 mm, consistent with the diagnosis of megacystis.
+Suggested next steps (most to least suitable):
+1. Investigate: The ultrasound performed in our unit described an empty uterus with no focal masses, the endometrium was thickened with no pseudosac identified.
+2. Definitive treatment: In an attempt to preserve fertility, we decided to perform a conservative procedure, embolization of uterine arteries before the pregnancy evacuation.
+3. Definitive treatment: On admission, the patient was started on intravenous antibiotherapy consisting of cephalosporin.
+4. Definitive treatment: Then was performed embolization with absorbable gelatin sponge particles of 1-2 mm diameter and nonionic contrast medium (iopromide (Ultravist 370) until blood flow ceased.","Impression: The patient was referred to the hospital due to a suspected ectopic pregnancy. Her laboratory results revealed a hemoglobin level of 10.1 g/dL, a hematocrit of 29.9%, and a white blood cell count of 11,000/microL.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: She was admitted to the hospital and was given a diagnosis of a ruptured ectopic pregnancy.
+2. Immediate stabilisation: She was given a diagnosis of a ruptured ectopic pregnancy and was admitted to the hospital.
+3. Immediate stabilisation: She was given a diagnosis of a ruptured ectopic pregnancy and was admitted to the hospital.
+4. Immediate stabilisation: She was given a diagnosis of a ruptured ectopic pregnancy and was admitted to the hospital.","[[""lab/vital value"", ""10.1 g/dL""], [""history"", ""referred to the hospital due to a suspected ectopic pregnancy""], [""history"", ""was admitted to the hospital and was given a diagnosis of a ruptured ectopic pregnancy""], [""history"", ""was admitted to the hospital""]]"
+adapted (best),file_0159359,x_ray,Summary of the multidisciplinary management.,"Timeline of the patient's treatment. The patient was treated with H2O2 3% spoling, chlorine dioxide mouthwash, petroleum jelly, non-pharmacology, antibiotic, interdental toothbrush, blood transfusion, and scaling.","Impression: She was admitted to hospital with complaints of pain in her knees so she could not move and was diagnosed with Arthritis ar Genue Sinistra related to Thalassemia by an internal medicine specialist, sub division of rheumatology. Her beta-thalassemia major was treated with routine blood transfusions once a month and iron anti- chelation drugs (deferoxamine); however, it was stopped due to pregnancy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: Blood transfusions to remove packed red cell buffy coat (PRC BCR) are also carried out routinely once a month.
+2. Immediate stabilisation: A blood transfusion was carried out last night.
+3. Immediate stabilisation: A blood transfusion was carried out last night.
+4. Immediate stabilisation: The previous therapy was continued, antibiotics were prescribed 3x/day for seven days, and a blood transfusion was planned as a preparation for scaling the dental calculus.","Impression: The patient was diagnosed with a diagnosis of a bacterial infection of the knee joint. The patient was treated with a combination of antibiotics and blood transfusion.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a combination of antibiotics and blood transfusion.
+2. Investigate: The patient was diagnosed with a diagnosis of a bacterial infection of the knee joint.
+3. Definitive treatment: The patient was treated with a combination of antibiotics and blood transfusion.
+4. Disposition: The patient was treated with a combination of antibiotics and blood transfusion.",[]
+adapted (best),file_0052922,x_ray,Pre-operative anteroposterior radiograph showing left hip joint with two cancellous screws from previous surgical treatment of fractured neck of femur.,Radiological image showing the hip joint after the second surgery.,"Impression: A C T angiogram revealed complete occlusion of the left common femoral artery (Fig. After removal of the occluding thrombus measuring 2.5 cm in length and intimal plaque of one cm length confirmed by histopathological examination (Fig.6), the artery was closed using 6-0 prolene sutures (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: Immediately following the surgery, his pulses were felt but had been feeble.
+2. Definitive treatment: With an urgent opinion from cardiothoracic and vascular surgery, the left femoral artery was exposed and a thrombus was noticed (Fig.
+3. Definitive treatment: The patient was started on anticoagulants for a course of three weeks.
+4. Disposition: the patient Indian male patient was admitted for post-traumatic avascular necrosis of the head of the femur leading to degenerative arthritis of his left hip joint (Fig.","Impression: The patient was referred to the hospital with a chief complaint of right hip pain for the past 10 years. He was diagnosed with osteoarthritis of the right hip and underwent a cemented total hip arthroplasty (THA) through the Southern Moors (posterior) approach.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: He was referred to the hospital with a chief complaint of right hip pain for the past 10 years.
+2. Immediate stabilisation: He was referred to the hospital with a chief complaint of right hip pain for the past 10 years.
+3. Immediate stabilisation: He was referred to the hospital with a chief complaint of right hip pain for the past 10 years.
+4. Immediate stabilisation: He was referred to the hospital with a chief complaint of right hip pain for the past 10 years.","[[""history"", ""referred to the hospital with a chief complaint of right hip pain for the past 10 years""]]"
+adapted (best),file_0149169,mri,"MRI abdomen with and without contrast with MRCP. A: Coronal section shows nodular liver with cirrhotic morphology and normal gallbladder, biliary tree, and pancreas.","(A, B) Magnetic resonance cholangiopancreatography (MRCP) revealed a 1.5-cm-sized mass in the head of the pancreas with a central low-intensity area on T2-weighted images.","Impression: Upon evaluation, his vitals revealed a heart rate [value], blood pressure measured at 161/[value], oxygen saturation standing at 99% while breathing on room air, and a body temperature [value]C (98 F). A clinical examination revealed a distended abdomen, jaundice, and an icteric sclera.
+Suggested next steps (most to least suitable):
+1. Investigate: Due to the patient's persistent complaint of dyspnea during exertion, a CT angiography (CTA) was performed, which notably ruled out the presence of pulmonary emboli though...
+2. Investigate: Post-biopsy, the patient declined further medical intervention and was transitioned to hospice care.
+3. Definitive treatment: the patient with a past medical history of prostate cancer, which was managed with androgen deprivation therapy, presented to the hospital with progressive weakness, loss...","Impression: The patient was admitted to the hospital with a chief complaint of jaundice and abdominal pain. Physical examination revealed a palpable mass in the right upper quadrant of the abdomen.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a 10-day course of intravenous antibiotics, which resulted in a decrease in the size of the mass and a decrease in the patient's bilirubin level.
+2. Immediate stabilisation: The patient was treated with a 10-day course of intravenous antibiotics, which resulted in a decrease in the size of the mass and a decrease in the patient's bilirubin level.
+3. Immediate stabilisation: The patient was treated with a 10-day course of intravenous antibiotics, which resulted in a decrease in the size of the mass and a decrease in the patient's bilirubin level.
+4. Immediate stabilisation: The patient was treated with a 10-day course of intravenous antibiotics, which resulted in a decrease in the size of the mass and a decrease in the patient's bilirubin level.","[[""history"", ""was admitted to the hospital with a chief complaint of jaundice and abdominal pain""]]"
+adapted (best),file_0145889,mri,MRI of the spine shows the normal end level of the conus medullaris (arrow).,"MRI of the patient's sacral region showing a 3 cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region (arrow).","Impression: A detailed physical examination revealed no other associated anomalies. An MRI of the spine revealed an approximately 3 cm (about 1.18 in) long pedunculated appendage with fat intensity arising and hanging down from the mid-sacral region.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: He was managed with nasal oxygen on the first day and was weaned off gradually; other than that, the patient was managed with routine NICU care.","Impression: The patient was referred to the hospital with a 3-cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region. The mass was non-tender and did not bleed on palpation.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was referred to the hospital with a 3-cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region.
+2. Immediate stabilisation: The patient was referred to the hospital with a 3-cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region.
+3. Immediate stabilisation: The patient was referred to the hospital with a 3-cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region.
+4. Immediate stabilisation: The patient was referred to the hospital with a 3-cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region.","[[""history"", ""referred to the hospital with a 3-cm-long, cylindrical, pink, soft, and mobile mass arising from the mid-sacral region""]]"
+adapted (best),file_0147165,ultrasound,A: Ultrasonography of the right thigh confirmed the diagnosis of pseudoaneurysm of LFCA (white arrow).,Ultrasonography of the right thigh showing a hematoma.,"Impression: Upon assessment, he was diagnosed with a closed fracture of the midshaft right femur (Figure 1) and an ipsilateral distal tibia fracture. Definitive surgery was delayed due to the prolonged waiting time for the operation.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: As a part of immediate management, he underwent an emergent debridement and suturing of the wound, along with the insertion of a calcaneal pin.
+2. Definitive treatment: Ten days later, the patient underwent internal fixation for both femoral and tibia fractures.
+3. Definitive treatment: Before the surgery, there were no signs of infection in the wound over the right knee, and the compartments of the right thigh and leg were soft, with no signs of vascular...
+4. Definitive treatment: The surgeon further introduced the guide wire, followed by sequential canal reaming.","Impression: The patient was diagnosed with a right thigh hematoma and was treated with a compression bandage and analgesics.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was admitted to the hospital with a right thigh hematoma.
+2. Immediate stabilisation: The patient was treated with a compression bandage and analgesics.
+3. Immediate stabilisation: The patient was treated with a compression bandage and analgesics.
+4. Immediate stabilisation: The patient was treated with a compression bandage and analgesics.",[]

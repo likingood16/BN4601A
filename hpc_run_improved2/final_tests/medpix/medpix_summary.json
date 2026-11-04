@@ -1,0 +1,13 @@
+{
+  "n_cases": 25,
+  "metrics": {
+    "adapted": {
+      "dx_term_recall": 0.06931999999999999,
+      "dx_hit": 0.04,
+      "action_term_recall": 0.044,
+      "action_rougeL": 0.06464
+    }
+  },
+  "pth": null,
+  "created": "2026-11-03T21:30:41"
+}

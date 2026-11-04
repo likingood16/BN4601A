@@ -1,0 +1,73 @@
+source,image_id,modality,expected,predicted_boxes,text_mentions_expected,best_iou,recall50,negative_ok,findings,assessment,location,unsupported_facts_removed
+fracatlas,IMG0000466.jpg,x_ray,fracture,fracture,True,0.0,0.0,,Radiograph showing the fracture of the distal femur with internal fixation.,"Impression: The patient was [history not provided].
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent open reduction and internal fixation (ORIF) of the distal femur fracture with a 4.5 mm cannulated screw (Figure 1).
+2. Definitive treatment: The patient was [history not provided].
+3. Definitive treatment: The patient underwent open reduction and internal fixation (ORIF) of the distal femur fracture with a 4.5 mm cannulated screw (Figure 1).
+4. Definitive treatment: The patient underwent open reduction and internal fixation (ORIF) of the distal femur fracture with a 4.5 mm cannulated screw (Figure 1).","middle third, centre; box covers about 0% of the image",2
+fracatlas,IMG0002549.jpg,x_ray,fracture,none,False,0.0,0.0,,Hip and pelvic X-ray showing a well-defined lytic lesion in the left iliac bone.,"Impression: The patient was [history not provided]. Physical examination revealed a palpable mass in the left iliac region.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a biopsy of the mass, which revealed a poorly differentiated carcinoma.
+2. Definitive treatment: The patient underwent a left iliac bone resection with a 1.5 cm margin and a 1.5 cm margin on the posterior side.
+3. Definitive treatment: The patient underwent a left iliac bone resection with a 1.5 cm margin and a 1.5 cm margin on the posterior side.
+4. Definitive treatment: The patient underwent a left iliac bone resection with a 1.5 cm margin and a 1.5 cm margin on the posterior side.",,2
+fracatlas,IMG0003906.jpg,x_ray,fracture,none,True,0.0,0.0,,Radiograph of the right forearm showing a fracture of the distal radius.,"Impression: The patient was [history not provided]. The patient was [not provided] with a [history not provided].
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and casting.
+2. Definitive treatment: The patient was treated with a closed reduction and casting.
+3. Definitive treatment: The patient was treated with a closed reduction and casting.
+4. Definitive treatment: The patient was treated with a closed reduction and casting.",,8
+fracatlas,IMG0002987.jpg,x_ray,fracture,fracture,True,0.0,0.0,,Fracture of the distal humerus.,"Impression: The patient was [history not provided].5 m, resulting in a fracture of the distal humerus.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a closed reduction and percutaneous pinning (CRPP) of the distal humerus fracture.
+2. Definitive treatment: The patient was [history not provided].5 m, resulting in a fracture of the distal humerus.
+3. Definitive treatment: The patient was [history not provided].5 m, resulting in a fracture of the distal humerus.
+4. Definitive treatment: The patient was [history not provided].5 m, resulting in a fracture of the distal humerus.","middle third, centre; box covers about 0% of the image",2
+nih_cxr14,00018693_004.png,x_ray,cardiomegaly,none,True,0.0,0.0,,Chest X-ray showing cardiomegaly and left-sided picc line.,"Impression: The patient [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: He was started on intravenous antibiotics and was given a nebulizer treatment of albuterol and ipratropium bromide.
+2. Immediate stabilisation: He was given a nebulizer treatment of albuterol and ipratropium bromide.
+3. Immediate stabilisation: He was given a nebulizer treatment of albuterol and ipratropium bromide.
+4. Immediate stabilisation: He was given a nebulizer treatment of albuterol and ipratropium bromide.",,1
+nih_cxr14,00014839_017.png,x_ray,pneumonia,pneumothorax,False,0.0,0.0,,"Chest radiograph showing a right subclavian central venous catheter, a left chest tube, and left-sided atelectasis.","Impression: The patient was diagnosed with a left-sided pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was started on a heparin drip and was transferred to the intensive care unit.
+2. Immediate stabilisation: The patient was started on a heparin drip and was transferred to the intensive care unit.
+3. Immediate stabilisation: The patient was started on a heparin drip and was transferred to the intensive care unit.
+4. Immediate stabilisation: The patient was started on a heparin drip and was transferred to the intensive care unit.","upper third, image-left (on a standard frontal chest radiograph or axial CT this is usually the patient's right); box covers about 1% of the image",1
+nih_cxr14,00018101_012.png,x_ray,mass,mass,True,0.1864172009612054,0.0,,Chest radiograph showing a large mass in the right upper zone.,"Impression: The patient was [history not provided]. A CT scan of the chest was performed, which revealed a 10 x 10 cm mass in the right upper zone with a central lucent area (Figure 1).
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a right upper lobectomy with mediastinal lymph node dissection.
+2. Definitive treatment: The patient underwent a right upper lobectomy with mediastinal lymph node dissection.
+3. Definitive treatment: The patient underwent a right upper lobectomy with mediastinal lymph node dissection.
+4. Definitive treatment: The patient underwent a right upper lobectomy with mediastinal lymph node dissection.","upper third, image-left (on a standard frontal chest radiograph or axial CT this is usually the patient's right); box covers about 1% of the image",2
+nih_cxr14,00008413_000.png,x_ray,no abnormality,none,,,,1.0,Chest X-ray showing no acute process.,"Impression: The patient was [history not provided]. Her [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: She was given oxygen via nasal cannula and was started on intravenous fluids.
+2. Immediate stabilisation: Her oxygen saturation improved to 96% on room air, and she was started on intravenous fluids.
+3. Immediate stabilisation: Her oxygen saturation improved to 96% on room air, and she was started on intravenous fluids.
+4. Immediate stabilisation: Her oxygen saturation improved to 96% on room air, and she was started on intravenous fluids.",,4
+slake,xmlab605,ct,"bladder, rectum",none,True,,,1.0,CT scan showing a 1.5 x 1.5 cm solid mass in the anterior wall of the urinary bladder.,"Impression: The patient was [history not provided].5 x 1.5 cm solid mass in the anterior wall of the urinary bladder.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was [history not provided].5 x 1.5 cm solid mass in the anterior wall of the urinary bladder.
+2. Investigate: A biopsy was performed and the histopathological examination revealed a poorly differentiated carcinoma.
+3. Definitive treatment: The patient underwent a cystectomy with pelvic lymph node dissection.
+4. Definitive treatment: The patient underwent a cystectomy with pelvic lymph node dissection.",,1
+slake,xmlab110,ct,lung cancer,nodule,False,0.0,0.0,,Chest CT scan showing multiple bilateral lung nodules.,"Impression: The patient was [history not provided]. Physical examination revealed a right-sided pleural effusion.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient [history not provided].
+2. Investigate: A CT scan of the chest was performed, which revealed multiple bilateral lung nodules (Figure 1).
+3. Investigate: A biopsy of the left lower lobe nodule was performed, which revealed a poorly differentiated adenocarcinoma.
+4. Definitive treatment: The patient underwent a right lower lobectomy and a left upper lobectomy.","middle third, image-right (on a standard frontal chest radiograph or axial CT this is usually the patient's left); box covers about 0% of the image",3
+slake,xmlab105,ct,lung cancer,mass,False,0.0,0.0,,Chest CT scan showing a large mass in the right upper lobe with mediastinal lymphadenopathy.,"Impression: The patient was [history not provided]. A CT scan of the chest revealed a large mass in the right upper lobe with mediastinal lymphadenopathy.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a right upper lobectomy with mediastinal lymph node dissection.
+2. Definitive treatment: The patient was diagnosed with lung adenocarcinoma and underwent a right upper lobectomy with mediastinal lymph node dissection.
+3. Definitive treatment: The patient underwent a right upper lobectomy with mediastinal lymph node dissection.
+4. Definitive treatment: The patient underwent a right upper lobectomy with mediastinal lymph node dissection.","middle third, image-left (on a standard frontal chest radiograph or axial CT this is usually the patient's right); box covers about 1% of the image",2
+slake,xmlab600,ct,"esophagus, heart, left lung, right lung, spinal cord",none,False,,,1.0,Chest CT scan showing a large mass in the left upper zone.,"Impression: A CT scan of the chest was performed, which revealed a large mass in the left upper zone (Figure 1).
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a median sternotomy and a biopsy of the mass was performed.
+2. Definitive treatment: The patient underwent a median sternotomy and a biopsy of the mass was performed.
+3. Definitive treatment: The patient underwent a median sternotomy and a biopsy of the mass was performed.
+4. Definitive treatment: The patient underwent a median sternotomy and a biopsy of the mass was performed.",,0

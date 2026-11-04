@@ -1,0 +1,4 @@
+step,images,cases
+all records (MultiCaRe filter not applied),2050,671
+has a ground-truth diagnosis,2050,671
+has treatment / follow-up text,1559,494

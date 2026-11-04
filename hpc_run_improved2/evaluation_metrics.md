@@ -1,0 +1,24 @@
+|                             |   base (no adapter) |   adapted (best) |   delta (adapted-base) |
+|:----------------------------|--------------------:|-----------------:|-----------------------:|
+| test_loss                   |              2.8138 |           1.8373 |                -0.9765 |
+| test_perplexity             |             16.6724 |           6.2795 |               -10.3929 |
+| n_generated                 |             96      |          96      |                 0      |
+| findings_rougeL             |              0.0952 |           0.2162 |                 0.121  |
+| findings_f1                 |              0.1162 |           0.242  |                 0.1258 |
+| assess_rougeL               |              0.1927 |           0.2465 |                 0.0538 |
+| assess_term_recall          |              0.216  |           0.241  |                 0.025  |
+| format_ok                   |              1      |           1      |                 0      |
+| words_findings              |             87.1771 |          11.8854 |               -75.2917 |
+| words_assess                |            115.885  |         103.125  |               -12.7604 |
+| halluc_case_rate            |              0.0208 |           0.3542 |                 0.3333 |
+| halluc_per_case             |              0.0208 |           0.5521 |                 0.5312 |
+| halluc_case_rate_image_only |              0      |           0.375  |                 0.375  |
+| ground_parse_ok             |              0.4333 |           1      |                 0.5667 |
+| ground_open_mIoU            |              0      |           0.0283 |                 0.0283 |
+| ground_open_recall50        |              0      |           0.05   |                 0.05   |
+| ground_open_precision50     |              0      |           0.1    |                 0.1    |
+| ground_ref_mIoU             |              0.0117 |           0.2396 |                 0.2278 |
+| ground_ref_recall50         |              0      |           0.1905 |                 0.1905 |
+| ground_ref_precision50      |              0      |           0.1905 |                 0.1905 |
+| ground_negative_specificity |              1      |           0.75   |                -0.25   |
+| n_ground_eval               |             60      |          60      |                 0      |

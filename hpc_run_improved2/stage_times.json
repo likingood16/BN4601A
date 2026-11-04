@@ -1,0 +1,8 @@
+{
+  "data_prep_min": 3.2,
+  "pseudo_label_min": 39.1,
+  "train_min": 626.7,
+  "eval_min": 14.1,
+  "final_tests_min": 7.6,
+  "total_min": 691.6
+}

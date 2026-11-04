@@ -1,0 +1,20 @@
+{
+  "fracatlas": {
+    "n": 10,
+    "text_mentions_expected": 0.875,
+    "mean_best_iou": 0.022621624684690707,
+    "negative_ok": 1.0
+  },
+  "nih_cxr14": {
+    "n": 10,
+    "text_mentions_expected": 0.25,
+    "mean_best_iou": 0.039123339166333176,
+    "negative_ok": 1.0
+  },
+  "slake": {
+    "n": 10,
+    "text_mentions_expected": 0.5,
+    "mean_best_iou": 0.03305686787681696,
+    "negative_ok": null
+  }
+}
