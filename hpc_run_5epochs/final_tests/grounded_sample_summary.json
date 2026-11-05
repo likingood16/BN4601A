@@ -1,0 +1,29 @@
+{
+  "fracatlas": {
+    "n": 25,
+    "label_recall": 0.8,
+    "text_mentions_expected": 0.8,
+    "normal_correct": 0.8,
+    "best_iou": 0.004877319262450955,
+    "recall50": 0.0,
+    "negative_ok": 1.0
+  },
+  "nih_cxr14": {
+    "n": 25,
+    "label_recall": 0.3,
+    "text_mentions_expected": 0.35,
+    "normal_correct": 0.8,
+    "best_iou": 0.0,
+    "recall50": 0.0,
+    "negative_ok": 1.0
+  },
+  "slake": {
+    "n": 25,
+    "label_recall": 0.1956521739130435,
+    "text_mentions_expected": 0.28,
+    "normal_correct": 1.0,
+    "best_iou": 0.0455811102037798,
+    "recall50": 0.014492753623188404,
+    "negative_ok": 1.0
+  }
+}

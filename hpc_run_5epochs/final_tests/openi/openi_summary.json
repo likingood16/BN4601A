@@ -1,0 +1,12 @@
+{
+  "n": 60,
+  "n_normal": 20,
+  "findings_rougeL": 0.07050000000000001,
+  "findings_f1": 0.07388333333333333,
+  "impression_term_recall": 0.08195,
+  "label_recall": 0.10493827160493827,
+  "normal_correct": 0.6666666666666666,
+  "format_ok": 1.0,
+  "abnormal_detected": 1.0,
+  "normal_recognised": 0.0
+}

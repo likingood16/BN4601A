@@ -1,0 +1,10 @@
+source,step,images,cases
+nih_cxr14,all records (MultiCaRe filter not applied),1760,1515
+nih_cxr14,image file on disk,1760,1515
+nih_cxr14,plausible boxes (0 boxes removed),1760,1515
+slake,all records (MultiCaRe filter not applied),580,33
+slake,image file on disk,580,33
+slake,plausible boxes (40 boxes removed),580,33
+fracatlas,all records (MultiCaRe filter not applied),1434,1434
+fracatlas,image file on disk,1434,1434
+fracatlas,plausible boxes (2 boxes removed),1434,1434

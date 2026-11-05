@@ -1,0 +1,421 @@
+source,image_id,modality,expected,predicted_boxes,text_mentions_expected,label_recall,normal_correct,best_iou,recall50,negative_ok,findings,assessment,location,unsupported_facts_removed
+fracatlas,IMG0002600.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the left wrist showing a fracture of the distal radius.,"Impression: The patient was diagnosed with a distal radius fracture and was treated with a cast.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast for 6 weeks.",,0
+fracatlas,IMG0002486.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the left forearm showing a fracture of the distal radius.,"Impression: The patient was diagnosed with a left distal radius fracture and was treated with a cast.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast.",,0
+fracatlas,IMG0002319.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the left arm showing the distal radius and ulna fractures.,"Impression: The patient was diagnosed with a left distal radius and ulna fracture.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast and was discharged home.
+2. Definitive treatment: The patient was treated with a cast and was discharged home.
+3. Definitive treatment: The patient was treated with a cast and was discharged home.
+4. Definitive treatment: The patient was treated with a cast and was discharged home.",,0
+fracatlas,IMG0003234.jpg,x_ray,fracture,fracture,False,0.0,True,0.0,0.0,,X-ray of the left hand showing the distal phalanx of the index finger with a large osteolytic lesion.,"Impression: The patient was diagnosed with a malignant bone tumor of the distal phalanx of the index finger. The patient was diagnosed with a malignant bone tumor of the distal phalanx of the index finger.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a left index finger amputation.
+2. Definitive treatment: The patient underwent a left index finger amputation.
+3. Definitive treatment: The patient underwent a left index finger amputation.
+4. Definitive treatment: The patient underwent a left index finger amputation.","middle third, centre; box covers about 0% of the image",0
+fracatlas,IMG0003564.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the left forearm showing a fracture of the distal third of the radius.,"Impression: The patient was diagnosed with a fracture of the distal third of the radius (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast for 10 weeks.",,0
+fracatlas,IMG0003925.jpg,x_ray,fracture,fracture,True,1.0,True,0.06564863383907238,0.0,,Anteroposterior radiograph of the left ankle showing a displaced fibular fracture.,"Impression: The patient was diagnosed with a displaced fibular fracture and was referred to hospital for surgical management.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a fibular external fixator.
+2. Definitive treatment: The patient was treated with a fibular external fixator.
+3. Definitive treatment: The patient was treated with a fibular external fixator.
+4. Definitive treatment: The patient was treated with a fibular external fixator.","middle third, centre; box covers about 0% of the image",0
+fracatlas,IMG0002484.jpg,x_ray,fracture,"fracture, fracture",True,1.0,True,0.0,0.0,,X-ray of the left forearm showing the two fractures.,"Impression: The patient was diagnosed with a left forearm fracture and was treated with a cast.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast for 10 weeks.","middle third, centre; box covers about 0% of the image | middle third, centre; box covers about 0% of the image",0
+fracatlas,IMG0002372.jpg,x_ray,fracture,fracture,True,1.0,True,0.0,0.0,,Anteroposterior radiograph of the left lower leg showing the external fixator in place.,"Impression: The patient was diagnosed with a left tibial shaft fracture and underwent open reduction and internal fixation (ORIF) with a 1.5-mm titanium plate and two 1.5-mm screws.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a 1.5-mm titanium plate and two 1.5-mm screws.
+2. Definitive treatment: The patient was treated with a 1.5-mm titanium plate and two 1.5-mm screws.
+3. Definitive treatment: The patient was treated with a 1.5-mm titanium plate and two 1.5-mm screws.
+4. Definitive treatment: The patient was treated with a 1.5-mm titanium plate and two 1.5-mm screws.","middle third, centre; box covers about 0% of the image",0
+fracatlas,IMG0002403.jpg,x_ray,fracture,"fracture, fracture",True,1.0,True,0.0,0.0,,Anteroposterior and lateral radiographs of the left ankle at the time of the second surgery.,"Impression: The patient was diagnosed with a left ankle fracture and was treated with a cast.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast and was discharged from the emergency department.
+2. Definitive treatment: The patient was treated with a cast and was discharged from the emergency department.
+3. Definitive treatment: The patient was treated with a cast and was discharged from the emergency department.
+4. Definitive treatment: The patient was treated with a cast and was discharged from the emergency department.","middle third, centre; box covers about 0% of the image | middle third, centre; box covers about 0% of the image",0
+fracatlas,IMG0004262.jpg,x_ray,fracture,none,False,0.0,True,0.0,0.0,,X-ray of the left foot showing a bone defect in the distal metaphysis of the first metatarsal bone.,"Impression: The patient was diagnosed with a bone defect in the distal metaphysis of the first metatarsal bone (Figure 1).
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a 3-hole external fixator (Figure 2).
+2. Definitive treatment: The patient was treated with a 3-hole external fixator (Figure 3).
+3. Definitive treatment: The patient was treated with a 3-hole external fixator (Figure 4).
+4. Definitive treatment: The patient was treated with a 3-hole external fixator (Figure 5).",,0
+fracatlas,IMG0002311.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the right wrist showing a comminuted fracture of the distal radius.,"Impression: The patient was diagnosed with a comminuted fracture of the distal radius (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and internal fixation (CRIF) of the distal radius fracture using a 0.035-inch wire and a 1.5-mm Kirschner wire (Fig.
+2. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the distal radius fracture using a 0.035-inch wire and a 1.5-mm Kirschner wire (Fig.
+3. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the distal radius fracture using a 0.035-inch wire and a 1.5-mm Kirschner wire (Fig.
+4. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the distal radius fracture using a 0.035-inch wire and a 1.5-mm Kirschner wire (Fig.",,0
+fracatlas,IMG0002619.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the left humerus showing a comminuted fracture of the proximal humerus.,"Impression: The patient was diagnosed with a comminuted fracture of the proximal humerus (Figure 1).
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and internal fixation (CRIF) of the fracture using a 3.5 mm locking plate and screws (Figure 2).
+2. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the fracture using a 3.5 mm locking plate and screws (Figure 3).
+3. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the fracture using a 3.5 mm locking plate and screws (Figure 4).
+4. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the fracture using a 3.5 mm locking plate and screws (Figure 5).",,0
+fracatlas,IMG0002664.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,Anterior-posterior radiograph of the left shoulder showing a comminuted fracture of the proximal humerus with a displaced fracture fragment.,"Impression: The patient was diagnosed with a comminuted fracture of the proximal humerus with a displaced fracture fragment (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and internal fixation (CRIF) of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.
+2. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.
+3. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.
+4. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.",,0
+fracatlas,IMG0002373.jpg,x_ray,fracture,fracture,True,1.0,True,0.0,0.0,,Anteroposterior radiograph of the left ankle at the time of the second operation.,"Impression: The patient was diagnosed with a left ankle fracture and was treated with a cast.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast for 10 weeks.
+2. Definitive treatment: The patient was treated with a cast for 10 weeks.
+3. Definitive treatment: The patient was treated with a cast for 10 weeks.
+4. Definitive treatment: The patient was treated with a cast for 10 weeks.","middle third, centre; box covers about 1% of the image",0
+fracatlas,IMG0002501.jpg,x_ray,fracture,none,False,0.0,True,0.0,0.0,,Lateral radiograph of the left elbow showing a small joint effusion.,"Impression: The patient was diagnosed with a left elbow joint effusion and was treated with rest and physiotherapy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a splint and physiotherapy.
+2. Investigate: A plain radiograph of the left elbow was performed and showed a small joint effusion (Fig.
+3. Investigate: A plain radiograph of the left elbow was performed and showed a small joint effusion (Fig.
+4. Investigate: A plain radiograph of the left elbow was performed and showed a small joint effusion (Fig.",,0
+fracatlas,IMG0000479.jpg,x_ray,fracture,none,False,0.0,True,0.0,0.0,,Anteroposterior radiograph of the left ankle showing a well-defined lytic lesion in the talus.,"Impression: The patient was diagnosed with a talar osteochondroma.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent talar osteochondroma resection and talocalcaneal fusion.",,0
+fracatlas,IMG0002528.jpg,x_ray,fracture,fracture,True,1.0,True,0.03189775140994671,0.0,,X-ray of the left lower limb showing a large soft tissue swelling and a displaced fracture of the distal tibia.,"Impression: The patient was diagnosed with a displaced fracture of the distal tibia and fibula.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a below-knee amputation and a below-knee prosthesis.","middle third, centre; box covers about 0% of the image",0
+fracatlas,IMG0002405.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the left forearm and hand showing a comminuted fracture of the distal radius and ulna with a displaced volar ulnar fragment.,"Impression: The patient was diagnosed with a comminuted fracture of the distal radius and ulna with a displaced volar ulnar fragment (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and external fixation (Fig.
+2. Definitive treatment: The patient was treated with a closed reduction and external fixation (Fig.
+3. Definitive treatment: The patient was treated with a closed reduction and external fixation (Fig.
+4. Definitive treatment: The patient was treated with a closed reduction and external fixation (Fig.",,0
+fracatlas,IMG0002935.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,Anteroposterior radiograph of the left hand showing a comminuted fracture of the distal phalanx of the index finger with a displaced volar fragment.,"Impression: The patient was diagnosed with a comminuted fracture of the distal phalanx of the index finger (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and splinting.
+2. Definitive treatment: The patient was treated with a closed reduction and splinting.
+3. Definitive treatment: The patient was treated with a closed reduction and splinting.
+4. Definitive treatment: The patient was treated with a closed reduction and splinting.",,0
+fracatlas,IMG0002353.jpg,x_ray,fracture,none,True,1.0,True,0.0,0.0,,X-ray of the right wrist showing a comminuted fracture of the distal radius.,"Impression: The patient was diagnosed with a comminuted fracture of the distal radius (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and external fixation (CR-EF) of the wrist.
+2. Definitive treatment: The patient was treated with a closed reduction and external fixation (CR-EF) of the wrist.
+3. Definitive treatment: The patient was treated with a closed reduction and external fixation (CR-EF) of the wrist.
+4. Definitive treatment: The patient was treated with a closed reduction and external fixation (CR-EF) of the wrist.",,0
+fracatlas,IMG0001461.jpg,x_ray,no abnormality,none,,,False,,,1.0,Chest X-ray showing no abnormality.,"Impression: The patient was the patient with a [history not provided]. The patient was diagnosed with a large ASD and a small secundum ASD.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,1
+fracatlas,IMG0001608.jpg,x_ray,no abnormality,none,,,False,,,1.0,X-ray of the left arm showing a fracture of the distal humerus.,"Impression: The patient was diagnosed with a left distal humerus fracture and was treated with a cast.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a cast and was discharged.",,0
+fracatlas,IMG0003237.jpg,x_ray,no abnormality,none,,,False,,,1.0,X-ray of the left shoulder showing a fracture of the proximal humerus.,"Impression: The patient was diagnosed with a left proximal humerus fracture and was treated with a sling for 6 weeks.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.
+2. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.
+3. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.
+4. Definitive treatment: The patient was treated with a closed reduction and internal fixation of the proximal humerus fracture using a 3.5 mm locking plate and screws (Fig.",,0
+fracatlas,IMG0002003.jpg,x_ray,no abnormality,none,,,False,,,1.0,X-ray of the left hand showing a fracture of the distal phalanx of the 4th finger.,"Impression: The patient was diagnosed with a fracture of the distal phalanx of the 4th finger (Fig.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a splint and a non-weight-bearing cast.",,0
+fracatlas,IMG0003506.jpg,x_ray,no abnormality,none,,,False,,,1.0,Anteroposterior radiograph of the left foot showing a bipartite tibial sesamoid bone.,"Impression: The patient was diagnosed with a bipartite tibial sesamoid bone.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with a closed reduction and a short leg cast.
+2. Definitive treatment: The patient was treated with a closed reduction and a short leg cast.",,0
+nih_cxr14,00020113_017.png,x_ray,atelectasis,none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral pleural effusions.,"Impression: The patient was diagnosed with HIV infection and was started on antiretroviral therapy (ART) with a combination of tenofovir, lamivudine, and efavirenz. A chest X-ray revealed bilateral pleural effusions and a left-sided picc line (Figure 1).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was started on intravenous (IV) fluids and was given a dose of 10 mg of furosemide.
+2. Immediate stabilisation: The patient was started on IV fluids and was given a dose of 10 mg of furosemide.
+3. Immediate stabilisation: The patient was started on IV fluids and was given a dose of 10 mg of furosemide.
+4. Immediate stabilisation: The patient was started on IV fluids and was given a dose of 10 mg of furosemide.",,0
+nih_cxr14,00025969_000.png,x_ray,cardiomegaly,none,True,1.0,True,0.0,0.0,,Chest X-ray showing cardiomegaly and pulmonary edema.,"Impression: The patient was diagnosed with SLE and was on hydroxychloroquine and prednisolone. The patient was diagnosed with SLE and was on hydroxychloroquine and prednisolone.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was weaned from the ventilator and was discharged home on 10 mg of prednisolone and 20 mg of hydroxychloroquine.
+3. Investigate: The patient [history not provided].
+4. Investigate: The patient [history not provided].",,1
+nih_cxr14,00020259_002.png,x_ray,"infiltrate, pneumonia",none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral pulmonary edema.,"Impression: The patient was diagnosed with a left breast cancer and underwent a modified radical mastectomy with sentinel lymph node biopsy. The patient was diagnosed with a left breast cancer and underwent a modified radical mastectomy with sentinel lymph node biopsy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was transferred to the intensive care unit (ICU) and was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.",,0
+nih_cxr14,00028873_004.png,x_ray,cardiomegaly,none,True,1.0,True,0.0,0.0,,Chest X-ray showing cardiomegaly and pulmonary edema.,"Impression: The patient was diagnosed with acute heart failure and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was started on intravenous (IV) furosemide and IV milrinone.
+3. Immediate stabilisation: The patient was started on IV methylprednisolone and IV immunoglobulin.
+4. Immediate stabilisation: The patient was started on IV methylprednisolone and IV immunoglobulin.",,1
+nih_cxr14,00013471_002.png,x_ray,pneumothorax,none,True,1.0,True,0.0,0.0,,Chest X-ray showing a large pneumothorax on the left side.,"Impression: The patient was diagnosed with a left-sided pneumothorax and was treated with a chest tube.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was transferred to the intensive care unit (ICU) and was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.",,0
+nih_cxr14,00021818_026.png,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a left-sided pleural effusion and a left-sided pneumothorax.,"Impression: The patient was diagnosed with a left-sided pleural effusion and a left-sided pneumothorax. The patient was diagnosed with a left-sided pleural effusion and a left-sided pneumothorax.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a chest tube and a high-flow oxygen mask.
+2. Immediate stabilisation: The patient was treated with a chest tube and a high-flow oxygen mask.
+3. Immediate stabilisation: The patient was treated with a chest tube and a high-flow oxygen mask.
+4. Immediate stabilisation: The patient was treated with a chest tube and a high-flow oxygen mask.",,0
+nih_cxr14,00020810_003.png,x_ray,atelectasis,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a right lower lobe opacity.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was started on steroids. A chest X-ray revealed a right lower lobe opacity (Fig.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was started on intravenous antibiotics and was given oxygen via a nasal cannula.
+2. Immediate stabilisation: The patient was started on intravenous antibiotics and was given oxygen via a nasal cannula.
+3. Immediate stabilisation: The patient was started on intravenous antibiotics and was given oxygen via a nasal cannula.
+4. Immediate stabilisation: The patient was started on intravenous antibiotics and was given oxygen via a nasal cannula.",,0
+nih_cxr14,00011023_004.png,x_ray,infiltrate,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a large right-sided pneumothorax.,"Impression: The patient was diagnosed with a large right-sided pneumothorax and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: She was intubated and mechanically ventilated.
+2. Immediate stabilisation: She was started on a ventilator with a tidal volume of 400 mL, a [not provided]min, and a positive end-expiratory pressure (PEEP) of 10 cm H2O.
+3. Immediate stabilisation: She was started on a ventilator with a tidal volume of 400 mL, a [not provided]min, and a positive end-expiratory pressure (PEEP) of 10 cm H2O.
+4. Immediate stabilisation: She was started on a ventilator with a tidal volume of 400 mL, a [not provided]min, and a positive end-expiratory pressure (PEEP) of 10 cm H2O.",,2
+nih_cxr14,00029596_018.png,x_ray,pleural effusion,none,True,1.0,True,0.0,0.0,,Chest X-ray showing a large left pleural effusion.,"Impression: The patient was diagnosed with a left-sided pleural effusion and [history not provided]. The patient was diagnosed with a left-sided pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient [history not provided].
+2. Immediate stabilisation: The patient [history not provided].
+3. Immediate stabilisation: The patient [history not provided].
+4. Immediate stabilisation: The patient [history not provided].",,2
+nih_cxr14,00000193_019.png,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing pulmonary edema.,"Impression: The patient was diagnosed with a left-sided pleural effusion and [history not provided]. The patient was diagnosed with a left-sided pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,1
+nih_cxr14,00027357_014.png,x_ray,"infiltrate, pleural effusion",none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral pulmonary edema.,"Impression: The patient was diagnosed with acute pancreatitis and [history not provided]. The patient was diagnosed with acute pancreatitis and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,2
+nih_cxr14,00020564_000.png,x_ray,pleural effusion,none,False,0.0,True,0.0,0.0,,Chest X-ray showing cardiomegaly.,"Impression: The patient was diagnosed with a left ventricular outflow tract obstruction (LVOTO) and was referred to hospital for further evaluation and management. The patient was diagnosed with a left ventricular outflow tract obstruction (LVOTO) and was referred to hospital for further evaluation and management.
+Suggested next steps (most to least suitable):
+1. Investigate: The patient was referred to hospital for further evaluation and management.
+2. Investigate: The patient was referred to hospital for further evaluation and management.
+3. Investigate: The patient was referred to hospital for further evaluation and management.
+4. Investigate: The patient was referred to hospital for further evaluation and management.",,0
+nih_cxr14,00012288_000.png,x_ray,cardiomegaly,none,True,1.0,True,0.0,0.0,,Chest X-ray showing cardiomegaly.,"Impression: The patient was diagnosed with SLE [not provided] and had been treated with hydroxychloroquine and prednisolone. The patient was diagnosed with SLE [not provided] and had been treated with hydroxychloroquine and prednisolone.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient [history not provided].
+2. Immediate stabilisation: The patient was transferred to the intensive care unit and was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was transferred to the intensive care unit and was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was transferred to the intensive care unit and was intubated and mechanically ventilated.",,2
+nih_cxr14,00014022_054.png,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral infiltrates.,"Impression: The patient was diagnosed with a left-sided pneumothorax and was treated with a chest tube. A chest X-ray revealed bilateral infiltrates and a left-sided pneumothorax (Fig.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and placed on mechanical ventilation.
+2. Immediate stabilisation: The patient was treated with intravenous antibiotics and was weaned from mechanical ventilation.
+3. Immediate stabilisation: The patient was transferred to the ICU and was treated with intravenous antibiotics and was weaned from mechanical ventilation.
+4. Immediate stabilisation: The patient was transferred to the ICU and was treated with intravenous antibiotics and was weaned from mechanical ventilation.",,0
+nih_cxr14,00020857_008.png,x_ray,atelectasis,none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral lower lobe infiltrates.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was started on a course of antibiotics. A repeat chest X-ray was performed and revealed bilateral lower lobe infiltrates (Figure 1).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was started on intravenous fluids and antibiotics.
+2. Immediate stabilisation: The patient was started on intravenous fluids and antibiotics.
+3. Immediate stabilisation: The patient was started on intravenous fluids and antibiotics.
+4. Immediate stabilisation: The patient was started on intravenous fluids and antibiotics.",,0
+nih_cxr14,00019271_030.png,x_ray,atelectasis,none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral lung opacities.,"Impression: The patient was diagnosed with a left-sided lung tumor and underwent a left upper lobectomy. The patient was diagnosed with a left-sided lung tumor and underwent a left upper lobectomy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,0
+nih_cxr14,00029532_005.png,x_ray,pleural effusion,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a large amount of free air in the abdomen and a small amount of free air in the mediastinum.,"Impression: The patient was diagnosed with acute ST-elevation myocardial infarction and underwent emergency coronary artery bypass grafting. The patient was diagnosed with acute pancreatitis and underwent emergency percutaneous transhepatic cholangiography and biliary drainage.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.",,0
+nih_cxr14,00018253_017.png,x_ray,"atelectasis, pleural effusion",none,True,0.5,True,0.0,0.0,,Chest X-ray showing a left-sided pleural effusion.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was treated with a thoracentesis. The patient was diagnosed with a left-sided pleural effusion and was treated with a thoracentesis.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a thoracentesis and was discharged with a prescription for a diuretic.
+2. Immediate stabilisation: The patient was treated with a thoracentesis and was discharged with a prescription for a diuretic.
+3. Investigate: A repeat chest X-ray was performed and showed a small left-sided pleural effusion.
+4. Investigate: A repeat chest X-ray was performed and showed a small left-sided pleural effusion.",,0
+nih_cxr14,00020113_030.png,x_ray,infiltrate,none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral pleural effusions.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was started on a course of antibiotics. A repeat chest X-ray was performed and revealed bilateral pleural effusions (Figure 1).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was started on intravenous fluids and was given a chest X-ray which showed bilateral pleural effusions.
+2. Immediate stabilisation: The patient was started on intravenous fluids and was given a chest X-ray which showed bilateral pleural effusions.
+3. Immediate stabilisation: The patient was started on intravenous fluids and was given a chest X-ray which showed bilateral pleural effusions.
+4. Immediate stabilisation: The patient was started on intravenous fluids and was given a chest X-ray which showed bilateral pleural effusions.",,0
+nih_cxr14,00028383_002.png,x_ray,"infiltrate, pleural effusion",none,True,0.5,True,0.0,0.0,,Chest X-ray showing a right-sided pleural effusion and a diffuse interstitial pattern in the left lung.,"Impression: The patient was diagnosed with a left-sided breast cancer and underwent a modified radical mastectomy with axillary lymph node dissection. The patient was diagnosed with a left-sided breast cancer and underwent a modified radical mastectomy with axillary lymph node dissection.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient [history not provided].
+2. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was transferred to the ICU and was intubated and mechanically ventilated.",,1
+nih_cxr14,00021818_006.png,x_ray,no abnormality,none,,,False,,,1.0,Chest X-ray showing cardiomegaly.,"Impression: The patient was diagnosed with SLE and was on treatment with hydroxychloroquine and prednisolone. The patient was diagnosed with SLE and was on treatment with hydroxychloroquine and prednisolone.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was weaned off from the ventilator and was discharged in a stable condition.
+3. Investigate: The patient [history not provided].
+4. Investigate: The patient [history not provided].",,2
+nih_cxr14,00016647_000.png,x_ray,no abnormality,none,,,False,,,1.0,Chest X-ray showing no abnormalities.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was treated with a thoracentesis. The patient was diagnosed with a left-sided pleural effusion and was treated with a thoracentesis.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a thoracentesis and was discharged with a prescription for a nonsteroidal anti-inflammatory drug.
+2. Investigate: The patient was referred to a pulmonologist for further evaluation.
+3. Investigate: A chest X-ray was performed and showed no abnormalities.
+4. Investigate: A chest X-ray was performed and showed no abnormalities.",,0
+nih_cxr14,00018253_030.png,x_ray,no abnormality,none,,,False,,,1.0,Chest X-ray showing right pleural effusion.,"Impression: The patient was diagnosed with a left-sided breast cancer and underwent a modified radical mastectomy with sentinel lymph node biopsy. The patient was diagnosed with a left-sided breast cancer and underwent a modified radical mastectomy with sentinel lymph node biopsy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,0
+nih_cxr14,00025534_005.png,x_ray,no abnormality,none,,,False,,,1.0,Chest X-ray showing no evidence of pulmonary edema.,"Impression: The patient was diagnosed with a left-sided pleural effusion and [history not provided]. The patient was diagnosed with a left-sided pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,1
+nih_cxr14,00012176_006.png,x_ray,no abnormality,none,,,False,,,1.0,Chest X-ray showing normal heart size and no pulmonary abnormalities.,"Impression: The patient was diagnosed with a left atrial mass and was referred to hospital for further evaluation and treatment. The patient was diagnosed with a left atrial mass and was referred to hospital for further evaluation and treatment.
+Suggested next steps (most to least suitable):
+1. Investigate: The patient was referred to hospital for further evaluation and treatment.
+2. Investigate: The patient was referred to hospital for further evaluation and treatment.
+3. Investigate: The patient was referred to hospital for further evaluation and treatment.
+4. Investigate: The patient was referred to hospital for further evaluation and treatment.",,0
+slake,xmlab371,x_ray,mass,none,True,1.0,True,0.0,0.0,,Chest X-ray showing a right pleural effusion.,"Impression: The patient was diagnosed with a left lung mass and a right pleural effusion. The patient was diagnosed with a left lung mass and a right pleural effusion.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a pleural drainage tube and a chest tube.
+2. Immediate stabilisation: The patient was treated with a pleural drainage tube and a chest tube.
+3. Investigate: A biopsy of the left lung mass was performed.
+4. Investigate: A biopsy of the right pleural effusion was performed.",,0
+slake,xmlab65,mri,"brain edema, brain enhancing tumor, brain non-enhancing tumor",none,False,0.0,True,0.0,0.0,,Brain MRI of the patient. (A) Diffusion-weighted imaging (DWI) shows no acute infarction.,"Impression: The patient was diagnosed with a left frontal lobe tumor and underwent surgery. The patient was diagnosed with a left frontal lobe tumor and underwent surgery.
+Suggested next steps (most to least suitable):
+1. Investigate: The patient was diagnosed with a left frontal lobe tumor and underwent surgery.
+2. Investigate: The patient was diagnosed with a left frontal lobe tumor and underwent surgery.
+3. Investigate: The patient was diagnosed with a left frontal lobe tumor and underwent surgery.
+4. Investigate: The patient was diagnosed with a left frontal lobe tumor and underwent surgery.",,0
+slake,xmlab70,mri,"brain edema, brain enhancing tumor, brain non-enhancing tumor",lesion,False,0.0,True,0.1652799819250561,0.0,,Brain MRI of the patient. (A) T2-weighted image showing a large mass in the right frontal lobe with a cystic component and a solid component.,"Impression: The patient was diagnosed with a right frontal lobe mass lesion. The patient was diagnosed with a right frontal lobe mass lesion.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient underwent a right frontal lobe resection.
+2. Definitive treatment: The patient underwent a second resection.
+3. Definitive treatment: The patient underwent a third resection.
+4. Definitive treatment: The patient underwent a fourth resection.","middle third, centre; box covers about 5% of the image",0
+slake,xmlab333,x_ray,"effusion, mass",none,True,1.0,True,0.0,0.0,,Chest X-ray showing a right upper lobe mass and a left pleural effusion.,"Impression: The patient was diagnosed with a left pleural effusion and a right upper lobe mass on chest X-ray. The patient was diagnosed with a left pleural effusion and a right upper lobe mass on chest X-ray.
+Suggested next steps (most to least suitable):
+1. Investigate: A CT scan of the chest was performed and showed a right upper lobe mass with a necrotic center and a left pleural effusion (Fig.
+2. Investigate: A CT scan of the chest was performed and showed a right upper lobe mass with a necrotic center and a left pleural effusion (Fig.
+3. Investigate: A CT scan of the chest was performed and showed a right upper lobe mass with a necrotic center and a left pleural effusion (Fig.
+4. Investigate: A CT scan of the chest was performed and showed a right upper lobe mass with a necrotic center and a left pleural effusion (Fig.",,0
+slake,xmlab60,mri,"brain edema, brain enhancing tumor, brain non-enhancing tumor",lesion,False,0.0,True,0.016643156783689907,0.0,,Axial T2-weighted.,"Impression: The patient was diagnosed with a left frontal lobe lesion and underwent a left frontotemporal craniotomy for resection. Histopathology revealed a low-grade glioma (WHO grade I) and the patient was started on a surveillance program.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was started on a surveillance program and the lesion was monitored with serial MRI scans every 3-6 months.
+2. Definitive treatment: The patient was started on a surveillance program and the lesion was monitored with serial MRI scans every 3-6 months.
+3. Definitive treatment: The patient was started on a surveillance program and the lesion was monitored with serial MRI scans every 3-6 months.
+4. Definitive treatment: The patient was started on a surveillance program and the lesion was monitored with serial MRI scans every 3-6 months.","middle third, centre; box covers about 3% of the image",0
+slake,xmlab322,x_ray,effusion,none,True,1.0,True,0.0,0.0,,Chest X-ray showing right-sided pleural effusion.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was started on a course of antibiotics. A repeat chest X-ray revealed a right-sided pleural effusion (Figure 1).
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was started on intravenous fluids and analgesics.
+2. Immediate stabilisation: The patient was started on intravenous fluids and analgesics.
+3. Immediate stabilisation: The patient was started on intravenous fluids and analgesics.
+4. Immediate stabilisation: The patient was started on intravenous fluids and analgesics.",,0
+slake,xmlab66,mri,brain edema,lesion,False,0.0,True,0.02088915574115726,0.0,,Brain MRI of the patient. (A) T2-weighted image showing a hyperintense lesion in the right frontal lobe.,"Impression: The patient was diagnosed with a right frontal lobe lesion, and a right frontal craniotomy was performed for resection. The patient was diagnosed with a right frontal lobe lesion, and a right frontal craniotomy was performed for resection.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was the patient with a [history not provided].
+2. Definitive treatment: The patient was diagnosed with a right frontal lobe lesion, and a right frontal craniotomy was performed for resection.
+3. Definitive treatment: The patient was diagnosed with a right frontal lobe lesion, and a right frontal craniotomy was performed for resection.
+4. Definitive treatment: The patient was diagnosed with a right frontal lobe lesion, and a right frontal craniotomy was performed for resection.","middle third, centre; box covers about 3% of the image",1
+slake,xmlab360,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing bilateral diffuse alveolar opacities.,"Impression: The patient was diagnosed with a left-sided breast cancer and underwent a modified radical mastectomy with sentinel lymph node biopsy. The patient was diagnosed with a left-sided breast cancer and underwent a modified radical mastectomy with sentinel lymph node biopsy.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,0
+slake,xmlab370,x_ray,pneumothorax,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a right-sided pleural effusion and a right-sided pigtail catheter in situ.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was treated with a pigtail catheter.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a pigtail catheter and a chest tube.
+2. Immediate stabilisation: The patient was treated with a pigtail catheter and a chest tube.
+3. Immediate stabilisation: The patient was treated with a pigtail catheter and a chest tube.
+4. Immediate stabilisation: The patient was treated with a pigtail catheter and a chest tube.",,0
+slake,xmlab96,ct,lung cancer,none,False,0.0,True,0.0,0.0,,CT scan of the chest showing multiple cavitary nodules in the right upper lobe.,"Impression: The patient was diagnosed with pulmonary tuberculosis and was started on a standard four-drug regimen of anti-tubercular drugs. The patient was diagnosed with pulmonary tuberculosis and was started on a standard four-drug regimen of anti-tubercular drugs.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,0
+slake,xmlab334,x_ray,"effusion, pneumothorax",pleural effusion,True,0.5,True,0.07855629436823623,0.0,,Chest X-ray showing a large left-sided pleural effusion.,"Impression: The patient was diagnosed with a left-sided pleural effusion and [history not provided]. The patient was diagnosed with a left-sided pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+2. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+3. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+4. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.","middle third, centre; box covers about 5% of the image",1
+slake,xmlab332,x_ray,nodule,none,False,0.0,True,0.0,0.0,,Chest X-ray showing no abnormalities.,"Impression: The patient was diagnosed with a left-sided pleural effusion and was treated with a thoracentesis. The patient was diagnosed with a left-sided pleural effusion and was treated with a thoracentesis.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a thoracentesis and was discharged with a prescription for a chest X-ray.
+2. Immediate stabilisation: The patient was treated with a thoracentesis and was discharged with a prescription for a chest X-ray.
+3. Investigate: A chest X-ray was performed and showed no abnormalities.
+4. Investigate: A chest X-ray was performed and showed no abnormalities.",,0
+slake,xmlab377,x_ray,nodule,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a left upper lobe mass with a central cavitary lesion.,"Impression: The patient was diagnosed with a left upper lobe lung mass with a central cavitary lesion on a chest X-ray (Figure 1). The patient was diagnosed with a left upper lobe lung mass with a central cavitary lesion on a chest X-ray (Figure 1).
+Suggested next steps (most to least suitable):
+1. Investigate: A CT scan of the chest was performed and showed a left upper lobe mass with a central cavitary lesion (Figure 2).
+2. Investigate: A CT-guided biopsy was performed and the patient was diagnosed with a left upper lobe lung mass with a central cavitary lesion (Figure 2).
+3. Investigate: A CT scan of the chest was performed and showed a left upper lobe mass with a central cavitary lesion (Figure 3).
+4. Investigate: A CT scan of the chest was performed and showed a left upper lobe mass with a central cavitary lesion (Figure 4).",,0
+slake,xmlab324,x_ray,mass,none,True,1.0,True,0.0,0.0,,Chest X-ray showing a left lung mass and a right lung mass with a right-sided chest tube.,"Impression: The patient was diagnosed with a left lung mass and a right lung mass and was referred to hospital for further evaluation and treatment. The patient was diagnosed with a left lung mass and a right lung mass and was referred to hospital for further evaluation and treatment.
+Suggested next steps (most to least suitable):
+1. Investigate: A chest X-ray was performed and showed a left lung mass and a right lung mass with a right-sided chest tube (Figure 1).
+2. Investigate: A chest X-ray was performed and showed a left lung mass and a right lung mass with a right-sided chest tube (Figure 2).
+3. Investigate: A chest X-ray was performed and showed a left lung mass and a right lung mass with a right-sided chest tube (Figure 3).
+4. Investigate: A chest X-ray was performed and showed a left lung mass and a right lung mass with a right-sided chest tube (Figure 4).",,0
+slake,xmlab641,ct,"colon, small bowel",none,True,,,,,1.0,CT scan of the abdomen showing a small bowel obstruction.,"Impression: The patient was diagnosed with a small bowel obstruction and underwent an exploratory laparotomy.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was started on intravenous fluids and antibiotics.
+2. Definitive treatment: The patient was started on intravenous fluids and antibiotics.",,0
+slake,xmlab331,x_ray,atelectasis,none,False,0.0,True,0.0,0.0,,Chest X-ray showing cardiomegaly and pulmonary edema.,"Impression: The patient was diagnosed with a left-sided pleural effusion and [history not provided]. The patient was diagnosed with a left-sided pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient [history not provided].
+2. Immediate stabilisation: The patient was treated with oxygen therapy and was discharged from the hospital.
+3. Investigate: The patient [history not provided].
+4. Investigate: The patient [history not provided].",,2
+slake,xmlab362,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a left-sided pleural effusion and a left-sided pneumothorax.,"Impression: The patient was diagnosed with a left-sided pleural effusion and a left-sided pneumothorax (Fig.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was treated with a continuous infusion of 10 mg/kg/day of methylprednisolone and 10 mg/kg/day of ceftriaxone.
+3. Immediate stabilisation: The patient was treated with a continuous infusion of 10 mg/kg/day of methylprednisolone and 10 mg/kg/day of ceftriaxone.
+4. Immediate stabilisation: The patient was treated with a continuous infusion of 10 mg/kg/day of methylprednisolone and 10 mg/kg/day of ceftriaxone.",,0
+slake,xmlab374,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing right upper lobe consolidation.,"Impression: The patient was diagnosed with a pulmonary embolism and was started on heparin.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was started on intravenous antibiotics and [history not provided].
+2. Immediate stabilisation: The patient was intubated and placed on mechanical ventilation.
+3. Immediate stabilisation: The patient was started on intravenous antibiotics and [history not provided].
+4. Immediate stabilisation: The patient was started on intravenous antibiotics and [history not provided].",,1
+slake,xmlab335,x_ray,cardiomegaly,none,False,0.0,True,0.0,0.0,,Chest X-ray showing a large left pleural effusion.,"Impression: The patient was diagnosed with a left pleural effusion and [history not provided]. The patient was diagnosed with a left pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+2. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+3. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+4. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.",,1
+slake,xmlab73,mri,"brain edema, brain enhancing tumor, brain non-enhancing tumor",lesion,False,0.0,True,0.5051523359524589,0.3333333333333333,,Preoperative axial.,"Impression: The patient was diagnosed with a left frontal lobe lesion and underwent a left frontotemporal craniotomy for resection. The patient was diagnosed with a left frontal lobe lesion and underwent a left frontotemporal craniotomy for resection.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was the patient with a [history not provided].
+2. Definitive treatment: The patient underwent a left frontotemporal craniotomy for resection.
+3. Definitive treatment: The patient underwent a left frontotemporal craniotomy for resection.
+4. Definitive treatment: The patient underwent a left frontotemporal craniotomy for resection.","middle third, centre; box covers about 3% of the image",1
+slake,xmlab63,mri,"brain edema, brain enhancing tumor, brain non-enhancing tumor",lesion,False,0.0,True,0.261844609916337,0.0,,Preoperative axial.,"Impression: The patient was diagnosed with a left frontal lobe tumor and underwent a left frontotemporal craniotomy for resection. The patient was diagnosed with a left frontal lobe tumor and underwent a left frontotemporal craniotomy for resection.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was diagnosed with a left frontal lobe tumor and underwent a left frontotemporal craniotomy for resection.
+2. Definitive treatment: The patient was diagnosed with a left frontal lobe tumor and underwent a left frontotemporal craniotomy for resection.
+3. Definitive treatment: The patient was diagnosed with a left frontal lobe tumor and underwent a left frontotemporal craniotomy for resection.
+4. Definitive treatment: The patient was diagnosed with a left frontal lobe tumor and underwent a left frontotemporal craniotomy for resection.","middle third, centre; box covers about 4% of the image",0
+slake,xmlab323,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing left pleural effusion.,"Impression: The patient was diagnosed with a left pleural effusion and [history not provided]. The patient was diagnosed with a left pleural effusion and [history not provided].
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+2. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+3. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.
+4. Immediate stabilisation: The patient was treated with a thoracentesis and a chest tube was inserted.",,1
+slake,xmlab364,x_ray,pneumonia,none,False,0.0,True,0.0,0.0,,Chest X-ray showing left lung collapse.,"Impression: The patient was diagnosed with a left lung mass and was referred to hospital for further evaluation and treatment. The patient was diagnosed with a left lung mass and was referred to hospital for further evaluation and treatment.
+Suggested next steps (most to least suitable):
+1. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+2. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+3. Immediate stabilisation: The patient was intubated and mechanically ventilated.
+4. Immediate stabilisation: The patient was intubated and mechanically ventilated.",,0
+slake,xmlab76,mri,"brain edema, brain non-enhancing tumor",lesion,False,0.0,True,0.0,0.0,,Brain MRI. (A) Axial T2-weighted image showing a left frontal lesion with a ring-like enhancement.,"Impression: The patient [history not provided]. A brain MRI was performed, which revealed a left frontal lesion with a ring-like enhancement (Figure 1A).
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was treated with intravenous antibiotics and underwent a brain biopsy.
+2. Definitive treatment: The patient was treated with intravenous antibiotics and underwent a brain biopsy.
+3. Definitive treatment: The patient was treated with intravenous antibiotics and underwent a brain biopsy.
+4. Definitive treatment: The patient was treated with intravenous antibiotics and underwent a brain biopsy.","middle third, centre; box covers about 0% of the image",2
+slake,xmlab640,ct,"colon, small bowel, spinal cord",none,True,,,,,1.0,CT scan of the abdomen showing a small bowel obstruction.,"Impression: The patient was diagnosed with a small bowel obstruction and underwent an exploratory laparotomy.
+Suggested next steps (most to least suitable):
+1. Definitive treatment: The patient was started on intravenous antibiotics and was discharged home in stable condition.
+2. Definitive treatment: The patient was started on intravenous antibiotics and was discharged home in stable condition.",,0

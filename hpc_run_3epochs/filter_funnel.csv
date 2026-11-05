@@ -1,0 +1,10 @@
+step,images,cases,articles
+all images,161702,42044,38832
+licence allows reuse,121710,30972,28561
+"clinical image type (x_ray/ct/ultrasound/mri, acute photo)",61140,20410,19090
+caption >= 8 chars,60896,20402,19082
+not a graph / diagram / table (caption),60059,20142,18844
+"not a later-stage image (post-op, follow-up, healed)",54040,19562,18338
+linked to a case,54040,19562,18338
+age >= 16 or unknown,45859,16488,15500
+pixel check: not a chart/diagram (after caps),39373,15197,14476

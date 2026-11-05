@@ -1,0 +1,392 @@
+model,image_id,source,task,label,negative,parse_ok,gt,pred,neg_ok,miou,recall50,precision50
+base (no adapter),00018253_030.png,nih_cxr14,ground_open,,True,True,[],[],1.0,,,
+base (no adapter),xmlab70,slake,ground_ref,brain edema,False,False,"[{""label"": ""brain edema"", ""box_2d"": [0.2083, 0.2708, 0.6333, 0.5917]}]","<unused94>thought
+The user wants me to identify the location of brain edema in the provided MRI image and provide its coordinates in a specific JSON format.
+
+1.  **Analyze the image:** The image is an MRI scan of the brain. There is a large, irregular area of increased signal intensity (whiteness) in the right frontal lobe, extending into the temporal lobe. This area appears to be associated with surrounding vasogenic edema, indicated by the blurring of the surrounding brain tissue.
+2.  **Identify the edema:** The area of increased signal intensity in the right frontal/temporal lobe is the location of the edema.
+3.  **Determine the coordinates:**
+    *   **Top-left corner (y0, x0):** The top edge of the edema is roughly",,0.0,0.0,0.0
+base (no adapter),00028383_002.png,nih_cxr14,ground_open,,False,True,"[{""label"": ""pleural effusion"", ""box_2d"": [0.7536, 0.7617, 0.8092, 0.8461]}, {""label"": ""infiltrate"", ""box_2d"": [0.1636, 0.1606, 0.6848, 0.4106]}]","<unused94>thought
+The user wants me to identify and localize clinically relevant abnormalities in the provided chest X-ray image.
+I need to provide the findings as a JSON list, where each object contains:
+- ""label"": A description of the finding.
+- ""box_2d"": Coordinates of the abnormality in the image, normalized to [0, 1] range.
+
+**Plan:**
+1.  **Identify abnormalities:** Scan the image for any obvious findings.
+    *   Right lung: Significant opacity/consolidation, particularly in the lower zones.
+    *   Left lung: Some interstitial markings, possibly mild opacities.
+    *   Lines/tubes: Central venous catheter (right subclavian), likely a port-a-cath.",,0.0,0.0,0.0
+base (no adapter),xmlab337,slake,ground_ref,mass,False,True,"[{""label"": ""mass"", ""box_2d"": [0.333, 0.6133, 0.5283, 0.8076]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab87,slake,ground_ref,lung cancer,False,True,"[{""label"": ""lung cancer"", ""box_2d"": [0.5039, 0.7578, 0.5391, 0.7832]}]",[],,0.0,0.0,0.0
+base (no adapter),00017255_001.png,nih_cxr14,ground_ref,atelectasis,False,False,"[{""label"": ""atelectasis"", ""box_2d"": [0.584, 0.6764, 0.6709, 0.795]}]","<unused94>thought
+The user wants me to identify atelectasis on a chest X-ray image and provide its location using a JSON format.
+
+1.  **Analyze the image:** The image is a chest X-ray. I need to look for signs of atelectasis, which is lung collapse.
+2.  **Identify potential atelectasis:** There is a hazy opacity in the left lower lung field, particularly in the retrocardiac region. This could represent atelectasis.
+3.  **Determine the location:** The opacity is primarily in the left lower lobe.
+4.  **Define the bounding box:**
+    *   Top-left corner (y0, x0): The top edge of the opacity is roughly at y=30-40",,0.0,0.0,0.0
+base (no adapter),00029532_014.png,nih_cxr14,ground_ref,infiltrate,False,True,"[{""label"": ""infiltrate"", ""box_2d"": [0.691, 0.2942, 0.9058, 0.5513]}]",[],,0.0,0.0,0.0
+base (no adapter),IMG0002528.jpg,fracatlas,ground_ref,fracture,False,False,"[{""label"": ""fracture"", ""box_2d"": [0.415, 0.508, 0.5242, 0.585]}]","<unused94>thought
+The user wants me to identify the fracture location on the provided X-ray image of a lower leg.
+
+1.  **Analyze the image:** The image shows a lateral view of a lower leg and foot. There is a clear break in the bone, specifically the tibia, just above the ankle joint.
+2.  **Identify the fracture:** The fracture line is visible, running obliquely upwards from the ankle region.
+3.  **Determine the location:** The fracture is in the tibia, specifically in the distal third, just proximal to the ankle joint.
+4.  **Formulate the JSON output:**
+    *   The finding is a fracture.
+    *   The location is the tibia, just above the ankle.
+    *   The coordinates need",,0.0,0.0,0.0
+base (no adapter),xmlab362,slake,ground_ref,pneumonia,False,False,"[{""label"": ""pneumonia"", ""box_2d"": [0.3008, 0.6289, 0.6465, 0.8096]}]","<unused94>thought
+The user wants me to identify the location of pneumonia in the provided chest X-ray image and provide the coordinates of the affected area.
+
+1.  **Analyze the image:** The X-ray shows a chest with a tracheostomy tube and a central line. There is significant opacity in the left lung, particularly in the lower lobe, obscuring the normal lung markings. The right lung appears relatively clear.
+2.  **Identify potential pneumonia:** The opacity in the left lower lung field is consistent with consolidation, a hallmark of pneumonia.
+3.  **Determine the location:** The opacity is primarily located in the left lower lung zone.
+4.  **Define the bounding box:**
+    *   Top-left corner (y0, x0): The top",,0.0,0.0,0.0
+base (no adapter),IMG0002325.jpg,fracatlas,ground_ref,fracture,False,False,"[{""label"": ""fracture"", ""box_2d"": [0.4289, 0.5288, 0.4807, 0.5781]}, {""label"": ""fracture"", ""box_2d"": [0.456, 0.5822, 0.4996, 0.6212]}]","<unused94>thought
+The user wants me to identify the fracture in the provided X-ray image of a forearm and hand.
+
+1.  **Analyze the image:** The image shows a left forearm (L) and hand. There is a clear break in the bone structure of the forearm, specifically in the radius and ulna.
+2.  **Identify the fracture location:** The fracture appears to be in the shaft of the forearm, likely involving both the radius and ulna.
+3.  **Determine the fracture type (if possible):** It looks like a transverse or slightly oblique fracture. The displacement is noticeable.
+4.  **Extract coordinates:**
+    *   Top-left corner (y0, x0): Approximately (0.0, 0.1)",,0.0,0.0,0.0
+base (no adapter),xmlab364,slake,ground_ref,pneumonia,False,False,"[{""label"": ""pneumonia"", ""box_2d"": [0.1846, 0.5479, 0.6113, 0.7725]}]","<unused94>thought
+The user wants me to identify pneumonia on the provided chest X-ray image and provide its location using a JSON list.
+
+1.  **Analyze the image:** The image is a chest X-ray. I need to look for signs of pneumonia, such as consolidation, infiltrates, or opacities in the lung fields.
+2.  **Identify potential findings:** There is a significant opacity in the left upper lobe. This area appears denser than the surrounding lung tissue.
+3.  **Assess uncertainty:** While the opacity is suggestive of consolidation, it could represent other conditions like atelectasis, pulmonary edema, or a mass. Without clinical context (patient history, symptoms, other test results), a definitive diagnosis of pneumonia cannot be made.
+4.  **",,0.0,0.0,0.0
+base (no adapter),xmlab60,slake,ground_ref,brain enhancing tumor,False,False,"[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.5375, 0.225, 0.775, 0.4125]}, {""label"": ""brain enhancing tumor"", ""box_2d"": [0.7417, 0.3083, 0.8042, 0.3667]}]","<unused94>thought
+The user wants me to identify the brain enhancing tumor in the provided MRI image and provide its location using a JSON list.
+
+1.  **Analyze the image:** The image is an MRI scan of the brain. There is a distinct lesion visible in the right temporal lobe.
+2.  **Identify the lesion:** The lesion appears as a bright area (enhancing) compared to the surrounding brain tissue. It is located in the right temporal lobe, specifically in the inferior aspect of the temporal lobe, near the temporal horn of the lateral ventricle.
+3.  **Determine the coordinates:**
+    *   Top-left corner (y0, x0): The top edge of the lesion is roughly at y=0.1. The left edge is roughly at x=0",,0.0,0.0,0.0
+base (no adapter),xmlab63,slake,ground_ref,brain enhancing tumor,False,True,"[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.2583, 0.5, 0.4542, 0.6667]}]","```json
+[
+  {""label"": ""enhancing tumor"", ""box_2d"": [350, 250, 750, 750]}
+]
+```",,0.0806838741640844,0.0,0.0
+base (no adapter),00028012_001.png,nih_cxr14,ground_ref,atelectasis,False,False,"[{""label"": ""atelectasis"", ""box_2d"": [0.4526, 0.5471, 0.6465, 0.866]}]","<unused94>thought
+The user wants me to identify the atelectasis in the provided chest X-ray image and provide its location using a JSON list format.
+
+1.  **Analyze the image:** The image shows a chest X-ray. There is a significant opacity in the left lower lung field, obscuring the normal lung markings. This suggests consolidation or collapse.
+2.  **Identify atelectasis:** Atelectasis is the collapse or incomplete expansion of the lung. In this image, the left lower lung field appears collapsed or consolidated, consistent with atelectasis.
+3.  **Determine the location:** The atelectasis is primarily located in the left lower lobe.
+4.  **Define the bounding box:**
+    *   Top-left corner (y0",,0.0,0.0,0.0
+base (no adapter),00013471_002.png,nih_cxr14,ground_ref,pneumothorax,False,False,"[{""label"": ""pneumothorax"", ""box_2d"": [0.677, 0.1261, 0.7736, 0.3906]}]","<unused94>thought
+The user wants me to identify the pneumothorax in the provided chest X-ray image and provide its location using a JSON format.
+
+1.  **Analyze the image:** The image shows a chest X-ray. There is a visible pleural line on the left side, indicating the presence of air in the pleural space. There is also a chest tube in place on the left side. The right lung appears relatively clear, although there might be some atelectasis or consolidation in the right lower lobe.
+2.  **Identify the pneumothorax:** The pneumothorax is located on the left side.
+3.  **Determine the location:** The pneumothorax appears to be apical and possibly extending inferiorly.
+4.  **Define the bounding box:**",,0.0,0.0,0.0
+base (no adapter),IMG0002608.jpg,fracatlas,ground_ref,fracture,False,False,"[{""label"": ""fracture"", ""box_2d"": [0.3582, 0.3395, 0.5881, 0.4801]}]","<unused94>thought
+The user wants me to identify the fracture location in the provided X-ray image and provide its coordinates in a specific JSON format.
+
+1.  **Analyze the image:** The image shows an X-ray of a lower leg, likely the tibia or fibula, given the presence of hardware (screws and a plate) suggesting a previous fracture fixation.
+2.  **Identify the fracture:** There is a clear break in the bone, visible as a discontinuity in the cortex. The hardware indicates this is a post-operative or post-traumatic fracture. The fracture line appears to be in the shaft of the bone.
+3.  **Determine the location:** The fracture is located in the shaft of the long bone, which appears to be the tibia based on the shape",,0.0,0.0,0.0
+base (no adapter),00026695_000.png,nih_cxr14,ground_ref,mass,False,False,"[{""label"": ""mass"", ""box_2d"": [0.1925, 0.3339, 0.3214, 0.4483]}]","<unused94>thought
+The user wants me to identify a mass on a chest X-ray and provide its location using a JSON format.
+
+1.  **Analyze the image:** The image is a chest X-ray. There is a significant opacity/mass in the right upper lobe of the lung.
+2.  **Identify the mass:** The mass is located in the right upper lung field.
+3.  **Determine the coordinates:**
+    *   Top-left corner (y0, x0): The top edge of the mass is roughly at y=20-30%.
+    *   Bottom-right corner (y1, x1): The bottom edge of the mass is roughly at y=80-90%.
+    *   Left edge (",,0.0,0.0,0.0
+base (no adapter),00000193_019.png,nih_cxr14,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.6025, 0.6872, 0.8459, 0.9006]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab372,slake,ground_ref,mass,False,False,"[{""label"": ""mass"", ""box_2d"": [0.1797, 0.168, 0.4951, 0.4199]}]","<unused94>thought
+The user wants me to identify the mass in the chest X-ray and provide its location using a JSON format.
+
+1.  **Identify the mass:** The image clearly shows a large, dense opacity in the right upper lung field.
+2.  **Determine the location:** The mass is located in the right hemithorax, specifically in the upper lobe.
+3.  **Define the bounding box:**
+    *   Top-left corner (y0, x0): The top edge of the mass is roughly at y=20-30%.
+    *   Bottom-right corner (y1, x1): The bottom edge of the mass is roughly at y=80-90%.
+    *   Left edge (x",,0.0,0.0,0.0
+base (no adapter),00001487_000.png,nih_cxr14,ground_ref,pneumonia,True,True,[],[],1.0,,,
+base (no adapter),IMG0001461.jpg,fracatlas,ground_open,,True,False,[],"<unused94>thought
+The user wants me to identify and localize clinically relevant abnormalities in the provided chest X-ray image.
+I need to provide the findings as a JSON list, where each object contains:
+- ""label"": A description of the finding.
+- ""box_2d"": Coordinates of the abnormality in the image, normalized to 0-1.
+
+1.  **Analyze the image:** The image is a chest X-ray of a child.
+2.  **Identify abnormalities:**
+    *   There is a foreign object visible in the left upper abdomen. It appears white and somewhat rectangular.
+    *   The lungs appear clear.
+    *   The heart size seems normal.
+    *   The mediastinum appears normal.
+    *   The",1.0,,,
+base (no adapter),00012741_004.png,nih_cxr14,ground_ref,cardiomegaly,False,True,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.4245, 0.4317, 0.8228, 0.8681]}]",[],,0.0,0.0,0.0
+base (no adapter),00020259_002.png,nih_cxr14,ground_ref,pneumonia,False,False,"[{""label"": ""pneumonia"", ""box_2d"": [0.5459, 0.6006, 0.7392, 0.8183]}]","<unused94>thought
+The user wants me to identify the location of pneumonia on the provided chest X-ray image and provide the coordinates of the affected area.
+
+1.  **Analyze the image:** The X-ray shows a chest view. There is increased opacity (whiteness) in the lower left lung field, particularly in the retrocardiac region. There is also some increased opacity in the right lower lung field, but it appears less pronounced than on the left. The heart size seems slightly enlarged. There is a small opacity in the right upper lung field.
+2.  **Identify potential pneumonia:** The increased opacity in the lower left lung field is suggestive of consolidation, a hallmark of pneumonia. The right lower lung field also shows some opacity, which could represent pneumonia or other processes like ate",,0.0,0.0,0.0
+base (no adapter),00026788_000.png,nih_cxr14,ground_ref,cardiomegaly,True,True,[],[],1.0,,,
+base (no adapter),xmlab73,slake,ground_ref,brain non-enhancing tumor,False,False,"[{""label"": ""brain non-enhancing tumor"", ""box_2d"": [0.425, 0.5125, 0.6042, 0.6583]}]","<unused94>thought
+The user wants me to identify the non-enhancing brain tumor in the provided MRI image and provide its location using a JSON list.
+
+1.  **Identify the non-enhancing tumor:** The image shows a large, irregularly shaped lesion in the left hemisphere of the brain. It appears hyperintense on T2-weighted images (though not explicitly stated, this is typical for such lesions) and hypointense on T1-weighted images (also typical). The surrounding brain tissue appears relatively normal. The lesion is not enhancing with contrast, indicating it is likely a tumor or other mass lesion that is not vascularized or has undergone necrosis.
+2.  **Determine the location:** The lesion is located in the left cerebral hemisphere, specifically in the temporal lobe region, extending into",,0.0,0.0,0.0
+base (no adapter),00014022_054.png,nih_cxr14,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.7122, 0.6032, 0.9598, 0.7767]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab332,slake,ground_ref,nodule,False,True,"[{""label"": ""nodule"", ""box_2d"": [0.4658, 0.2236, 0.5264, 0.2822]}]","```json
+[]
+```",,0.0,0.0,0.0
+base (no adapter),IMG0002444.jpg,fracatlas,ground_ref,fracture,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4133, 0.423, 0.599, 0.53]}, {""label"": ""fracture"", ""box_2d"": [0.3147, 0.416, 0.4191, 0.492]}]",[],,0.0,0.0,0.0
+base (no adapter),00016414_000.png,nih_cxr14,ground_open,,False,False,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.4201, 0.3767, 0.8593, 0.9344]}]","<unused94>thought
+The user wants me to identify and localize clinically relevant abnormalities in the provided chest X-ray image.
+I need to provide the findings as a JSON list, where each object contains:
+- ""label"": A description of the finding.
+- ""box_2d"": Coordinates of the abnormality in the image, normalized to 0-1 range.
+
+The image shows a chest X-ray of a 39-year-old male.
+I need to carefully examine the image for any abnormalities.
+
+1.  **Identify abnormalities**:
+    *   **Cardiomegaly**: The heart appears enlarged.
+    *   **Central line**: There is a central venous catheter visible in the right subclavian vein.
+    *   **Lung fields**:",,0.0,0.0,0.0
+base (no adapter),xmlab367,slake,ground_ref,pneumonia,False,False,"[{""label"": ""pneumonia"", ""box_2d"": [0.4824, 0.6201, 0.6396, 0.7988]}]","<unused94>thought
+The user wants me to identify the location of pneumonia in the provided chest X-ray image and provide the coordinates of the affected area.
+
+1.  **Analyze the image:** The X-ray shows a chest X-ray. There are areas of increased opacity, particularly in the lower lung fields, especially on the right side. These areas appear patchy and irregular, consistent with consolidation often seen in pneumonia.
+2.  **Identify the location:** The most prominent areas of opacity are in the right lower lobe and possibly extending into the right middle lobe. There are also some patchy opacities in the left lower lobe.
+3.  **Determine the coordinates:**
+    *   **Right Lower Lobe:** The opacity seems to occupy a significant portion of the right lower",,0.0,0.0,0.0
+base (no adapter),IMG0002319.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4486, 0.5698, 0.4988, 0.613]}, {""label"": ""fracture"", ""box_2d"": [0.4593, 0.6181, 0.5119, 0.652]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab64,slake,ground_ref,brain enhancing tumor,False,True,"[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.3792, 0.4083, 0.6542, 0.525]}]","```json
+[
+  {""label"": ""enhancing tumor"", ""box_2d"": [385, 385, 585, 625]}
+]
+```",,0.4112594158847628,0.0,0.0
+base (no adapter),00013471_029.png,nih_cxr14,ground_ref,infiltrate,False,False,"[{""label"": ""infiltrate"", ""box_2d"": [0.2878, 0.6063, 0.6466, 0.8286]}]","<unused94>thought
+The user wants me to identify the location of the infiltrate on the provided chest X-ray image and provide its bounding box coordinates.
+
+1.  **Analyze the image:** The X-ray shows a chest view. There are areas of increased opacity (whiteness) in the lower lung fields, particularly on the left side, suggesting consolidation or infiltrate. There is also some haziness in the right lower lung.
+2.  **Identify the infiltrate:** The most prominent area of opacity is in the left lower lung field, extending somewhat superiorly. There is also some opacity in the right lower lung field.
+3.  **Determine the bounding box:**
+    *   Top-left corner (y0, x0): The top edge of the infiltrate is roughly at",,0.0,0.0,0.0
+base (no adapter),xmlab360,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.2109, 0.1797, 0.7881, 0.877]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab324,slake,ground_ref,mass,False,False,"[{""label"": ""mass"", ""box_2d"": [0.3447, 0.7305, 0.46, 0.8252]}]","<unused94>thought
+The user wants me to identify the mass in the chest X-ray and provide its location using a JSON list containing a label and a bounding box.
+
+1.  **Identify the mass:** There is a prominent, round, dense opacity in the left hemithorax, specifically in the upper-mid zone.
+2.  **Determine the label:** The label should describe the finding. ""Mass"" or ""Lung mass"" is appropriate.
+3.  **Determine the bounding box:**
+    *   **Top-left corner (y0, x0):** The top edge of the mass is roughly at y=20-30%.
+    *   **Bottom-right corner (y1, x1):** The bottom edge of the",,0.0,0.0,0.0
+base (no adapter),xmlab361,slake,ground_ref,nodule,False,False,"[{""label"": ""nodule"", ""box_2d"": [0.3115, 0.6787, 0.3975, 0.7764]}]","<unused94>thought
+The user wants me to identify a nodule on the chest X-ray and provide its location using a JSON format.
+
+1.  **Identify the nodule:** There is a distinct, rounded opacity in the left mid-lung field.
+2.  **Determine the location:** The nodule is located in the left lung, specifically in the mid-lung zone.
+3.  **Define the bounding box:**
+    *   Top-left corner (y0, x0): The top edge of the nodule is roughly at y=30-40%.
+    *   Bottom-right corner (y1, x1): The bottom edge of the nodule is roughly at y=75-80%.
+    *   Left",,0.0,0.0,0.0
+base (no adapter),IMG0002935.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4276, 0.6501, 0.4868, 0.7332]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab366,slake,ground_ref,pneumonia,False,False,"[{""label"": ""pneumonia"", ""box_2d"": [0.5166, 0.5928, 0.6738, 0.8271]}]","<unused94>thought
+The user wants me to identify pneumonia on the provided chest X-ray image and provide its location using a JSON list.
+
+1.  **Analyze the image:** The image is a chest X-ray. I need to look for signs of pneumonia, such as consolidation (dense opacities), infiltrates, or air bronchograms.
+2.  **Identify potential findings:** There is a subtle opacity in the right lower lung field. It could represent consolidation, but it's not definitive. There are no clear air bronchograms or pleural effusion.
+3.  **Assess certainty:** The finding is subtle and could be due to other causes (e.g., atelectasis, scarring, vascular crowding). It is not a clear-cut case of pneumonia.",,0.0,0.0,0.0
+base (no adapter),IMG0001608.jpg,fracatlas,ground_open,,True,False,[],"<unused94>thought
+The user wants me to identify and localize clinically relevant abnormalities in the provided X-ray image.
+I need to provide the findings as a JSON list, where each object contains:
+- ""label"": A description of the finding.
+- ""box_2d"": Coordinates of the abnormality in the image, normalized to 0-1.
+
+1.  **Analyze the image:** The image shows a chest X-ray view, focusing on the right side of the chest and the right arm.
+2.  **Identify abnormalities:**
+    *   There is a clear, well-defined, oval-shaped opacity in the right lung field. It appears to be located in the mid-lung zone.
+    *   The right arm is visible, but no",1.0,,,
+base (no adapter),IMG0002484.jpg,fracatlas,ground_ref,fracture,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.3747, 0.54, 0.4232, 0.59]}, {""label"": ""fracture"", ""box_2d"": [0.3796, 0.586, 0.4232, 0.636]}]",[],,0.0,0.0,0.0
+base (no adapter),00020564_000.png,nih_cxr14,ground_ref,pleural effusion,False,False,"[{""label"": ""pleural effusion"", ""box_2d"": [0.3503, 0.7577, 0.5852, 0.8688]}]","<unused94>thought
+The user wants me to identify any pleural effusion in the provided chest X-ray image and provide its location using a JSON format.
+
+1.  **Analyze the image:** The image is a chest X-ray. I need to look for signs of pleural effusion, such as blunting of the costophrenic angles, increased opacity in the lower lung fields, or a meniscus sign.
+2.  **Identify potential findings:** I observe the costophrenic angles. The right costophrenic angle appears relatively sharp. The left costophrenic angle is somewhat blunted, suggesting possible fluid accumulation. There is also some increased opacity in the lower left lung field, which could be consistent with a small pleural effusion or consolidation.
+3.  **Assess certainty",,0.0,0.0,0.0
+base (no adapter),xmlab66,slake,ground_ref,brain edema,False,False,"[{""label"": ""brain edema"", ""box_2d"": [0.5875, 0.2958, 0.8167, 0.4083]}]","<unused94>thought
+The user wants me to identify brain edema in the provided MRI image and provide its location using a JSON list.
+
+1.  **Analyze the image:** The image is an axial T2-weighted MRI of the brain.
+2.  **Identify potential edema:** There is a region in the right parietal lobe that appears hyperintense (brighter than surrounding tissue). This hyperintensity suggests increased water content, which is characteristic of edema.
+3.  **Determine the location:** The hyperintense region is located in the right parietal lobe, specifically in the lateral aspect.
+4.  **Define the bounding box:**
+    *   Top-left corner (y0, x0): The top edge of the hyperintense region is roughly at y=0",,0.0,0.0,0.0
+base (no adapter),IMG0002437.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4914, 0.426, 0.5924, 0.463]}]",[],,0.0,0.0,0.0
+base (no adapter),00020503_000.png,nih_cxr14,ground_ref,nodule,True,False,[],"<unused94>thought
+The user wants me to identify a nodule on the chest X-ray provided and describe its location using a JSON format.
+
+1.  **Identify the nodule:** Look for a distinct, rounded opacity in the lung field. There is a noticeable opacity in the right upper lobe.
+2.  **Determine the location:** The nodule is in the right upper lobe.
+3.  **Extract coordinates:**
+    *   Top-left corner (y0, x0): The top edge of the nodule is roughly at y=20-25%.
+    *   Bottom-right corner (y1, x1): The bottom edge of the nodule is roughly at y=75-80%.
+    *   Left edge",1.0,,,
+base (no adapter),IMG0002311.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.3353, 0.5144, 0.3944, 0.6181]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab374,slake,ground_ref,pneumonia,False,False,"[{""label"": ""pneumonia"", ""box_2d"": [0.3398, 0.2441, 0.4482, 0.3848]}]","<unused94>thought
+The user wants me to identify the location of pneumonia on the provided chest X-ray image.
+I need to:
+1.  **Analyze the image:** Look for signs of pneumonia, such as consolidation, infiltrates, or opacities in the lung fields.
+2.  **Identify the affected area:** Focus on the right lung, specifically the upper lobe, where there appears to be an area of increased density or haziness.
+3.  **Describe the finding:** State that there is an opacity or consolidation in the right upper lobe.
+4.  **Provide coordinates:** Determine the bounding box coordinates for this area.
+5.  **Format the output:** Present the findings in the specified JSON format: `[{""label"": ""<finding>"", """,,0.0,0.0,0.0
+base (no adapter),IMG0002501.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.484, 0.346, 0.5325, 0.435]}]",[],,0.0,0.0,0.0
+base (no adapter),00025969_000.png,nih_cxr14,ground_ref,cardiomegaly,False,False,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.2783, 0.3556, 0.6497, 0.7841]}]","<unused94>thought
+The user wants me to identify the cardiomegaly on the provided chest X-ray and provide its bounding box coordinates.
+
+1.  **Identify the finding:** The image shows a heart that appears enlarged, particularly the left ventricle. This is cardiomegaly.
+2.  **Locate the heart:** The heart is centrally located in the chest X-ray, slightly to the left.
+3.  **Determine the bounding box:**
+    *   **Top-left corner (y0, x0):** The top edge of the heart is roughly at y=30-40%.
+    *   **Bottom-right corner (y1, x1):** The bottom edge of the heart is roughly at y=75-80",,0.0,0.0,0.0
+base (no adapter),00028873_009.png,nih_cxr14,ground_ref,cardiomegaly,False,False,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.2752, 0.3257, 0.6237, 0.7113]}]","<unused94>thought
+The user wants me to identify the cardiomegaly on the provided chest X-ray image and provide its bounding box coordinates.
+
+1.  **Identify the finding:** The image shows a chest X-ray. The heart appears enlarged, which is consistent with cardiomegaly.
+2.  **Determine the location:** The cardiomegaly is primarily located in the central part of the chest, occupying a significant portion of the thoracic width.
+3.  **Define the bounding box:**
+    *   **Top-left corner (y0, x0):** The top edge of the enlarged heart shadow is roughly at y=30-40%.
+    *   **Bottom-right corner (y1, x1):** The bottom edge of the",,0.0,0.0,0.0
+base (no adapter),xmlab329,slake,ground_ref,infiltrate,False,False,"[{""label"": ""infiltrate"", ""box_2d"": [0.6182, 0.584, 0.7959, 0.7852]}]","<unused94>thought
+The user wants me to identify the infiltrate on the chest X-ray and provide its location using a JSON list containing a label and a bounding box.
+
+1.  **Analyze the image:** The image is a chest X-ray.
+2.  **Identify potential infiltrates:** There is a hazy opacity in the lower left lung field, specifically in the retrocardiac region.
+3.  **Determine the label:** The label should describe the finding, which is an infiltrate or consolidation. ""Infiltrate"" is a suitable label.
+4.  **Determine the bounding box:**
+    *   Top-left corner (y0, x0): The top edge of the infiltrate is roughly at y=20-30%.
+    *",,0.0,0.0,0.0
+base (no adapter),xmlab640,slake,ground_ref,small bowel,False,False,"[{""label"": ""small bowel"", ""box_2d"": [0.3867, 0.373, 0.4668, 0.5586]}, {""label"": ""small bowel"", ""box_2d"": [0.4316, 0.5176, 0.5234, 0.6699]}]","<unused94>thought
+The user wants me to identify the small bowel in the provided CT image and provide its location using a JSON list.
+
+1.  **Identify the small bowel:** The small bowel is the coiled structure located in the central part of the abdomen, predominantly in the left upper quadrant and extending towards the right.
+2.  **Locate the small bowel in the image:** The image shows a cross-section of the abdomen. The coiled structure in the central area is consistent with the small bowel.
+3.  **Determine the bounding box:**
+    *   Top-left corner (y0, x0): The top edge of the small bowel is roughly at y=30-40. Let's estimate y0 = 35.
+    *",,0.0,0.0,0.0
+base (no adapter),xmlab365,slake,ground_ref,pneumonia,False,False,"[{""label"": ""pneumonia"", ""box_2d"": [0.1465, 0.0957, 0.7139, 0.8252]}]","<unused94>thought
+The user wants me to identify the location of pneumonia in the provided chest X-ray image and provide the coordinates of the affected area.
+
+1.  **Analyze the image:** The X-ray shows bilateral opacities, particularly in the lower lung fields, consistent with pulmonary edema or consolidation. There are also interstitial markings suggesting possible interstitial lung disease or infection. The opacities are more prominent in the right lower lung field and the left lower lung field.
+2.  **Identify potential pneumonia locations:** Based on the image, the lower lung fields appear most affected.
+3.  **Formulate the finding:** The finding is bilateral lower lung opacities, suggestive of pneumonia or pulmonary edema.
+4.  **Determine the coordinates:**
+    *   Top",,0.0,0.0,0.0
+base (no adapter),IMG0002493.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.2909, 0.597, 0.3484, 0.688]}]",[],,0.0,0.0,0.0
+base (no adapter),xmlab81,slake,ground_ref,lung cancer,False,True,"[{""label"": ""lung cancer"", ""box_2d"": [0.4609, 0.2305, 0.4961, 0.2617]}]",[],,0.0,0.0,0.0
+base (no adapter),IMG0002353.jpg,fracatlas,ground_open,,False,False,"[{""label"": ""fracture"", ""box_2d"": [0.4536, 0.5976, 0.5185, 0.6931]}]","<unused94>thought
+The user wants me to identify and localize clinically relevant abnormalities in the provided X-ray image of a right wrist.
+
+1.  **Identify the image type:** X-ray of a right wrist.
+2.  **Scan the image for abnormalities:**
+    *   The most prominent abnormality is a fracture of the distal radius.
+    *   The fracture appears to be a Colles' fracture, characterized by dorsal displacement and angulation of the distal fragment.
+    *   There might be some soft tissue swelling, but it's hard to confirm from the image alone.
+    *   The carpal bones appear intact.
+    *   The metacarpals and phalanges appear intact.
+3.  **Localize the abnormality:**
+    *",,0.0,0.0,0.0
+base (no adapter),00020857_008.png,nih_cxr14,ground_ref,atelectasis,False,False,"[{""label"": ""atelectasis"", ""box_2d"": [0.5586, 0.1859, 0.7567, 0.7357]}]","<unused94>thought
+The user wants me to identify the atelectasis in the provided chest X-ray image and provide its location using a JSON list format.
+
+1.  **Analyze the image:** The image is a chest X-ray. I need to look for signs of atelectasis, which is lung collapse.
+2.  **Identify atelectasis:** There is a noticeable opacity (whiteness) in the right lower lung field, particularly in the retrocardiac region. This suggests consolidation or collapse.
+3.  **Determine the location:** The opacity is primarily located in the right lower lobe, specifically in the posterior aspect, extending towards the right hilum.
+4.  **Formulate the label:** The finding is atelectasis.
+5.  **",,0.0,0.0,0.0
+base (no adapter),IMG0002664.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.3569, 0.5891, 0.4137, 0.7122]}]",[],,0.0,0.0,0.0
+base (no adapter),00029532_005.png,nih_cxr14,ground_ref,pleural effusion,False,True,"[{""label"": ""pleural effusion"", ""box_2d"": [0.0963, 0.1259, 0.5471, 0.4032]}]",[],,0.0,0.0,0.0
+base (no adapter),00013894_028.png,nih_cxr14,ground_open,,True,False,[],"<unused94>thought
+The user wants me to identify and localize clinically relevant abnormalities in the provided chest X-ray image.
+I need to provide the findings as a JSON list, where each object contains:
+- ""label"": A description of the finding.
+- ""box_2d"": Coordinates of the abnormality in the image, normalized to 0-1.
+
+**Image Analysis:**
+1.  **Patient:** 20-year-old male.
+2.  **Image Type:** Chest X-ray (AP view).
+3.  **Clinical Context:** The patient is intubated, has multiple lines and tubes inserted (central lines, chest tubes, endotracheal tube, nasogastric tube). This suggests a critically ill patient, likely in the ICU",1.0,,,
+base (no adapter),00012176_006.png,nih_cxr14,ground_ref,nodule,True,True,[],"<unused94>thought
+The user wants me to identify a nodule on a chest X-ray image and provide its location using a JSON format.
+
+1.  **Analyze the image:** The image is a standard chest X-ray. I need to scan the lungs for any visible nodules or masses.
+2.  **Identify potential nodules:** I carefully examine the lung fields. There are no obvious nodules or masses visible in either lung. The lung fields appear clear.
+3.  **Determine the answer:** Since no nodule is visible, the correct response is an empty list `[]`.
+4.  **Format the answer:** The user requested a JSON list. If no nodule is found, the list should be empty.<unused95>[]",1.0,,,
+adapted (best),00018253_030.png,nih_cxr14,ground_open,,True,True,[],"[{""label"": ""pleural effusion"", ""box_2d"": [0.56, 0.115, 0.75, 0.356]}]",0.0,,,
+adapted (best),xmlab70,slake,ground_ref,brain edema,False,True,"[{""label"": ""brain edema"", ""box_2d"": [0.2083, 0.2708, 0.6333, 0.5917]}]","[{""label"": ""brain edema"", ""box_2d"": [0.292, 0.25, 0.519, 0.438]}]",,0.26898155333544527,0.0,0.0
+adapted (best),00028383_002.png,nih_cxr14,ground_open,,False,True,"[{""label"": ""pleural effusion"", ""box_2d"": [0.7536, 0.7617, 0.8092, 0.8461]}, {""label"": ""infiltrate"", ""box_2d"": [0.1636, 0.1606, 0.6848, 0.4106]}]","[{""label"": ""infiltrate"", ""box_2d"": [0.302, 0.163, 0.652, 0.398]}]",,0.3156178050652341,0.5,1.0
+adapted (best),xmlab337,slake,ground_ref,mass,False,True,"[{""label"": ""mass"", ""box_2d"": [0.333, 0.6133, 0.5283, 0.8076]}]","[{""label"": ""mass"", ""box_2d"": [0.36, 0.55, 0.61, 0.76]}]",,0.37546637492666224,0.0,0.0
+adapted (best),xmlab87,slake,ground_ref,lung cancer,False,True,"[{""label"": ""lung cancer"", ""box_2d"": [0.5039, 0.7578, 0.5391, 0.7832]}]","[{""label"": ""lung cancer"", ""box_2d"": [0.61, 0.65, 0.67, 0.71]}]",,0.0,0.0,0.0
+adapted (best),00017255_001.png,nih_cxr14,ground_ref,atelectasis,False,True,"[{""label"": ""atelectasis"", ""box_2d"": [0.584, 0.6764, 0.6709, 0.795]}]",[],,0.0,0.0,0.0
+adapted (best),00029532_014.png,nih_cxr14,ground_ref,infiltrate,False,True,"[{""label"": ""infiltrate"", ""box_2d"": [0.691, 0.2942, 0.9058, 0.5513]}]","[{""label"": ""infiltrate"", ""box_2d"": [0.504, 0.195, 0.75, 0.406]}]",,0.06561105956460091,0.0,0.0
+adapted (best),IMG0002528.jpg,fracatlas,ground_ref,fracture,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.415, 0.508, 0.5242, 0.585]}]","[{""label"": ""fracture"", ""box_2d"": [0.41, 0.42, 0.46, 0.47]}]",,0.0,0.0,0.0
+adapted (best),xmlab362,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.3008, 0.6289, 0.6465, 0.8096]}]","[{""label"": ""pneumonia"", ""box_2d"": [0.36, 0.56, 0.65, 0.77]}]",,0.4873856501658251,0.0,0.0
+adapted (best),IMG0002325.jpg,fracatlas,ground_ref,fracture,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4289, 0.5288, 0.4807, 0.5781]}, {""label"": ""fracture"", ""box_2d"": [0.456, 0.5822, 0.4996, 0.6212]}]","[{""label"": ""fracture"", ""box_2d"": [0.36, 0.43, 0.41, 0.48]}]",,0.0,0.0,0.0
+adapted (best),xmlab364,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.1846, 0.5479, 0.6113, 0.7725]}]","[{""label"": ""pneumonia"", ""box_2d"": [0.25, 0.55, 0.53, 0.75]}]",,0.5843265667621277,1.0,1.0
+adapted (best),xmlab60,slake,ground_ref,brain enhancing tumor,False,True,"[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.5375, 0.225, 0.775, 0.4125]}, {""label"": ""brain enhancing tumor"", ""box_2d"": [0.7417, 0.3083, 0.8042, 0.3667]}]","[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.66, 0.315, 0.75, 0.415]}]",,0.11558741490589536,0.0,0.0
+adapted (best),xmlab63,slake,ground_ref,brain enhancing tumor,False,True,"[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.2583, 0.5, 0.4542, 0.6667]}]","[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.36, 0.43, 0.53, 0.57]}]",,0.13224359052779705,0.0,0.0
+adapted (best),00028012_001.png,nih_cxr14,ground_ref,atelectasis,False,True,"[{""label"": ""atelectasis"", ""box_2d"": [0.4526, 0.5471, 0.6465, 0.866]}]","[{""label"": ""atelectasis"", ""box_2d"": [0.504, 0.575, 0.625, 0.775]}]",,0.39136594964219956,0.0,0.0
+adapted (best),00013471_002.png,nih_cxr14,ground_ref,pneumothorax,False,True,"[{""label"": ""pneumothorax"", ""box_2d"": [0.677, 0.1261, 0.7736, 0.3906]}]","[{""label"": ""pneumothorax"", ""box_2d"": [0.191, 0.204, 0.352, 0.416]}]",,0.0,0.0,0.0
+adapted (best),IMG0002608.jpg,fracatlas,ground_ref,fracture,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.3582, 0.3395, 0.5881, 0.4801]}]","[{""label"": ""fracture"", ""box_2d"": [0.36, 0.36, 0.43, 0.43]}]",,0.1515904311169988,0.0,0.0
+adapted (best),00026695_000.png,nih_cxr14,ground_ref,mass,False,True,"[{""label"": ""mass"", ""box_2d"": [0.1925, 0.3339, 0.3214, 0.4483]}]","[{""label"": ""mass"", ""box_2d"": [0.25, 0.25, 0.43, 0.43]}]",,0.17032654149399953,0.0,0.0
+adapted (best),00000193_019.png,nih_cxr14,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.6025, 0.6872, 0.8459, 0.9006]}]","[{""label"": ""pneumonia"", ""box_2d"": [0.45, 0.55, 0.65, 0.75]}]",,0.03353246725216774,0.0,0.0
+adapted (best),xmlab372,slake,ground_ref,mass,False,True,"[{""label"": ""mass"", ""box_2d"": [0.1797, 0.168, 0.4951, 0.4199]}]","[{""label"": ""mass"", ""box_2d"": [0.33, 0.25, 0.59, 0.46]}]",,0.2646303348614328,0.0,0.0
+adapted (best),00001487_000.png,nih_cxr14,ground_ref,pneumonia,True,True,[],[],1.0,,,
+adapted (best),IMG0001461.jpg,fracatlas,ground_open,,True,True,[],[],1.0,,,
+adapted (best),00012741_004.png,nih_cxr14,ground_ref,cardiomegaly,False,True,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.4245, 0.4317, 0.8228, 0.8681]}]",[],,0.0,0.0,0.0
+adapted (best),00020259_002.png,nih_cxr14,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.5459, 0.6006, 0.7392, 0.8183]}]","[{""label"": ""pneumonia"", ""box_2d"": [0.379, 0.531, 0.656, 0.758]}]",,0.19775884402116284,0.0,0.0
+adapted (best),00026788_000.png,nih_cxr14,ground_ref,cardiomegaly,True,True,[],[],1.0,,,
+adapted (best),xmlab73,slake,ground_ref,brain non-enhancing tumor,False,True,"[{""label"": ""brain non-enhancing tumor"", ""box_2d"": [0.425, 0.5125, 0.6042, 0.6583]}]","[{""label"": ""brain non-enhancing tumor"", ""box_2d"": [0.45, 0.45, 0.58, 0.58]}]",,0.25618672698757106,0.0,0.0
+adapted (best),00014022_054.png,nih_cxr14,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.7122, 0.6032, 0.9598, 0.7767]}]","[{""label"": ""pneumonia"", ""box_2d"": [0.55, 0.59, 0.75, 0.77]}]",,0.0867822581577557,0.0,0.0
+adapted (best),xmlab332,slake,ground_ref,nodule,False,True,"[{""label"": ""nodule"", ""box_2d"": [0.4658, 0.2236, 0.5264, 0.2822]}]",[],,0.0,0.0,0.0
+adapted (best),IMG0002444.jpg,fracatlas,ground_ref,fracture,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4133, 0.423, 0.599, 0.53]}, {""label"": ""fracture"", ""box_2d"": [0.3147, 0.416, 0.4191, 0.492]}]","[{""label"": ""fracture"", ""box_2d"": [0.36, 0.43, 0.43, 0.51]}]",,0.21329824711242285,0.0,0.0
+adapted (best),00016414_000.png,nih_cxr14,ground_open,,False,True,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.4201, 0.3767, 0.8593, 0.9344]}]","[{""label"": ""cardiomegaly"", ""box_2d"": [0.36, 0.33, 0.73, 0.77]}]",,0.4263781231090929,0.0,0.0
+adapted (best),xmlab367,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.4824, 0.6201, 0.6396, 0.7988]}]","[{""label"": ""pneumonia"", ""box_2d"": [0.46, 0.56, 0.71, 0.75]}]",,0.37012464438070786,0.0,0.0
+adapted (best),IMG0002319.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4486, 0.5698, 0.4988, 0.613]}, {""label"": ""fracture"", ""box_2d"": [0.4593, 0.6181, 0.5119, 0.652]}]",[],,0.0,0.0,0.0
+adapted (best),xmlab64,slake,ground_ref,brain enhancing tumor,False,True,"[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.3792, 0.4083, 0.6542, 0.525]}]","[{""label"": ""brain enhancing tumor"", ""box_2d"": [0.45, 0.43, 0.55, 0.53]}]",,0.2914781007900592,0.0,0.0
+adapted (best),00013471_029.png,nih_cxr14,ground_ref,infiltrate,False,True,"[{""label"": ""infiltrate"", ""box_2d"": [0.2878, 0.6063, 0.6466, 0.8286]}]","[{""label"": ""infiltrate"", ""box_2d"": [0.46, 0.59, 0.73, 0.77]}]",,0.31228826061326903,0.0,0.0
+adapted (best),xmlab360,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.2109, 0.1797, 0.7881, 0.877]}]",[],,0.0,0.0,0.0
+adapted (best),xmlab324,slake,ground_ref,mass,False,True,"[{""label"": ""mass"", ""box_2d"": [0.3447, 0.7305, 0.46, 0.8252]}]","[{""label"": ""mass"", ""box_2d"": [0.46, 0.66, 0.57, 0.76]}]",,0.0,0.0,0.0
+adapted (best),xmlab361,slake,ground_ref,nodule,False,True,"[{""label"": ""nodule"", ""box_2d"": [0.3115, 0.6787, 0.3975, 0.7764]}]","[{""label"": ""nodule"", ""box_2d"": [0.36, 0.67, 0.45, 0.76]}]",,0.2266147345104791,0.0,0.0
+adapted (best),IMG0002935.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4276, 0.6501, 0.4868, 0.7332]}]",[],,0.0,0.0,0.0
+adapted (best),xmlab366,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.5166, 0.5928, 0.6738, 0.8271]}]",[],,0.0,0.0,0.0
+adapted (best),IMG0001608.jpg,fracatlas,ground_open,,True,True,[],[],1.0,,,
+adapted (best),IMG0002484.jpg,fracatlas,ground_ref,fracture,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.3747, 0.54, 0.4232, 0.59]}, {""label"": ""fracture"", ""box_2d"": [0.3796, 0.586, 0.4232, 0.636]}]","[{""label"": ""fracture"", ""box_2d"": [0.33, 0.41, 0.37, 0.45]}]",,0.0,0.0,0.0
+adapted (best),00020564_000.png,nih_cxr14,ground_ref,pleural effusion,False,True,"[{""label"": ""pleural effusion"", ""box_2d"": [0.3503, 0.7577, 0.5852, 0.8688]}]",[],,0.0,0.0,0.0
+adapted (best),xmlab66,slake,ground_ref,brain edema,False,True,"[{""label"": ""brain edema"", ""box_2d"": [0.5875, 0.2958, 0.8167, 0.4083]}]","[{""label"": ""brain edema"", ""box_2d"": [0.504, 0.333, 0.638, 0.456]}]",,0.09886167321168819,0.0,0.0
+adapted (best),IMG0002437.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4914, 0.426, 0.5924, 0.463]}]",[],,0.0,0.0,0.0
+adapted (best),00020503_000.png,nih_cxr14,ground_ref,nodule,True,True,[],[],1.0,,,
+adapted (best),IMG0002311.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.3353, 0.5144, 0.3944, 0.6181]}]",[],,0.0,0.0,0.0
+adapted (best),xmlab374,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.3398, 0.2441, 0.4482, 0.3848]}]",[],,0.0,0.0,0.0
+adapted (best),IMG0002501.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.484, 0.346, 0.5325, 0.435]}]",[],,0.0,0.0,0.0
+adapted (best),00025969_000.png,nih_cxr14,ground_ref,cardiomegaly,False,True,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.2783, 0.3556, 0.6497, 0.7841]}]","[{""label"": ""cardiomegaly"", ""box_2d"": [0.36, 0.33, 0.73, 0.76]}]",,0.5825976022105899,1.0,1.0
+adapted (best),00028873_009.png,nih_cxr14,ground_ref,cardiomegaly,False,True,"[{""label"": ""cardiomegaly"", ""box_2d"": [0.2752, 0.3257, 0.6237, 0.7113]}]","[{""label"": ""cardiomegaly"", ""box_2d"": [0.33, 0.33, 0.67, 0.73]}]",,0.7070214684552977,1.0,1.0
+adapted (best),xmlab329,slake,ground_ref,infiltrate,False,True,"[{""label"": ""infiltrate"", ""box_2d"": [0.6182, 0.584, 0.7959, 0.7852]}]","[{""label"": ""infiltrate"", ""box_2d"": [0.63, 0.59, 0.79, 0.75]}]",,0.7160190237304366,1.0,1.0
+adapted (best),xmlab640,slake,ground_ref,small bowel,False,True,"[{""label"": ""small bowel"", ""box_2d"": [0.3867, 0.373, 0.4668, 0.5586]}, {""label"": ""small bowel"", ""box_2d"": [0.4316, 0.5176, 0.5234, 0.6699]}]","[{""label"": ""small bowel"", ""box_2d"": [0.375, 0.438, 0.531, 0.562]}]",,0.26641426346876884,0.0,0.0
+adapted (best),xmlab365,slake,ground_ref,pneumonia,False,True,"[{""label"": ""pneumonia"", ""box_2d"": [0.1465, 0.0957, 0.7139, 0.8252]}]","[{""label"": ""pneumonia"", ""box_2d"": [0.504, 0.152, 0.75, 0.386]}]",,0.11628927254272778,0.0,0.0
+adapted (best),IMG0002493.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.2909, 0.597, 0.3484, 0.688]}]",[],,0.0,0.0,0.0
+adapted (best),xmlab81,slake,ground_ref,lung cancer,False,True,"[{""label"": ""lung cancer"", ""box_2d"": [0.4609, 0.2305, 0.4961, 0.2617]}]","[{""label"": ""lung cancer"", ""box_2d"": [0.504, 0.265, 0.556, 0.316]}]",,0.0,0.0,0.0
+adapted (best),IMG0002353.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.4536, 0.5976, 0.5185, 0.6931]}]",[],,0.0,0.0,0.0
+adapted (best),00020857_008.png,nih_cxr14,ground_ref,atelectasis,False,True,"[{""label"": ""atelectasis"", ""box_2d"": [0.5586, 0.1859, 0.7567, 0.7357]}]","[{""label"": ""atelectasis"", ""box_2d"": [0.59, 0.215, 0.65, 0.356]}]",,0.0776749803379468,0.0,0.0
+adapted (best),IMG0002664.jpg,fracatlas,ground_open,,False,True,"[{""label"": ""fracture"", ""box_2d"": [0.3569, 0.5891, 0.4137, 0.7122]}]",[],,0.0,0.0,0.0
+adapted (best),00029532_005.png,nih_cxr14,ground_ref,pleural effusion,False,True,"[{""label"": ""pleural effusion"", ""box_2d"": [0.0963, 0.1259, 0.5471, 0.4032]}]","[{""label"": ""pleural effusion"", ""box_2d"": [0.162, 0.162, 0.618, 0.397]}]",,0.6388053957574432,1.0,1.0
+adapted (best),00013894_028.png,nih_cxr14,ground_open,,True,True,[],[],1.0,,,
+adapted (best),00012176_006.png,nih_cxr14,ground_ref,nodule,True,True,[],[],1.0,,,
