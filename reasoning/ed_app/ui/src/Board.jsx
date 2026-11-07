@@ -40,8 +40,9 @@ function TodoCell({ p, editor, me }) {
 function Row({ p, meta, me, now }) {
   const editor = canEditBoard(me);
   const L = p.level ? LEVEL[p.level] : null;
-  const m = minutes(p.created, now);
-  const late = L && p.stage === "Waiting for doctor" && m > L.target;
+  const seen = p.seen_at != null;                         // the clock stops when the patient is first seen
+  const m = minutes(p.created, seen ? p.seen_at : now);
+  const late = L && !seen && m > L.target;
   const set = (change) => api.patch(`/api/patients/${p.id}/board`, { who: me.who || "unknown", role: me.role, ...change })
     .catch((e) => alert(e.message));
   return (
@@ -56,6 +57,9 @@ function Row({ p, meta, me, now }) {
             {p.status === "error" && <span className="ai-err">AI failed: open to retry</span>}
             {p.questions > 0 && p.status !== "working" && <span className="q">{p.questions} missing</span>}
           </div>
+          {p.alerts?.length > 0 && (
+            <div className="alert-line" title={p.alerts.join("\n")}>⚠ {p.alerts[0]}{p.alerts.length > 1 ? ` (+${p.alerts.length - 1})` : ""}</div>
+          )}
         </a>
       </td>
       <td className="c-stage">
@@ -70,7 +74,10 @@ function Row({ p, meta, me, now }) {
         {editor ? <DoctorInput className="doc" value={p.doctor} onSave={(doctor) => set({ doctor })} />
                 : <span className={p.doctor ? "" : "muted"}>{p.doctor || "—"}</span>}
       </td>
-      <td className={`c-wait ${late ? "late" : ""}`} title={L ? `Target to see a doctor: ${L.target} min` : ""}>{hm(m)}</td>
+      <td className={`c-wait ${late ? "late" : ""} ${seen ? "seen" : ""}`}
+          title={seen ? "Time from arrival to being seen" : L ? `Target to see a doctor: ${L.target} min` : ""}>
+        {seen ? <><small>seen after</small><br />{hm(m)}</> : hm(m)}
+      </td>
       <td className="c-todo"><TodoCell p={p} editor={editor} me={me} /></td>
     </tr>
   );
@@ -124,7 +131,7 @@ export default function Board({ meta, left }) {
       </div>
       <table className="bt">
         <thead>
-          <tr><th>Lvl</th><th>Bed</th><th>Patient</th><th>Stage</th><th>Doctor</th><th>Waiting</th><th>To do</th></tr>
+          <tr><th>Lvl</th><th>Bed</th><th>Patient</th><th>Stage</th><th>Doctor</th><th>Waiting</th><th>To send / do</th></tr>
         </thead>
         <tbody>
           {ps.map((p) => <Row key={p.id} p={p} meta={meta} me={me} now={now} />)}

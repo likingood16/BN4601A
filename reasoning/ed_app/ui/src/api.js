@@ -143,7 +143,13 @@ export function tileConcern(key, f) {
   if (key === "bp") return concern("sbp", f.sbp);
   return concern(key, f[key]);
 }
-export const fmt = (n) => (Number.isInteger(n) ? String(n) : String(Math.round(n * 10) / 10));
+// What a picture is decides what checks it: bone X-ray -> fracture detector (+ outline), chest X-ray -> 18-finding check.
+export const IMAGE_TYPES = [
+  ["", "AI decides"], ["bone_xray", "Bone X-ray (fracture check)"], ["chest_xray", "Chest X-ray (18-finding check)"],
+  ["ct_slice", "CT slice"], ["mri_slice", "MRI slice"], ["ultrasound", "Ultrasound"], ["ecg", "ECG"], ["other", "Other / photo"],
+];
+
+export const fmt =(n) => (Number.isInteger(n) ? String(n) : String(Math.round(n * 10) / 10));
 
 export function whoLine(f) {
   const sex = { male: "M", female: "F" }[f.sex] || "";

@@ -2,7 +2,7 @@
 // Left: numbers + the case file (each line can be checked, edited or removed; AI lines are marked until a person
 // checks them). Right: what's missing (questions), to-dos, chat, pictures, history. Bottom: add information, any time.
 import React, { useEffect, useRef, useState } from "react";
-import { api, canEditBoard, LEVEL, useLive, useMe, whoLine, hm, minutes, useNow } from "./api.js";
+import { api, canEditBoard, IMAGE_TYPES, LEVEL, useLive, useMe, whoLine, hm, minutes, useNow } from "./api.js";
 import { Tiles } from "./Chart.jsx";
 
 const KIND = {
@@ -39,6 +39,11 @@ function Header({ p, me, meta }) {
             <span className="muted">NEWS2 {d.news2} &middot; levels it can't rule out: {d.level_set.join(", ")}</span>
           </div>
         )}
+        {p.alerts?.length > 0 && (
+          <div className="alerts" title="Red-flag vital signs (NEWS2 single-parameter rules). Shown here, not added as to-dos.">
+            {p.alerts.map((a) => <span key={a} className="alert">⚠ {a}</span>)}
+          </div>
+        )}
       </div>
       <div className="board-ctl">
         <label>Stage
@@ -51,7 +56,8 @@ function Header({ p, me, meta }) {
         <label>Doctor
           {editor ? <DoctorInput value={p.doctor} onSave={(doctor) => setBoard({ doctor })} /> : <b>{p.doctor || "none"}</b>}
         </label>
-        <span className="muted">Waiting {hm(minutes(p.created, now))}</span>
+        <span className="muted">{p.seen_at != null ? `Seen after ${hm(minutes(p.created, p.seen_at))}`
+                                                   : `Waiting ${hm(minutes(p.created, now))}`}</span>
         <a className="ghost small" href={`/api/patients/${p.id}/export`} target="_blank" rel="noreferrer">Download case file</a>
       </div>
     </div>
@@ -60,7 +66,7 @@ function Header({ p, me, meta }) {
 
 export function DoctorInput({ value, onSave, className = "" }) {
   const [v, setV] = useState(value || "");
-  useEffect(() => setV(value || ""), [value]);
+  useEffect(() => { setV(value || ""); }, [value]);
   return (
     <input className={className} value={v} placeholder="assign" aria-label="Doctor"
            onChange={(e) => setV(e.target.value)}
@@ -277,7 +283,7 @@ export function Todos({ p, me, compact = false }) {
   const open = p.todos.filter((t) => !t.done), done = p.todos.filter((t) => t.done);
   return (
     <div className="panel">
-      {!compact && <p className="hint">{"✦"} = suggested by the rules or AI; a person ticks it off. {editor ? "" : "Only the triage nurse or organising doctor can change these."}</p>}
+      {!compact && <p className="hint">Tests, imaging and referrals waiting to be sent or done. {"✦"} = suggested; a person ticks it off. {editor ? "" : "Only the triage nurse or organising doctor can change these."}</p>}
       <ul className="todos">
         {[...open, ...done].map((t) => (
           <li key={t.id} className={t.done ? "done" : ""}>
@@ -305,7 +311,8 @@ function Chat({ p, me }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const end = useRef();
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [p.chat.length, busy]);
+  // braces matter: newer browsers return a Promise from scrollIntoView, and React would call it as a cleanup
+  useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [p.chat.length, busy]);
   const ask = async (text) => {
     if (!text.trim() || busy) return;
     setBusy(true); setQ("");
@@ -333,24 +340,83 @@ function Chat({ p, me }) {
   );
 }
 
-function Pictures({ p }) {
-  const imgs = p.notes.flatMap((n) => n.images.map((i) => ({ ...i, who: n.who, time: n.time })));
-  if (!imgs.length) return <div className="panel"><p className="empty">No pictures. Add them with the bar at the bottom.</p></div>;
+// Drag a box on the picture; the box is sent in the picture's own pixels (not screen pixels).
+function BoxDraw({ src, alt, onBox }) {
+  const img = useRef();
+  const [start, setStart] = useState(null);
+  const [box, setBox] = useState(null);
+  const pos = (e) => {
+    const r = img.current.getBoundingClientRect();
+    return [Math.min(Math.max(e.clientX - r.left, 0), r.width), Math.min(Math.max(e.clientY - r.top, 0), r.height)];
+  };
+  const up = () => {
+    if (!start || !box) return setStart(null);
+    const { naturalWidth: w, clientWidth: cw } = img.current;
+    const s = w / cw;
+    setStart(null);
+    if (box[2] > 6 && box[3] > 6) onBox([box[0] * s, box[1] * s, (box[0] + box[2]) * s, (box[1] + box[3]) * s]);
+  };
   return (
-    <div className="panel pics">
-      {imgs.map((i) => (
-        <div key={i.file} className="pic">
-          <div className="pic-h"><b>{i.name}</b> <span className="muted">{i.kind ? i.kind.replace("_", " ") : "reading…"} &middot; {i.who} {i.time}</span></div>
-          <div className="pic-row">
-            <figure><img src={`/api/images/${i.file}`} alt={i.name} /><figcaption>As uploaded</figcaption></figure>
-            {i.overlay && <figure><img src={`/api/images/${i.overlay}`} alt="AI marks" /><figcaption>{"✦"} AI marks</figcaption></figure>}
-            {i.outline && <figure><img src={`/api/images/${i.outline}`} alt="AI outline" /><figcaption>{"✦"} AI outline</figcaption></figure>}
-          </div>
-          {i.text && <p><span className="badge ai">{"✦"} AI, unchecked</span> {i.text} {i.tools}</p>}
-        </div>
-      ))}
+    <div className="boxdraw" onMouseDown={(e) => { e.preventDefault(); const p = pos(e); setStart(p); setBox([p[0], p[1], 0, 0]); }}
+         onMouseMove={(e) => { if (!start) return; const [x, y] = pos(e);
+           setBox([Math.min(x, start[0]), Math.min(y, start[1]), Math.abs(x - start[0]), Math.abs(y - start[1])]); }}
+         onMouseUp={up} onMouseLeave={up}>
+      <img ref={img} src={src} alt={alt} draggable={false} />
+      {box && <div className="drawn" style={{ left: box[0], top: box[1], width: box[2], height: box[3] }} />}
     </div>
   );
+}
+
+function Picture({ p, i, me }) {
+  const [drawing, setDrawing] = useState(false);
+  const [err, setErr] = useState("");
+  const busy = p.status === "working";
+  const item = p.items.find((x) => x.image === i.file);
+  const who = me.who || "unknown";
+  const run = (url, body) => api.post(`/api/patients/${p.id}/images/${i.file}/${url}`, { who, ...body })
+    .then(() => setErr("")).catch((e) => setErr(e.message));
+  return (
+    <div className="pic">
+      <div className="pic-h"><b>{i.name}</b> <span className="muted">{i.who} {i.time}</span></div>
+      <div className="pic-ctl">
+        <label>What is it?
+          <select value={i.kind || ""} disabled={busy || !i.kind}
+                  onChange={(e) => e.target.value && run("read", { kind: e.target.value })}>
+            {!i.kind && <option value="">reading…</option>}
+            {IMAGE_TYPES.filter(([k]) => k).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+          </select>
+        </label>
+        <span className="muted">{i.kind ? (i.sorted_by_ai ? "sorted by the AI: change it to read again" : "chosen by a person") : ""}</span>
+      </div>
+      <div className="pic-row">
+        <figure>
+          {drawing ? <BoxDraw src={`/api/images/${i.file}`} alt={i.name} onBox={(box) => { setDrawing(false); run("outline", { box }); }} />
+                   : <img src={`/api/images/${i.file}`} alt={i.name} />}
+          <figcaption>{drawing ? "Drag a box around the area to outline" : "As uploaded"}</figcaption>
+        </figure>
+        {i.overlay && <figure><img src={`/api/images/${i.overlay}`} alt="AI marks" /><figcaption>✦ AI marks</figcaption></figure>}
+        {i.outline && <figure><img src={`/api/images/${i.outline}`} alt="AI outline" /><figcaption>✦ AI outline</figcaption></figure>}
+      </div>
+      <div className="row wrap">
+        <button className={`small ${drawing ? "primary" : ""}`} disabled={busy || !i.kind} onClick={() => setDrawing(!drawing)}>
+          {drawing ? "Cancel outline" : "Outline an area"}</button>
+        {item && item.kind === "ai" && !item.confirmed && (
+          <button className="small ok" onClick={() => api.patch(`/api/patients/${p.id}/items/${item.id}`, { who, confirmed: true })}>
+            ✓ Reading is correct</button>)}
+        {item?.confirmed && <span className="badge">✓ checked{item.checked_by ? ` by ${item.checked_by}` : ""}</span>}
+        {err && <span className="error">{err}</span>}
+      </div>
+      {i.text ? <p><span className={`badge ${item?.confirmed ? "" : "ai"}`}>{item?.confirmed ? "checked" : "✦ AI, unchecked"}</span> {i.text} {i.tools}</p>
+              : <p className="muted"><span className="spin" /> reading…</p>}
+      {item && <p className="muted">To correct the reading, edit its line under Imaging in the case file.</p>}
+    </div>
+  );
+}
+
+function Pictures({ p, me }) {
+  const imgs = p.notes.flatMap((n) => n.images.map((i) => ({ ...i, who: n.who, time: n.time })));
+  if (!imgs.length) return <div className="panel"><p className="empty">No pictures. Add them with 📎 in the bar at the bottom.</p></div>;
+  return <div className="panel pics">{imgs.map((i) => <Picture key={i.file} p={p} i={i} me={me} />)}</div>;
 }
 
 function History({ p }) {
@@ -433,7 +499,7 @@ export default function Case({ id, meta }) {
           {tab === "questions" && <Questions p={p} me={me} answer={(q) => setAnswering(q)} />}
           {tab === "todos" && <Todos p={p} me={me} />}
           {tab === "chat" && <Chat p={p} me={me} />}
-          {tab === "pictures" && <Pictures p={p} />}
+          {tab === "pictures" && <Pictures p={p} me={me} />}
           {tab === "history" && <History p={p} />}
         </aside>
       </div>

@@ -107,6 +107,9 @@ def main():
     check("To-dos are actions for this complaint (ECG for chest pain)", any("ECG" in t["text"] for t in p["todos"]),
           "; ".join(t["text"] for t in p["todos"]))
     check("To-dos never repeat questions ('Obtain ...')", not any(t["text"].lower().startswith("obtain") for t in p["todos"]))
+    check("To-dos are only things to send/do, no advice (analgesia, monitoring, senior review)",
+          not any(w in t["text"].lower() for t in p["todos"] for w in ("analges", "monitor", "senior review", "gcs every", "score")))
+    check("Red-flag vitals shown as alerts, not to-dos (SBP 90)", any("SBP" in a for a in p["alerts"]), "; ".join(p["alerts"]))
     check("No question asks for what the note has (BP, HR, allergies)",
           not any(w in q["text"].lower() for q in p["questions"] for w in ("blood pressure", "heart rate", "allerg")),
           "; ".join(q["text"] for q in p["questions"]))
@@ -129,6 +132,11 @@ def main():
         req("POST", f"/api/patients/{pid2}/notes", form={"text": "pupils equal and reactive", "who": "Dr X"})
         p2, _ = wait(pid2)
         check("A dismissed question doesn't come back", other not in [q["text"] for q in p2["questions"]])
+
+    pid_neg = new("30M fell off bike onto L wrist, swollen. no head injury, denies chest pain. HR 80 BP 125/80. walk-in")
+    pn, _ = wait(pid_neg)
+    check("Negated findings don't trigger pathways ('no head injury' -> no CT head)",
+          not any("CT head" in t["text"] or "ECG" in t["text"] for t in pn["todos"]), "; ".join(t["text"] for t in pn["todos"]))
 
     # ---- 3. edits are never overwritten; notes accepted while the AI is busy
     target = items(p, "Presenting complaint")[0]
@@ -176,6 +184,13 @@ def main():
     check("To-dos: a viewer can't add (403)", s == 403)
     s, _ = req("PATCH", f"/api/patients/{pid}/board", {**nurse, "stage": "Being seen", "doctor": "Dr Lim"})
     check("Board: triage nurse sets stage + doctor", s == 200)
+    seen1 = next(r for r in req("GET", "/api/board")[1]["patients"] if r["id"] == pid)["seen_at"]
+    time.sleep(1.1)
+    req("PATCH", f"/api/patients/{pid}/board", {**nurse, "stage": "Results pending"})
+    seen2 = next(r for r in req("GET", "/api/board")[1]["patients"] if r["id"] == pid)["seen_at"]
+    check("Waiting clock stops when seen and stays stopped at later stages", seen1 is not None and seen1 == seen2)
+    s2 = next(r for r in req("GET", "/api/board")[1]["patients"] if r["id"] == pid2)
+    check("Patients still waiting keep the clock running", s2["seen_at"] is None)
     s, _ = req("PATCH", f"/api/patients/{pid}/board", {**nurse, "cleared": True})
     check("Board: can't clear a patient who hasn't left", s == 400)
     t = p["todos"][0]
@@ -189,10 +204,11 @@ def main():
     _, p = req("GET", f"/api/patients/{pid}")
     check("To-do tick is kept with who did it", next(x for x in p["todos"] if x["id"] == t["id"])["done_by"] == "Nurse Test")
     check("Timeline records who did what", any(e["who"] == "Dr Org" for e in p["timeline"]))
+    removed = p["todos"][1]["text"]
     req("PATCH", f"/api/patients/{pid}/todos/{p['todos'][1]['id']}", {**nurse, "delete": True})
     req("POST", f"/api/patients/{pid}/notes", form={"text": "repeat obs HR 90", "who": "Nurse Test"})
     p, _ = wait(pid)
-    check("A removed AI to-do isn't suggested again", p["todos"][1]["text"] != t["text"] and
+    check("A removed AI to-do isn't suggested again", removed not in [x["text"] for x in p["todos"]] and
           sum(x["text"] == p["todos"][0]["text"] for x in p["todos"]) == 1)
     check("Later obs update the tiles and offer a re-score", p["fields"]["hr"] == 90 and p["rescore"])
 
@@ -212,6 +228,28 @@ def main():
         check("Picture read and put under Imaging", img["kind"] and items(p4, "Imaging"), f"{img['kind']}, {secs:.1f} s")
         check("Bone X-ray: detector marks shown (detect -> segment)", img.get("overlay") or "nothing marked" in img.get("tools", ""),
               img.get("tools", ""))
+        # the person says what it is at upload -> that type's check runs, no AI sorting
+        s, out = req("POST", "/api/patients", form={"text": "50F fall, chest wall pain. walk-in", "who": "Nurse Test",
+                                                    "kinds": json.dumps(["chest_xray"])}, files=[xray])
+        p5, _ = wait(out["id"])
+        img5 = p5["notes"][0]["images"][0]
+        check("Picture type chosen at upload is used (not AI-sorted)", img5["kind"] == "chest_xray" and not img5["sorted_by_ai"])
+        s, _ = req("POST", f"/api/patients/{pid4}/images/{img['file']}/read", {"who": "Dr Lim", "kind": "chest_xray"})
+        p4, _ = wait(pid4)
+        img = p4["notes"][0]["images"][0]
+        readings = [i for i in items(p4, "Imaging") if i.get("image") == img["file"]]
+        check("Changing the picture type reads it again, one reading kept", s == 200 and img["kind"] == "chest_xray"
+              and len(readings) == 1 and "Chest X-ray" in readings[0]["text"])
+        s, _ = req("POST", f"/api/patients/{pid4}/images/{img['file']}/outline", {"who": "Dr Lim", "box": [40, 40, 200, 220]})
+        p4, _ = wait(pid4)
+        img = p4["notes"][0]["images"][0]
+        check("Outline an area: a dragged box gives an outline picture", s == 200 and img.get("outline"), img.get("tools", ""))
+        s, _ = req("POST", f"/api/patients/{pid4}/images/{img['file']}/outline", {"who": "Dr Lim", "box": [1, 1, 2, 2]})
+        check("Outline refuses a box that is too small", s == 400)
+        r = next(i for i in items(p4, "Imaging") if i.get("image") == img["file"])
+        req("PATCH", f"/api/patients/{pid4}/items/{r['id']}", {"who": "Dr Lim", "confirmed": True})
+        p4, _ = wait(pid4)
+        check("Picture reading can be marked correct", next(i for i in p4["items"] if i["id"] == r["id"])["confirmed"])
     s, _ = req("POST", "/api/patients", form={"text": "x", "who": "N"}, files=[HERE / "server.py"])
     check("Non-picture files are refused", s == 400)
     s, _ = req("POST", "/api/patients", form={"text": "x", "who": ""})

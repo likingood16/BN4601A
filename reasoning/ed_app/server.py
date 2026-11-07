@@ -39,6 +39,17 @@ LEAVING = set(STAGES[3:])
 ROLES = ["Triage nurse", "Organising doctor", "Doctor", "Nurse", "Ward"]
 BOARD_EDITORS = {"Triage nurse", "Organising doctor"}
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tif", ".tiff"}
+# picture type -> name. Bone X-ray also runs the fracture detector (+ MedSAM outline); chest X-ray the 18-finding check.
+IMAGE_TYPES = {"bone_xray": "Bone X-ray", "chest_xray": "Chest X-ray", "ct_slice": "CT slice", "mri_slice": "MRI slice",
+               "ultrasound": "Ultrasound", "ecg": "ECG", "other": "Other / photo"}
+
+
+def find_image(p, file):
+    for n in p["notes"]:
+        for img in n["images"]:
+            if img["file"] == file:
+                return n, img
+    raise HTTPException(404, "No such picture")
 EDITABLE_FIELDS = {"age", "sex", "hr", "sbp", "dbp", "rr", "spo2", "temp_c", "nrs_pain", "mental", "ambulance", "injured"}
 
 
@@ -100,9 +111,50 @@ class Store:
         self.jobs.put(p["id"])
         self.save(p)
 
+    def picture_job(self, p, *job):
+        """('read', file, kind) or ('outline', file, box, who): picture work on the same single AI worker."""
+        with self.state:
+            p["status"], p["progress"] = "working", "Queued (picture)"
+        self.jobs.put((p["id"], *job))
+        self.save(p)
+
+    def _picture(self, p, what, file, *args):
+        n, img = find_image(p, file)
+        if what == "read":
+            img["text"] = ""
+            for k in ("overlay", "outline", "tools"):
+                img.pop(k, None)
+            self._read_image(p, n, img, args[0])
+        else:
+            box, who = args
+            self.step(p, f"Outlining the area on {img['name']}")
+            seg = self.ask(self.ai.outline, p["visit"], str(self.images / file), box, who)
+            img["outline"] = self._save_picture(img, seg["overlay"], "outline")
+            text = f"Outline drawn from a box by {who}: {seg['area_pct']:.1f}% of the picture."
+            img["tools"] = (img.get("tools", "") + " " + text).strip()
+            item = next((i for i in p["items"] if i.get("image") == file and i["kind"] != "person"), None)
+            if item:
+                item["text"] = item["text"].rstrip() + " " + text
+            self.log(p, "Imaging", f"{img['name']}: {text}", who)
+
     def _worker(self):
         while True:
             pid = self.jobs.get()
+            if isinstance(pid, tuple):                 # picture job
+                p = self.patients.get(pid[0])
+                if p is None:
+                    continue
+                try:
+                    self._picture(p, *pid[1:])
+                    with self.state:
+                        p["items"] = casefile.ordered(p["items"])
+                        p["status"], p["progress"], p["error"] = "ready", f"Up to date {clock()}", ""
+                except Exception as e:
+                    traceback.print_exc()
+                    with self.state:
+                        p["status"], p["progress"], p["error"] = "error", f"The picture step failed: {type(e).__name__}", repr(e)
+                self.save(p)
+                continue
             p = self.patients.get(pid)
             if p is None or not p["pending"] and p["visit"] is not None:
                 if p is not None and p["status"] == "working":
@@ -202,16 +254,20 @@ class Store:
                              p["ext"]["fields"], p["visit"].decision if p["visit"] else None, p["dismissed"])
         with self.state:
             p["questions"] = qs
+            p["alerts"] = questions.vital_actions(p["ext"]["fields"], p["visit"].decision if p["visit"] else None)
             have = {t["text"].lower() for t in p["todos"]} | {d.lower() for d in p["dismissed"]}
             for t in todos:
                 if t["text"].lower() not in have:
                     p["todos"].append({"id": uuid.uuid4().hex[:6], "text": t["text"], "why": t["why"],
                                        "by": t["by"], "ai": True, "done": False, "done_by": ""})
 
-    def _read_image(self, p, n, img):
+    def _read_image(self, p, n, img, kind=None):
+        """kind: the type a person chose (at upload or later); None = MedGemma sorts the picture first."""
         path = str(self.images / img["file"])
+        kind = kind or img.get("chosen")
         self.step(p, f"Reading {img['name']}")
-        out = self.ask(self.ai.read_image, p["visit"], path, None, n["who"])
+        out = self.ask(self.ai.read_image, p["visit"], path, kind, n["who"])
+        img["sorted_by_ai"] = kind is None
         img["kind"], img["text"] = out["kind"], out["text"]
         found, chest = out.get("detector"), out.get("chest")
         extra = []
@@ -233,10 +289,15 @@ class Store:
             except Exception as e:
                 extra.append(f"(Outline not available on this computer: {type(e).__name__}.)")
         img["tools"] = " ".join(extra)
-        kind = img["kind"].replace("_", " ")
-        text = f"{img['name']} — {kind}: {img['text']} {img['tools']}".strip()
-        p["items"].append(casefile.new_item("Imaging", text, "auto", "Image AI (unchecked)", img["name"]))
-        self.log(p, "Imaging", f"{img['name']} read as {kind}")
+        label = IMAGE_TYPES.get(img["kind"], img["kind"])
+        text = f"{img['name']} — {label}: {img['text']} {img['tools']}".strip()
+        # one reading per picture: a re-read replaces the AI's earlier one (a person's edited line is kept)
+        p["items"] = [i for i in p["items"] if not (i.get("image") == img["file"] and i["kind"] != "person")]
+        item = casefile.new_item("Imaging", text, "ai", "Image AI", img["name"])
+        item["image"] = img["file"]
+        p["items"].append(item)
+        self.log(p, "Imaging", f"{img['name']} read as {label}" + (" (type sorted by AI)" if img["sorted_by_ai"] else
+                                                                      " (type chosen by a person)"))
 
     def _save_picture(self, img, picture, tag):
         import numpy as np
@@ -260,7 +321,8 @@ def summary(p):
             "cleared": p["cleared"], "leaving": p["stage"] in LEAVING, "status": p["status"], "progress": p["progress"],
             "level": d.get("level"), "flagged": d.get("flagged"), "p_urgent": d.get("p_urgent"), "news2": d.get("news2"),
             "who": " ".join(x for x in (age, sex) if x) or "?", "complaint": casefile.complaint(p["items"]),
-            "todos": p["todos"], "questions": len(p["questions"]), "warnings": len(p["ext"]["warnings"])}
+            "todos": p["todos"], "questions": len(p["questions"]), "warnings": len(p["ext"]["warnings"]),
+            "seen_at": p.get("seen_at"), "alerts": p.get("alerts", [])}
 
 
 def full(p):
@@ -273,7 +335,7 @@ def full(p):
 @app.get("/api/meta")
 def meta():
     return {"stages": STAGES, "leaving": sorted(LEAVING), "roles": ROLES, "editors": sorted(BOARD_EDITORS),
-            "test": store.test, "version": store.version}
+            "image_types": IMAGE_TYPES, "test": store.test, "version": store.version}
 
 
 @app.get("/api/events")
@@ -314,9 +376,19 @@ def preview(body: TextIn):
     return extract.extract(body.text)
 
 
-def _save_images(pid, files):
+def _kinds(raw):
+    """Form field 'kinds': a JSON list, one entry per file ('' = let the AI sort it)."""
+    import json
+    try:
+        return [k if k in IMAGE_TYPES else None for k in json.loads(raw)] if raw else []
+    except ValueError:
+        return []
+
+
+def _save_images(pid, files, kinds=()):
     out = []
-    for f in files or []:
+    kinds = list(kinds)
+    for idx, f in enumerate(files or []):
         if not f.filename:
             continue
         suffix = Path(f.filename).suffix.lower()
@@ -325,12 +397,14 @@ def _save_images(pid, files):
         name = f"{pid}_{uuid.uuid4().hex[:8]}{suffix}"
         with open(store.images / name, "wb") as fh:
             shutil.copyfileobj(f.file, fh)
-        out.append({"file": name, "name": f.filename, "kind": None, "text": ""})
+        out.append({"file": name, "name": f.filename, "kind": None, "text": "",
+                    "chosen": kinds[idx] if idx < len(kinds) else None})
     return out
 
 
 @app.post("/api/patients")
-def create(text: str = Form(...), who: str = Form(...), files: list[UploadFile] = File(default=[])):
+def create(text: str = Form(...), who: str = Form(...), kinds: str = Form(""),
+           files: list[UploadFile] = File(default=[])):
     if not text.strip():
         raise HTTPException(400, "Type the note first")
     if not who.strip():
@@ -339,7 +413,8 @@ def create(text: str = Form(...), who: str = Form(...), files: list[UploadFile] 
     used = {p["bed"] for p in store.patients.values() if not p["cleared"]}
     bed = next(f"P{i}" for i in range(1, 999) if f"P{i}" not in used)
     p = new_patient(pid, bed)
-    p["notes"].append({"time": clock(), "who": who.strip(), "text": text.strip(), "images": _save_images(pid, files)})
+    p["notes"].append({"time": clock(), "who": who.strip(), "text": text.strip(),
+                       "images": _save_images(pid, files, _kinds(kinds))})
     p["pending"] = [0]
     store.log(p, "Arrival", "Triage note written", who.strip())
     store.patients[pid] = p
@@ -348,11 +423,11 @@ def create(text: str = Form(...), who: str = Form(...), files: list[UploadFile] 
 
 
 @app.post("/api/patients/{pid}/notes")
-def add_note(pid: str, text: str = Form(""), who: str = Form(...), answers: str = Form(""),
+def add_note(pid: str, text: str = Form(""), who: str = Form(...), answers: str = Form(""), kinds: str = Form(""),
              files: list[UploadFile] = File(default=[])):
     """New information at any time, even while the AI is busy: it waits in `pending` and is done next."""
     p = store.get(pid)
-    images = _save_images(pid, files)
+    images = _save_images(pid, files, _kinds(kinds))
     if not text.strip() and not images:
         raise HTTPException(400, "Type something or add a picture")
     with store.state:
@@ -521,6 +596,10 @@ def set_board(pid: str, body: BoardIn):
         if body.stage not in STAGES:
             raise HTTPException(400, "Unknown stage")
         change.append(f"stage → {body.stage}")
+        if body.stage == STAGES[0]:
+            p["seen_at"] = None                     # back to waiting: the clock runs again from arrival
+        elif p.get("seen_at") is None:
+            p["seen_at"] = time.time()              # the waiting clock stops when the patient is first seen
         p["stage"] = body.stage
     if body.doctor is not None and body.doctor.strip() != p["doctor"]:
         change.append(f"doctor → {body.doctor.strip() or 'none'}")
@@ -573,6 +652,41 @@ def change_todo(pid: str, tid: str, body: TodoIn):
         t["done"], t["done_by"] = bool(body.done), body.who if body.done else ""
         store.log(p, "To-do", f"{'Done' if t['done'] else 'Not done'}: {t['text']}", body.who)
     store.save(p)
+    return {"ok": True}
+
+
+class PictureIn(BaseModel):
+    who: str
+    kind: str | None = None
+    box: list[float] | None = None
+
+
+@app.post("/api/patients/{pid}/images/{file}/read")
+def reread(pid: str, file: str, body: PictureIn):
+    """A person says what the picture is -> it is read again with that type's check (bone X-ray -> fracture
+    detector + outline; chest X-ray -> 18-finding check)."""
+    p = store.get(pid)
+    find_image(p, file)
+    if body.kind not in IMAGE_TYPES:
+        raise HTTPException(400, "Unknown picture type")
+    if p["visit"] is None or p["status"] == "working":
+        raise HTTPException(409, "The AI is still working on this patient; try again in a moment")
+    store.log(p, "Imaging", f"{file}: type set to {IMAGE_TYPES[body.kind]}, read again", body.who)
+    store.picture_job(p, "read", file, body.kind)
+    return {"ok": True}
+
+
+@app.post("/api/patients/{pid}/images/{file}/outline")
+def outline_box(pid: str, file: str, body: PictureIn):
+    """A person drags a box on the picture -> MedSAM outlines what is inside it."""
+    p = store.get(pid)
+    find_image(p, file)
+    if not body.box or len(body.box) != 4 or abs(body.box[2] - body.box[0]) < 4 or abs(body.box[3] - body.box[1]) < 4:
+        raise HTTPException(400, "Drag a box around the area first")
+    if p["visit"] is None or p["status"] == "working":
+        raise HTTPException(409, "The AI is still working on this patient; try again in a moment")
+    store.picture_job(p, "outline", file, [min(body.box[0], body.box[2]), min(body.box[1], body.box[3]),
+                                            max(body.box[0], body.box[2]), max(body.box[1], body.box[3])], body.who)
     return {"ok": True}
 
 

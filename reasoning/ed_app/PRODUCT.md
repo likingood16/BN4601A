@@ -20,6 +20,15 @@ file and a shared whiteboard. **It supports clinicians' decisions and never repl
 | 7 | Whole board re-written to a pickle on every change | A crash mid-write loses everything | SQLite, one row per patient |
 | 8 | Numbers only visible after Submit | Wrong numbers found late | Tiles update **while typing** |
 
+**Client feedback, 7 Nov (after trying v2):**
+| Feedback | Change |
+|---|---|
+| To-dos should only be things waiting to be sent or done | To-dos = tests, imaging, referrals only. Advice removed; red-flag vitals shown as a warning line on the patient, not as to-dos |
+| Waiting time kept counting after "Being seen" | Clock stops when the patient first leaves "Waiting for doctor"; board shows "seen after Xm" (restarts only if put back to waiting) |
+| No options for pictures after upload | Pick the type at upload or later (re-reads with that check), drag a box to outline (MedSAM), mark the reading correct |
+| AI status text in Recent patients was confusing | Only a small "updating" marker while the AI works |
+| Found in the click-test | "Add X-rays" button didn't attach files; leaving the Ask AI tab crashed the page; "no head injury" triggered the head-injury pathway. All fixed and covered by tests |
+
 ## 3. Users and jobs
 | User | Job | Screen |
 |---|---|---|

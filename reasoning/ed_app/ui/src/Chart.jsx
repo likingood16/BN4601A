@@ -1,7 +1,7 @@
 // Screen 1: the triage nurse types everything in one box. Numbers appear as tiles WHILE typing (fixed rules), so a
 // wrong number is caught before Submit. Submit opens the case file in a new window and puts the patient on the board.
 import React, { useEffect, useRef, useState } from "react";
-import { api, LEVEL, TILES, tileConcern, tileValue, useLive, useMe, whoLine } from "./api.js";
+import { api, IMAGE_TYPES, LEVEL, TILES, tileConcern, tileValue, useLive, useMe, whoLine } from "./api.js";
 
 const EXAMPLE = "e.g. 67M CP since 0600, sweaty, radiating to L arm. HR 112 BP 90/60 RR 22 sats 94% RA T 37.2 pain 8/10. " +
   "hx DM, HTN on metformin. NKDA. BIBA";
@@ -27,10 +27,14 @@ export function Tiles({ fields, source = {}, big = false }) {
   );
 }
 
-function Pictures({ files, setFiles }) {
+export function Pictures({ files, setFiles }) {
   const [over, setOver] = useState(false);
   const input = useRef();
-  const add = (list) => setFiles((fs) => [...fs, ...[...list].filter((f) => f.type.startsWith("image/"))]);
+  // copy the files NOW: the file box is cleared right after, which empties the live FileList
+  const add = (list) => {
+    const picked = [...list].filter((f) => f.type.startsWith("image/")).map((f) => ({ f, kind: "" }));
+    setFiles((fs) => [...fs, ...picked]);
+  };
   return (
     <div className={`drop ${over ? "over" : ""}`}
          onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
@@ -40,11 +44,15 @@ function Pictures({ files, setFiles }) {
       <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
       {files.length > 0 && (
         <div className="thumbs">
-          {files.map((f, i) => (
+          {files.map(({ f, kind }, i) => (
             <figure key={i}>
               <img src={URL.createObjectURL(f)} alt={f.name} />
               <button type="button" className="x" aria-label={`Remove ${f.name}`}
                       onClick={() => setFiles((fs) => fs.filter((_, j) => j !== i))}>&times;</button>
+              <select aria-label={`What is ${f.name}?`} value={kind} title="What is it? This decides which check runs."
+                      onChange={(e) => setFiles((fs) => fs.map((x, j) => (j === i ? { ...x, kind: e.target.value } : x)))}>
+                {IMAGE_TYPES.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+              </select>
             </figure>
           ))}
         </div>
@@ -73,7 +81,7 @@ export default function Chart() {
   useEffect(() => {                                     // paste a screenshot / photo straight into the note
     const onPaste = (e) => {
       const imgs = [...(e.clipboardData?.files || [])].filter((f) => f.type.startsWith("image/"));
-      if (imgs.length) { e.preventDefault(); setFiles((fs) => [...fs, ...imgs]); }
+      if (imgs.length) { e.preventDefault(); setFiles((fs) => [...fs, ...imgs.map((f) => ({ f, kind: "" }))]); }
     };
     addEventListener("paste", onPaste);
     return () => removeEventListener("paste", onPaste);
@@ -88,7 +96,8 @@ export default function Chart() {
     const form = new FormData();
     form.append("text", text);
     form.append("who", me.who);
-    files.forEach((f) => form.append("files", f));
+    files.forEach(({ f }) => form.append("files", f));
+    form.append("kinds", JSON.stringify(files.map(({ kind }) => kind)));
     try {
       const out = await api.post("/api/patients", form);
       setSent(out);
@@ -147,7 +156,8 @@ export default function Chart() {
               <a href={`#/case/${p.id}`} target={`case-${p.id}`}>
                 <span className="lvl" style={{ background: p.level ? LEVEL[p.level].colour : "var(--muted)" }}>{p.level ?? "…"}</span>
                 <b>{p.bed}</b> {p.who} &middot; {p.complaint || "…"}
-                <span className={`status ${p.status}`}>{p.status === "working" ? p.progress : p.status === "error" ? "AI failed" : ""}</span>
+                {p.status === "working" && <span className="status working"><span className="spin" /> updating</span>}
+                {p.status === "error" && <span className="status error">needs a retry</span>}
               </a>
             </li>
           ))}
