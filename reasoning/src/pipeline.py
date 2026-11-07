@@ -11,35 +11,78 @@
 
 Patient fields = Pool 1 column names; anything unknown can be left out. Stage 1 needs the 4-bit model, because the
 head and level model were trained on vectors from it (`base4bit`).
+
+One MedGemma 1.5 sits in memory, with adapters switched per step (6 Nov 2026):
+  vector for the score  -> no adapter (the heads were trained on the plain model's vectors)
+  explanation/chat/SBAR -> EXPLAINER, the task adapter (rubric, REPORT_NOTES 5h: same safety as base, better levels,
+                           shorter SBAR, never cut off); explainer=None gives plain MedGemma
+  image                 -> Cato's adapter (image_reader.IMAGE_ADAPTER)
+No thinking block and capped answers (CAPS): an answer takes seconds on a big GPU instead of minutes.
+Urgency cut-off: catches 90% of urgent KTAS validation patients (was 80%); more false alarms, fewer misses.
 """
+import time
+from contextlib import contextmanager
+
 import joblib
 import numpy as np
 
 from answers import cut_off, final_answer, parse_triage
 from cards import assess, make_card
-from config import HEADS_DIR
+from config import HEADS_DIR, LORA_DIR
 from ed_assessment import ed_assessment
 from embed import embed_one
-from image_reader import IMAGE_TYPES, describe_image, detect_fracture, imaging_line, load_image_model
+from image_reader import IMAGE_ADAPTER, IMAGE_TYPES, describe_image, detect_fracture, imaging_line
+from image_checklist import LOCATABLE, chest_anatomy, checklist, checklist_line, locate
+from image_tools import chest_findings, outline, sort_image, tools_line
 from model import _messages, ask_messages, load
 from prompts import TRIAGE_SYSTEM, TURNS, VISIT_CHAT_SYSTEM, card_with_urgency
 from visit import Decision, Visit
 
-NO_ANSWER = "[No answer: the model ran out of room while thinking. Please ask again, more briefly.]"
+NO_ANSWER = "[No answer: the model ran out of room. Please ask again, more briefly.]"
+EXPLAINER = "task/stage1"
+URGENT_SENSITIVITY = 0.90
+CAPS = {"explain": 768, "chat": 512, "sbar": 768, "report": 900, "questions": 600, "complaint": 24}  # tokens per answer
 
 
 class EDPipeline:
-    def __init__(self, vitals_model=None, emb="base4bit"):
+    def __init__(self, vitals_model=None, emb="base4bit", explainer=EXPLAINER, sensitivity=URGENT_SENSITIVITY,
+                 think=False):
+        from peft import PeftModel
         if vitals_model is None:
             from vitals_model import VitalsModel
             vitals_model = VitalsModel()
         self.vm = vitals_model
-        self.model, self.processor = load(mode="4bit")
+        base, self.processor = load(mode="4bit")
+        self.model = PeftModel.from_pretrained(base, str(IMAGE_ADAPTER), adapter_name="image").eval()
+        self.text_adapter = None
+        if explainer:
+            self.model.load_adapter(str(LORA_DIR / explainer / "adapter"), adapter_name="text")
+            self.text_adapter = "text"
+        self.think = think
+        self.times = {}                                  # seconds of the last call of each step, for the trial run
         urgent = joblib.load(HEADS_DIR / f"urgent__{emb}__ktas_nhamcs.joblib")
         level = joblib.load(HEADS_DIR / f"level__{emb}.joblib")
-        self.head, self.threshold = urgent["head"], urgent["threshold"]
+        thresholds = urgent.get("thresholds", {0.8: urgent["threshold"]})
+        if sensitivity not in thresholds:
+            raise ValueError(f"no cut-off saved for {sensitivity}: run heads.py --add-threshold {sensitivity}")
+        self.head, self.threshold = urgent["head"], thresholds[sensitivity]
         self.level_model, self.cutoff = level["model"], level["conformal_cutoff"]
-        self.image_model = None                          # loaded the first time an image arrives
+
+    @contextmanager
+    def _adapter(self, name, step):
+        """Run one step with one adapter (None = plain MedGemma) and time it."""
+        start = time.time()
+        if name is None:
+            with self.model.disable_adapter():
+                yield
+        else:
+            self.model.set_adapter(name)
+            yield
+        self.times[step] = round(time.time() - start, 2)
+
+    def _ask(self, messages, step):
+        with self._adapter(self.text_adapter, step):
+            return ask_messages(self.model, self.processor, messages, CAPS[step], self.think)
 
     def decide(self, vector, vitals_out):
         """Vector + Caleb's result -> urgency and level. Same rules as head_scores.py and level_model.py."""
@@ -52,13 +95,14 @@ class EDPipeline:
         return Decision(p_urgent=p, head_flag=bool(head_flag), floor_flag=bool(floor_flag), flagged=flagged,
                         level=min(level, 2) if flagged else level,
                         level_set=tuple(int(i) + 1 for i in np.flatnonzero(probs >= 1 - self.cutoff)),
-                        floor_priority=vitals_out["floor_priority"], news2=vitals_out["news2"])
+                        floor_priority=vitals_out["floor_priority"], news2=vitals_out["news2"], model_level=level)
 
     def triage(self, patient, explain=True):
         """Stage 1, the front door: Caleb's vitals -> arrival card -> vector -> urgency + level -> explanation."""
         out = assess(self.vm, patient)
         card = make_card(patient, out)
-        decision = self.decide(embed_one(self.model, self.processor, card), out)
+        with self._adapter(None, "decide"):
+            decision = self.decide(embed_one(self.model, self.processor, card), out)
         visit = Visit(card=card, decision=decision, ed=ed_assessment(patient))
         if explain:
             self.explain(visit)
@@ -68,21 +112,59 @@ class EDPipeline:
         """MedGemma explains the decision. Separate step: the decision is quick, the writing can take minutes."""
         d = visit.decision
         guided = card_with_urgency(visit.card, d.p_urgent, d.flagged, d.floor_flag)
-        raw = ask_messages(self.model, self.processor, _messages(TRIAGE_SYSTEM, guided), 2048)
+        raw = self._ask(_messages(TRIAGE_SYSTEM, guided), "explain")
         # the decision stands even if MedGemma's explanation can't be read
         visit.explanation = parse_triage(final_answer(raw)) or {"valid_json": False, "reasoning": NO_ANSWER}
         visit.explanation["cut_off"] = cut_off(raw)
 
-    def read_image(self, visit, path, image_type):
-        """Stage 2: any image. Its reading goes on the record, so the chat and SBAR can use it."""
-        if self.image_model is None:
-            self.image_model = load_image_model()
-        text = describe_image(*self.image_model, path, image_type)
+    def read_image(self, visit, path, image_type=None, who="not recorded"):
+        """Stage 2: any image. image_type=None: MedGemma sorts it first (the clinician can still pick it).
+        Its reading goes on the record, so the chat and SBAR can use it."""
+        sorted_as = None
+        if image_type is None:
+            with self._adapter(None, "sort"):
+                image_type, sorted_as = sort_image(self.model, self.processor, path, self.think)
+        # Cato's adapter only for X-rays: on CT/MRI/ultrasound/ECG it wrote figure-caption text (real-AI check, 7 Nov)
+        xray = image_type in ("bone_xray", "chest_xray")
+        with self._adapter("image" if xray else None, "image"):
+            text = describe_image(self.model, self.processor, path, image_type, think=self.think)
+        # the ED checklist for this kind of picture, then a box + outline for up to 2 positive findings
+        with self._adapter(None, "checklist"):
+            found_list = checklist(self.model, self.processor, path, image_type)
+            located = []
+            if image_type in LOCATABLE:
+                for item in [k for k, v in found_list.items() if v["seen"] == "yes"][:2]:
+                    if image_type == "bone_xray" and item == "Fracture":
+                        continue                     # the fracture detector does this one
+                    box = locate(self.model, self.processor, path, item)
+                    if box:
+                        located.append({"finding": item, "box": box, "experimental": image_type != "chest_xray"})
+        start = time.time()
         found = detect_fracture(path) if image_type == "bone_xray" else None
-        visit.add(IMAGE_TYPES[image_type][1], imaging_line(image_type, text, found))
-        return {"text": text, "detector": found}
+        chest = chest_findings(path) if image_type == "chest_xray" else None
+        anatomy = chest_anatomy(path) if image_type == "chest_xray" else None
+        for loc in located:
+            seg = outline(path, loc["box"], fracture=False)
+            loc.update({"area_pct": seg["area_pct"], "overlay": seg["overlay"]})
+        self.times["detector"] = round(time.time() - start, 2)
+        line = (imaging_line(image_type, text, found) + (tools_line("chest_xray", chest) if chest else "")
+                + checklist_line(image_type, found_list, anatomy and anatomy["ctr"]))
+        if located:
+            line += " Outlined: " + ", ".join(f"{l['finding']}{' (experimental)' if l['experimental'] else ''}"
+                                               for l in located) + "."
+        if sorted_as is not None:
+            line = f"(image type sorted by AI: {IMAGE_TYPES[image_type][0]}) " + line
+        visit.add(IMAGE_TYPES[image_type][1], line, who)
+        return {"kind": image_type, "sorted_by_ai": sorted_as is not None, "text": text, "detector": found, "chest": chest,
+                "checklist": found_list, "located": located, "anatomy": anatomy, "line": line}
 
-    def _turn(self, visit, question, max_new_tokens):
+    def outline(self, visit, path, box, who="not recorded"):
+        """MedSAM outline of the area the clinician boxed. Only the size goes on the record; the picture is shown."""
+        found = outline(path, box)
+        visit.log("Imaging", f"Area outlined by AI inside a box drawn by {who}: {found['area_pct']:.1f}% of the picture.")
+        return found
+
+    def _turn(self, visit, question, step):
         if not visit.messages:                           # first turn: MedGemma reads the whole record
             visit.messages = [{"role": "system", "content": [{"type": "text", "text": VISIT_CHAT_SYSTEM}]}]
             question = f"{visit.record()}\n\n{question}"
@@ -90,14 +172,14 @@ class EDPipeline:
             question = "New results added to the record:\n" + "\n".join(visit.unseen) + f"\n\n{question}"
         visit.unseen = []
         visit.messages.append({"role": "user", "content": [{"type": "text", "text": question}]})
-        answer = final_answer(ask_messages(self.model, self.processor, visit.messages, max_new_tokens)) or NO_ANSWER
+        answer = final_answer(self._ask(visit.messages, step)) or NO_ANSWER
         visit.messages.append({"role": "assistant", "content": [{"type": "text", "text": answer}]})
         return answer
 
     def chat(self, visit, question):
         """Core Task 2: one turn. Earlier turns stay in the conversation, so it remembers them."""
-        return self._turn(visit, question, 1536)
+        return self._turn(visit, question, "chat")
 
     def sbar(self, visit):
         """Core Task 3: the handover, written from the whole conversation plus all results so far."""
-        return self._turn(visit, TURNS[3], 2048)
+        return self._turn(visit, TURNS[3], "sbar")

@@ -1,0 +1,1 @@
+M 69; Chest pain; Heart pain; Facial pain; walked in. T 36.6; hr 100; RR 18; sats 96%; blood pressure 114/84; pain score 9/10

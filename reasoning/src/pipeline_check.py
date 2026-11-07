@@ -92,7 +92,7 @@ def check_scores(n):
     from heads import load_xy
     from pipeline import EDPipeline
 
-    ed = EDPipeline(vitals_model=dev_vitals_model())
+    ed = EDPipeline(vitals_model=dev_vitals_model(), sensitivity=0.8)     # the saved results used the 80% cut-off
     cards = pd.read_parquet(PROCESSED / "cards_pool1.parquet").set_index("id")
     saved = pd.read_parquet(PROCESSED / "head_scores.parquet").set_index("id")
     table, X = load_xy("base4bit")
@@ -124,17 +124,24 @@ def check_results(n, with_image=True):
     cases = []
     for k, row in enumerate(test_patients(n).to_dict("records")):
         section, result, words = LATER_RESULTS[k % len(LATER_RESULTS)]
+        times = {}
         v = ed.triage(row)
+        times.update(ed.times)
         before = (v.card, v.decision)
         image_text = None
         if with_image and k < 3:                    # the whole flow, including one image
             image = sorted((DETECTOR_DATA / "images" / "test").glob("*.jpg"))[k]
             image_text = ed.read_image(v, image, "bone_xray")["text"]
+            times.update(image=ed.times["image"], detector=ed.times["detector"])
         first = ed.chat(v, TURNS[0])
+        times["chat_1"] = ed.times["chat"]
         v.add(section, result)
         second = ed.chat(v, "A new result has come back. Does this change your assessment?")
+        times["chat_2"] = ed.times["chat"]
         lay = ed.chat(v, TURNS[2])
+        times["chat_3"] = ed.times["chat"]
         sbar = ed.sbar(v)
+        times["sbar"] = ed.times["sbar"]
         low = sbar.lower()
         cases.append({
             "id": row["id"], "flagged": v.decision.flagged, "level": v.decision.level, "result": result, "image_text": image_text,
@@ -144,13 +151,19 @@ def check_results(n, with_image=True):
             "sbar_headings": has_sbar_headings(sbar),
             "flagged_called_non_urgent": v.decision.flagged and bool(re.search(r"non-?urgent|level [345]\b", low)),
             "no_answer": NO_ANSWER in (first, second, lay, sbar),
+            "sbar_words": len(sbar.split()), "times": times,
             "first": first, "second": second, "lay": lay, "sbar": sbar, "explanation": v.explanation})
-        print({c: cases[-1][c] for c in ("id", "flagged", "chat_used_result", "sbar_used_result", "sbar_headings")}, flush=True)
+        print({c: cases[-1][c] for c in ("id", "flagged", "chat_used_result", "sbar_used_result", "sbar_headings", "times")},
+              flush=True)
     t = pd.DataFrame(cases)
     res = {"n": len(t), **{c: int(t[c].sum()) for c in ("explanation_valid", "decision_unchanged", "chat_used_result",
                                                         "sbar_used_result", "sbar_headings", "flagged_called_non_urgent",
                                                         "no_answer")},
-           "n_flagged": int(t["flagged"].sum()), "cases": cases}
+           "n_flagged": int(t["flagged"].sum()), "median_sbar_words": float(t["sbar_words"].median()),
+           # seconds per step: median and slowest over all cases
+           "seconds": {k: {"median": float(x.median()), "max": float(x.max())}
+                       for k, x in pd.DataFrame(list(t["times"])).items()},
+           "cases": cases}
     save("results", res)
 
 

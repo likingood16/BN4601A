@@ -2,11 +2,14 @@
 
     python heads.py --emb base                      # train on KTAS train, tune C on KTAS val, test once
     python heads.py --emb base --train-on ktas+nhamcs
+    python heads.py --emb base4bit --train-on ktas+nhamcs --add-threshold 0.90   # extra cut-off, same saved head
 
 Protocol (no peeking): C is chosen on the validation split; the alert threshold is set on validation to
 catch 80% of urgent patients (Caleb's rule); the test split is used once, at the end.
 Final decision = head flags urgent OR Caleb's floor says priority 1-2 (the floor can only raise urgency).
 Saves models/heads/<name>.joblib and outputs/metrics/<name>.json.
+--add-threshold stores another cut-off ("thresholds": {sensitivity: cut-off}), set the same way on KTAS validation,
+without refitting the head. The app uses 0.90 (6 Nov 2026): fewer urgent patients missed, more false alarms.
 """
 import argparse
 import json
@@ -101,10 +104,26 @@ def run(emb, train_on="ktas", name=None):
     return results
 
 
+def add_threshold(emb, train_on, sens):
+    """Cut-off that flags `sens` of urgent KTAS validation patients, saved next to the 80% one."""
+    path = HEADS_DIR / f"urgent__{emb}__{train_on.replace('+', '_')}.joblib"
+    saved = joblib.load(path)
+    cards, X = load_xy(emb)
+    va = ((cards["split"] == "val") & (cards["source"] == "ktas")).to_numpy()
+    y = cards["urgent"].to_numpy()
+    p_va = saved["head"].predict_proba(X[va])[:, 1]
+    saved.setdefault("thresholds", {TARGET_SENS: saved["threshold"]})[sens] = float(np.quantile(p_va[y[va] == 1], 1 - sens))
+    joblib.dump(saved, path)
+    return saved["thresholds"]
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--emb", default="base")
     ap.add_argument("--train-on", default="ktas", choices=["ktas", "ktas+nhamcs", "nhamcs"])
+    ap.add_argument("--add-threshold", type=float, help="extra sensitivity target, e.g. 0.90; no refit")
     a = ap.parse_args()
+    if a.add_threshold:
+        raise SystemExit(print(add_threshold(a.emb, a.train_on, a.add_threshold)))
     r = run(a.emb, a.train_on)
     print(json.dumps({k: v for k, v in r.items() if k != "val_auroc_by_C"}, indent=1))

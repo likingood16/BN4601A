@@ -1,0 +1,38 @@
+#!/bin/bash
+#PBS -N app_server
+#PBS -j oe
+# The ED app with the REAL MedGemma, on one A40, for testing and the demo. The laptop reaches it through an SSH tunnel
+# (reasoning/hpc/connect_app.ps1). The board is saved on scratch, so a new job continues where the last one stopped.
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=10:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/app_server.pbs
+# Restartable without queueing again: upload new code, then  touch reasoning/outputs/logs/app_restart  (the app
+# restarts with the new code and runs the real-AI check again). touch reasoning/outputs/logs/app_stop ends the job.
+set -o pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 YOLO_OFFLINE=true TQDM_DISABLE=1 \
+       BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it
+PORT=8010
+LOGS=$PWD/reasoning/outputs/logs
+rm -f "$LOGS/app_restart" "$LOGS/app_stop"
+hostname > "$LOGS/app_server_host.txt"                      # connect_app.ps1 reads this to build the tunnel
+nvidia-smi --query-gpu=name,memory.total --format=csv
+mkdir -p "$ROOT/app_cases"
+cd reasoning/web
+run=0
+while true; do
+  run=$((run + 1))
+  # --lan: listen on the node's network so the tunnel from the login node can reach it (made-up patients only)
+  "$VENV/bin/python" -u server.py --lan --port $PORT --case-files "$ROOT/app_cases/board.pkl" &
+  SERVER=$!
+  for i in $(seq 1 120); do curl -s "http://127.0.0.1:$PORT/api/meta" >/dev/null && break; sleep 5; done
+  echo "app up (run $run) $(date)"
+  # the real-AI check runs by itself (test notes + one patient per kind of picture), so results exist even if nobody
+  # connects; its patients stay on the board, marked "Real-AI check"
+  "$VENV/bin/python" -u real_ai_check.py --url "http://127.0.0.1:$PORT" > "$LOGS/real_ai_check_live.log" 2>&1 \
+    && cp ../outputs/real_ai_check.md "../outputs/real_ai_check_run$run.md"
+  while kill -0 $SERVER 2>/dev/null && [ ! -f "$LOGS/app_restart" ] && [ ! -f "$LOGS/app_stop" ]; do sleep 10; done
+  kill $SERVER 2>/dev/null; wait $SERVER 2>/dev/null
+  rm -f "$LOGS/app_restart"
+  [ -f "$LOGS/app_stop" ] && break
+  echo "restarting with the new code $(date)"
+done

@@ -23,7 +23,16 @@ import pandas as pd
 from ultralytics import YOLO
 
 HERE = Path(__file__).resolve().parent
-DATA = HERE / "data" / "yolo" / "fracatlas.yaml"
+DATA = HERE / "data" / "yolo" / "fracatlas_here.yaml"     # written at start: same folders, this computer's path
+
+
+def write_data_yaml():
+    """fracatlas.yaml holds the laptop path; write one that points at this computer's copy (laptop or HPC)."""
+    lines = [f"path: {(HERE / 'data' / 'yolo').as_posix()}", "train: images/train", "val: images/val",
+             "test: images/test", "names:", "  0: fracture"]
+    DATA.write_text("\n".join(lines) + "\n")
+
+
 SEED = 42
 
 
@@ -35,14 +44,14 @@ def train(args):
     model = YOLO(args.model)                    # pretrained on COCO everyday images; we fine-tune on X-rays
     model.train(data=str(DATA), epochs=1 if args.smoke else args.epochs, imgsz=args.imgsz, batch=args.batch,
                 fraction=0.05 if args.smoke else 1.0, patience=args.patience, seed=SEED, deterministic=True,
-                workers=0, project=str(HERE / "runs"), name=args.name + ("_smoke" if args.smoke else ""),
+                workers=args.workers, project=str(HERE / "runs"), name=args.name + ("_smoke" if args.smoke else ""),
                 exist_ok=True, plots=True, verbose=False)
     return HERE / "runs" / (args.name + ("_smoke" if args.smoke else "")) / "weights" / "best.pt"
 
 
-def test(weights, conf):
+def test(weights, conf, imgsz=640):
     model = YOLO(str(weights))
-    m = model.val(data=str(DATA), split="test", imgsz=640, batch=8, plots=False, verbose=False)
+    m = model.val(data=str(DATA), split="test", imgsz=imgsz, batch=8, plots=False, verbose=False)
     scores = {"box_mAP50": m.box.map50, "box_mAP50_95": m.box.map, "mask_mAP50": m.seg.map50,
               "mask_mAP50_95": m.seg.map, "box_precision": m.box.mp, "box_recall": m.box.mr}
 
@@ -51,7 +60,7 @@ def test(weights, conf):
     img_dir = HERE / "data" / "yolo" / "images" / "test"
     flagged = {}
     for n in test_rows["image_id"]:              # one X-ray at a time: a list would be sent as ONE batch (4 GB GPU)
-        flagged[n] = len(model.predict(str(img_dir / n), conf=conf, imgsz=640, verbose=False)[0].boxes) > 0
+        flagged[n] = len(model.predict(str(img_dir / n), conf=conf, imgsz=imgsz, verbose=False)[0].boxes) > 0
     test_rows = test_rows.assign(flagged=test_rows["image_id"].map(flagged))
     frac, normal = test_rows[test_rows["fractured"]], test_rows[~test_rows["fractured"]]
     scores.update({"confidence_threshold": conf,
@@ -67,7 +76,7 @@ def test(weights, conf):
     (run_dir / "test_metrics.json").write_text(json.dumps(scores, indent=1))
     examples = frac["image_id"].head(4).tolist() + normal["image_id"].head(2).tolist()
     for n in examples:
-        model.predict(str(img_dir / n), conf=conf, save=True, project=str(run_dir), name="test_examples",
+        model.predict(str(img_dir / n), conf=conf, imgsz=imgsz, save=True, project=str(run_dir), name="test_examples",
                       exist_ok=True, verbose=False)
     return scores
 
@@ -81,9 +90,11 @@ if __name__ == "__main__":
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--name", default="fracture")
     ap.add_argument("--conf", type=float, default=0.25, help="detections below this confidence are ignored")
+    ap.add_argument("--workers", type=int, default=0, help="data loader processes (0 on Windows; 8 on the HPC)")
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--resume", action="store_true", help="continue runs/<name> from its last saved epoch")
     ap.add_argument("--test-only", default=None, help="weights to test without training")
     a = ap.parse_args()
+    write_data_yaml()
     weights = a.test_only or train(a)
-    print(json.dumps(test(weights, a.conf), indent=1))
+    print(json.dumps(test(weights, a.conf, a.imgsz), indent=1))

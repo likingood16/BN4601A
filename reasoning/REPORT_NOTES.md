@@ -355,6 +355,182 @@ urgency line):
   https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/12148529 ;
   https://terminology.hl7.org/en/ECS_MR-CTAS.html ; https://pmc.ncbi.nlm.nih.gov/articles/PMC6975254/table/t1
 
+## 5g. Task adapter results + new image run (HPC jobs 1507022/1507023 finished 2 Nov; read 6 Nov 2026)
+Task adapter = 1 epoch on 8,274 teacher examples (`task_train.jsonl`), val loss 0.772, 29 min on an A40.
+Same 490 test patients (KTAS 190 + NHAMCS 300) as `answer_quality.json`.
+| | base | task/stage1 | mixed/stage12 |
+|---|---|---|---|
+| exact level | 0.41 | 0.48 | 0.50 |
+| within 1 level | 0.84 | 0.93 | 0.94 |
+| urgent sensitivity, model alone | 0.34 | 0.37 | 0.18 |
+| urgent sensitivity, guided by score + floor | 0.77 | 0.77 | 0.77 |
+| SBAR words / all 4 headings | 486 / 1.00 | 318 / 0.95 | 328 / 1.00 |
+| chat: follow-up uses new fact | 0.95 | 1.00 | 0.95 |
+| chat hedging rate | 0.80 | 0.86 | 0.43 |
+| chat words per turn | 127–190 | 134–185 | 38–72 |
+| MedQA (200 test Qs) | 0.56 | 0.545 (diff −0.015, CI −0.085 to 0.055) | 0.535 |
+- Reading: the task adapter levels like the mixed adapter but **keeps the base model's hedging and fuller answers**,
+  and doesn't lose urgent patients the way mixed does (0.37 vs 0.18 alone). Guided by score + floor, all are equal
+  (0.77), so the safety comes from the score and floor, not from the text model. Base was run twice (0.41 / 0.44 exact):
+  differences of a few points are noise. No knowledge gain on MedQA.
+- **Image step switched to Cato's `hpc_run_3epochs`** (5 Nov): MedGemma 1.5 base (same as Model 3), findings F1 0.25 vs
+  0.20 for `hpc_run_750`, keeps the format; chosen over `hpc_run_5epochs` (F1 0.26) for fewer invented details on
+  image-only questions (25% vs 34%). Not yet run inside our pipeline.
+
+## 5h. Rubric: every model graded on its own held-out test (`src/rubric.py`, 6 Nov 2026)
+Reads saved results only; re-run `python src/rubric.py` after new results. Grades Poor / Acceptable / Good / Excellent;
+published scales are named, "own" cut-offs must be called ours in the report. Hosmer & Lemeshow call 0.8-0.9
+"excellent" and >= 0.9 "outstanding"; our grade names sit one step lower.
+
+| Model | Criterion (own held-out test) | Results -> grade | Cut-offs (Acc / Good / Exc) | Source |
+|---|---|---|---|---|
+| M3 urgency score | AUROC, KTAS test (190) | 0.90 **Excellent** | >= 0.7 / 0.8 / 0.9 | Hosmer & Lemeshow 2013: 0.7 acceptable, 0.8 excellent, 0.9 outstanding |
+| M3 urgency score | AUROC, NHAMCS test (1,262) | 0.81 **Good** | >= 0.7 / 0.8 / 0.9 | Hosmer & Lemeshow 2013: 0.7 acceptable, 0.8 excellent, 0.9 outstanding |
+| M3 urgency score | under-triage of urgent, score + floor, KTAS | 0.16 **Acceptable** | <= 0.25 / 0.15 / 0.05 | ACS-COT target <= 5% under-triage; 15% / 25% own |
+| M3 urgency score | under-triage of urgent, score + floor, NHAMCS | 0.28 **Poor** | <= 0.25 / 0.15 / 0.05 | ACS-COT target <= 5% under-triage; 15% / 25% own |
+| M3 urgency score | calibration error (ECE), NHAMCS | 0.02 **Excellent** | <= 0.1 / 0.05 / 0.02 | own |
+| M2 vitals (Caleb) | AUROC, KTAS test, same patients | 0.78 **Acceptable** | >= 0.7 / 0.8 / 0.9 | Hosmer & Lemeshow 2013: 0.7 acceptable, 0.8 excellent, 0.9 outstanding |
+| M2 vitals (Caleb) | AUROC, NHAMCS test, same patients | 0.61 **Poor** | >= 0.7 / 0.8 / 0.9 | Hosmer & Lemeshow 2013: 0.7 acceptable, 0.8 excellent, 0.9 outstanding |
+| M3 level + conformal | weighted kappa vs nurse, KTAS | 0.66 **Good** | >= 0.41 / 0.61 / 0.81 | Landis & Koch 1977: moderate, substantial, almost perfect |
+| M3 level + conformal | weighted kappa vs nurse, NHAMCS | 0.47 **Acceptable** | >= 0.41 / 0.61 / 0.81 | Landis & Koch 1977: moderate, substantial, almost perfect |
+| M3 text (MedGemma) | under-triage of urgent, text model alone | base 0.66 **Poor**; task adapter 0.63 **Poor**; mixed adapter 0.82 **Poor** | <= 0.25 / 0.15 / 0.05 | ACS-COT target <= 5% under-triage; 15% / 25% own |
+| M3 text (MedGemma) | under-triage, text guided by score + floor | base 0.23 **Acceptable**; task adapter 0.23 **Acceptable**; mixed adapter 0.23 **Acceptable** | <= 0.25 / 0.15 / 0.05 | ACS-COT target <= 5% under-triage; 15% / 25% own |
+| M3 text (MedGemma) | SBAR has all 4 headings | base 1.00 **Excellent**; task adapter 0.95 **Good**; mixed adapter 1.00 **Excellent** | >= 0.9 / 0.95 / 1 | own; brief Core 3 |
+| M3 text (MedGemma) | SBAR uses facts added in the chat | base 0.95 **Excellent**; task adapter 1.00 **Excellent**; mixed adapter 0.97 **Excellent** | >= 0.8 / 0.9 / 0.95 | own; brief Core 3 |
+| M3 text (MedGemma) | follow-up answer uses the new fact | base 0.95 **Excellent**; task adapter 1.00 **Excellent**; mixed adapter 0.95 **Excellent** | >= 0.8 / 0.9 / 0.95 | own; brief Core 2 memory |
+| M3 text (MedGemma) | patient-language reading ease | base 72.10 **Good**; task adapter 75.00 **Good**; mixed adapter 75.30 **Good** | >= 60 / 70 / 80 | Flesch 1948: 60 plain English, 70 fairly easy, 80 easy (patient leaflets: 6th-8th grade) |
+| M3 text (MedGemma) | SBAR length, words | base 486.40 **Acceptable**; task adapter 317.80 **Good**; mixed adapter 327.90 **Good** | <= 500 / 400 / 300 | own: a handover read in about 2 minutes |
+| M3 text (MedGemma) | answers cut off while thinking | base 0.02 **Good**; task adapter 0.00 **Excellent**; mixed adapter 0.00 **Excellent** | <= 0.05 / 0.02 / 0 | own |
+| M3 text (MedGemma) | MedQA accuracy (200 test Qs) | base 0.56 **Acceptable**; task adapter 0.55 **Acceptable**; mixed adapter 0.54 **Acceptable** | >= 0.5 / 0.6 / 0.7 | Singhal 2023 (Med-PaLM): 60% = pass mark |
+| M1 image (Cato) | findings F1 vs case report | base 0.12 **Poor**; adapted 0.25 **Acceptable** | >= 0.2 / 0.3 / 0.4 | own; published X-ray report models score ~0.25-0.35 |
+| M1 image (Cato) | invented details in the findings text (what the app uses) | adapted 0.02 **Excellent**; base 0.02 **Excellent** | <= 0.2 / 0.1 / 0.05 | own |
+| M1 image (Cato) | box found for a named finding (IoU >= 0.5) | base 0.00 **Poor**; adapted 0.12 **Poor** | >= 0.3 / 0.5 / 0.7 | own |
+| M1 image (Cato) | normal chest X-rays called normal (Open-i, 20, re-scored) | adapted 0.80 **Good** | >= 0.7 / 0.8 / 0.9 | own |
+| Fracture detector | per-X-ray sensitivity (63 fractured) | cut-off 0.25 0.54 **Poor**; cut-off 0.044 (app) 0.81 **Good** | >= 0.7 / 0.8 / 0.91 | Kuo 2022 meta-analysis: AI fracture detection pooled 91%; 70% / 80% own |
+| Fracture detector | per-X-ray specificity (400 normal) | cut-off 0.25 0.96 **Excellent**; cut-off 0.044 (app) 0.73 **Acceptable** | >= 0.7 / 0.8 / 0.91 | Kuo 2022 meta-analysis: AI fracture detection pooled 91%; 70% / 80% own |
+
+What it says, plainly:
+- **Strong:** the urgency score (AUROC 0.90 KTAS / 0.81 NHAMCS, well calibrated), SBAR + chat memory, plain-language answers.
+- **Weak:** under-triage is still 16-28%, far from the 5% target, and the text model alone misses most urgent patients
+  (so the score + floor must lead and the text only explains). Caleb's vitals model alone is poor on NHAMCS (0.61).
+- **Image side, re-scored on what the app uses (6 Nov):** Cato's adapter doubles findings F1 (0.12 -> 0.25). His
+  36% "invented details" sits in the impression + next-steps text, which the app drops; in the findings text it is 2%,
+  same as base. His Open-i "0 normals recognised" was a parsing problem: re-scored, 13-16 of 20 normal chest X-rays
+  are called normal (65-80%, depending on whether "no evidence of pneumonia" counts). So no retraining was needed.
+  Boxes (grounding) stay poor. The detector at the validation-chosen cut-off catches 81% of fractures.
+- **Adapters vs base:** better format and length, same safety, no knowledge gain (MedQA 0.55 vs 0.56).
+- References: Hosmer DW, Lemeshow S, Sturdivant RX. Applied Logistic Regression, 3rd ed. Wiley 2013. Landis JR, Koch GG.
+  Biometrics 1977;33:159-74. American College of Surgeons Committee on Trauma, Resources for Optimal Care of the Injured
+  Patient 2014 (under-triage < 5%). Flesch R. J Appl Psychol 1948;32:221-33. Kuo RYL et al. Radiology 2022;304:50-62.
+  Singhal K et al. Nature 2023;620:172-80.
+
+## 5i. Improvements from the rubric (6 Nov 2026; trial run on vanda queued: jobs 1525665 trial, 1525666 full)
+- **Urgency cut-off 80% -> 90%** (`heads.py --add-threshold 0.90`, set on KTAS validation, 32 urgent patients):
+  under-triage KTAS 16% -> 11%, NHAMCS 26% -> 17%; specificity 0.83 -> 0.71 / 0.75 -> 0.63; patients flagged
+  30% -> 41% / 34% -> 45%. 95% would give ~9% under-triage but flag over half of all patients.
+- **Fracture detector cut-off 0.25 -> 0.044**, set on 164 validation X-rays to catch 80% (`vision/detector/choose_threshold.py`):
+  test sensitivity 0.54 -> 0.81, specificity 0.96 -> 0.73. It now points where to look; it never rules a fracture out.
+- **Explainer = task adapter** (5g/5h), **one MedGemma in memory** with three roles (plain for the vector, task adapter for
+  text, Cato's adapter for images), **no thinking block** (token `<unused94>` suppressed) and answer caps 768/512/768 tokens.
+  Speed per step is measured by the trial (`pipeline_check_results.json`, "seconds").
+- Not changed: the vitals floor, the level model, Cato's model (re-scored in 5h: its findings text is fine; no retraining).
+
+## 5j. App redesign: chart first, AI second (6 Nov 2026; full design in APP_DESIGN.md)
+- The client judged the Gradio "ED Case Board" too structured for a rushed ED. In the new design the nurse types one messy
+  note (plus images) and presses Submit; the AI formats it.
+- Why: in Hill et al. 2013, ED doctors spent about 43% of a shift on data entry. AI scribes save about 1–2 min per note,
+  but note quality is under-studied, so our case file is editable and the AI text is labelled.
+- Numbers are pulled out of the note by fixed rules (`src/charting.py`), not by MedGemma, because they feed the urgency
+  model. They are shown as big NEWS2-coloured tiles with the text each came from, and the nurse can fix them and re-score.
+- Images are read blind (no note given to the image model, to avoid anchoring). Detector boxes go automatically to MedSAM
+  (detect → segment), and the note's body parts are written next to the reading.
+- Stack: React screens (charting / case file / whiteboard) + FastAPI back end wrapping the same pipeline. One AI job at a
+  time, and the whiteboard updates live on a second screen.
+- Usability rubric (SUS, task success, time and clicks per patient, AI wait, whiteboard reading at 3 m, heuristic
+  problems, faithful case file, useful questions, number extraction) is in APP_DESIGN.md section 7. Not yet measured.
+
+- MedSAM outline test (vanda job 1525769, 69 FracAtlas fracture outlines, box = outline + 10% margin): median Dice
+  **0.48** for MedSAM vs **0.39** for just shading the box. So MedSAM adds a little, but the overlap is moderate (one case
+  0.07), and the outline is shown as "where to look", not a measurement. The chest check and sorter crashed (name clash
+  between torchxrayvision and our src/model.py, then a Pillow blur error), were fixed 6 Nov, and are re-queued as job 1526190.
+  The pipeline trial failed on Windows line endings in hpc.conf and is re-queued as 1526194, with the full check 1526195 after it.
+
+- Image accuracy upgrades queued 6 Nov (no new data, same FracAtlas test so the numbers compare):
+  - **Detector:** YOLO11m-seg at 1024 px on the A40, job 1526342. It was YOLO11s-seg at 640 px on the 4 GB laptop GPU.
+    Fractures are tiny (about 0.2% of the picture), so resolution should matter most. Baseline to beat: box mAP50 0.379,
+    and per-X-ray AUROC 0.856 (new cut-off-free number, added to choose_threshold.py).
+  - **Outline:** MedSAM mask decoder fine-tuned on the FracAtlas train outlines with the encoder frozen and box jitter,
+    epoch picked on val, job 1526343 (vision/detector/finetune_medsam.py). Baseline to beat: test Dice 0.48 (box only 0.39).
+  - **Possible next step:** add GRAZPEDWRI-DX (Nagy et al. 2022, Sci Data; 20,327 paediatric wrist X-rays, 6,091
+    patients, CC BY 4.0, 16.2 GB on figshare), split by patient, and still test on FracAtlas test. Waiting for the OK to download.
+
+- Number extraction from messy notes (rubric row, APP_DESIGN.md section 10): 190 held-out KTAS test patients as
+  template-written messy notes. Vital numbers 100% correct, 0 wrong or invented (rubric: Excellent, at least 99%).
+  Template notes are easier than real ones, so this is an upper bound. Rule fixes (BIBA, "97.0F" read as age and sex,
+  injury) were made on the train patients only, before the single test run.
+- Claude's dry run of the 5 usability tasks: all completed; 7 problems found and fixed (APP_DESIGN.md section 10).
+  SUS and human testers are still to do.
+
+- **Vanda results (read 6 Nov, evening):**
+  - **Chest check** on the Kermany children's pneumonia test set (624 X-rays, 390 pneumonia, not in training):
+    - CheXpert weights: pneumonia AUROC **0.90**, sensitivity 0.81 / specificity 0.81 at 0.5;
+    - "all" weights: AUROC 0.79, but sensitivity only 0.17 at 0.5;
+    - both give lung opacity and consolidation AUROC 0.91–0.93.
+    The app now uses the CheXpert weights.
+  - **Full pipeline check** (job 1526195, 20 patients): all explanations valid; the decision is never changed by later
+    results; chat and SBAR used the new results 20/20; no flagged patient was called non-urgent. Median seconds on an
+    A40: decide 0.1, explain 10, image 0.9, detector 0.1, chat 9–15, SBAR 23; median SBAR length 238 words. The scores
+    check (50 patients) gave identical cards and the same flag 50/50.
+  - **Image upgrade jobs 1526342/1526343** failed because the FracAtlas train/val pictures weren't on vanda. They have
+    now been uploaded and the jobs re-queued as 1527112 (detector) and 1527113 (MedSAM).
+  - **Real-AI app job** 1527106 is queued; `connect_app.ps1` tunnels it to Chrome.
+
+- **Image upgrade results (vanda, 7 Nov):**
+  - **MedSAM fine-tuned on FracAtlas outlines** (mask decoder only, encoder frozen, box jitter, epoch 14 picked on val):
+    test Dice **0.48 → 0.84** on the same 69 test fractures (box only: 0.39). Now the app's outline model
+    (`image_tools.TUNED_MEDSAM`).
+  - **Detector YOLO11m-seg at 1024 px:** worse than the small 640 px model. Box mAP50 0.33 vs 0.38, per-X-ray AUROC 0.854
+    vs 0.856, sensitivity at 0.25 is 0.49 vs 0.54. More resolution and a bigger model didn't help with only 574 fractured
+    training pictures, so the app keeps the original detector. (More data, e.g. GRAZPEDWRI-DX, is the next lever.)
+- **App layout check (7 Nov):** an automatic overlap check ran at 375 / 1024 / 1280 / 1440 px on all three screens.
+  - **Found:** the patient menu stuck out of its box (page overflow on phones); the sticky add bar covered the case file;
+    the whiteboard table ran off the screen under 1100 px.
+  - **Fixed:** all four widths now report 0 overlaps and 0 overflow. Every-button test still passes 56/56.
+
+- **Real-AI check of the app, run 0** (vanda A40, 7 Nov; `outputs/real_ai_check_run0_before_fixes.md`):
+  - **Text:** 10 held-out notes, 0 errors, median 34 s per patient. Both truly urgent patients were flagged. Level exact 4/8,
+    within one level 7/8, with over-triage on 3 patients (one of them a possible-stroke flag).
+  - **Images:** the AI got 9 of 10 picture types right (MRI was read as CT). The chest check gave sensible scores (pleural effusion
+    pictures: lung opacity 77–81%); the bone X-rays were marked and outlined automatically.
+  - **Problems found by reading every output:**
+    1. Later notes and image readings never reached the case file (MedGemma's "file only the new notes" answer was unusable).
+    2. Questions were empty for 6/10 (the JSON was cut off at 320 tokens) and generic or repeated otherwise.
+    3. The raw note was copied into "Impression".
+    4. The triage section was missing or rambling.
+    5. Complaint lines included arrival mode or pain score.
+    6. CT/MRI/other readings read like figure captions (Cato's adapter was trained on MultiCaRe captions): a known limit.
+  - **Fixes:**
+    1. Later notes are filed by fixed word rules, so nothing typed is lost or reworded.
+    2. Question cap raised to 600 tokens, cut-off JSON still read, duplicates removed, questions specific to the complaint.
+    3. Impression only when a clinician wrote one.
+    4. Triage section filled from the trained models' decision, word for word.
+    5. Complaint prompt asks for symptoms only.
+  - Run 1 (after the fixes) is queued as job 1529034. The app job can now restart with new code without queueing again.
+
+- **Real-AI check runs 1–3** (7 Nov, same 10 notes + 10 pictures; `outputs/real_ai_check_run{1,2,3}.md`):
+  - **Run 1** (after the fixes above): image readings in the case file 10/10 (run 0: 0/10); patients with questions 20/20
+    (run 0: 4/10); impression no longer a copy of the note; triage section from the decision.
+  - **Run 2:** the patient line and the ED rules' pathway flags were given to MedGemma. The stroke patient was now asked
+    "last known well time?" and "glucose?", and every flagged pathway got its to-do (ECG within 10 min, sepsis screen,
+    mechanism of injury).
+  - **Run 3:** questions and to-dos that only ask for values already recorded are dropped (e.g. "blood pressure?" with
+    BP 193/115). What's left is genuinely missing (past history, medicines, allergies, SpO2).
+  - **Stable across runs:** 0 errors, both truly urgent patients flagged, level within one 7/8, image type 9/10, a person's
+    edit kept after a new note.
+  - **Changed:** level exact moved 4/8 → 3/8 because the cleaner complaint line ("Dyspnea" instead of "Dyspnea walk-in")
+    changes the card the urgency head reads. With 8 patients this is noise, but it shows the complaint wording feeds the score.
+  - **Speed:** 12–44 s per patient on an A40, median 34 s.
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.

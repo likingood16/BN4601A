@@ -1,15 +1,17 @@
-"""Press every button through the running app (python app.py first), right order and wrong order.
+"""Press every button through the running app (python app.py --case-files "" first), right order and wrong order.
 
     python test_buttons.py [image.jpg]
 
 Every action returns the screen in this order; the helper names the parts.
 """
 import sys
+from pathlib import Path
 
 from gradio_client import Client, handle_file
 
 IMAGE = sys.argv[1] if len(sys.argv) > 1 else None
-NAMES = ["queue", "header", "ai", "nurse", "why", "record", "chat", "overlay", "image_text", "sbar", "file"]
+NAMES = ["queue", "board", "header", "ai", "nurse", "why", "record", "timeline", "chat", "overlay", "image_text", "sbar", "file",
+         "stage", "doctor"]
 BLANK = ["", "not recorded", "not recorded", None, "", "", "", "", "", "", "", "not recorded", "", "not recorded"]
 c = Client("http://127.0.0.1:7860", verbose=False)
 failures = []
@@ -40,7 +42,8 @@ def queue_labels(s):
 
 # wrong order: nobody selected, nothing may crash or change
 for api, args in [("/accept", []), ("/change_level", ["2", "because"]), ("/recheck", ["80", "", "", "", "", "", "not recorded", ""]),
-                  ("/explain", []), ("/add_result", ["bloods", "x"]), ("/send", ["hello"]), ("/sbar", []), ("/remove", [])]:
+                  ("/explain", []), ("/add_result", ["bloods", "x"]), ("/send", ["hello"]), ("/sbar", []), ("/remove", []),
+                  ("/set_stage", ["Being seen", "Dr A"]), ("/handover", ["Dr B", ""]), ("/case_file", []), ("/outline", [None])]:
     c.predict(*args, api_name=api)
 check("every button with nobody selected: no crash", True)
 
@@ -49,8 +52,11 @@ check("triage with no complaint is refused", s["record"] == "" and not queue_ids
 s = press("/triage", *form(pick="Headache", hr="abc", temp="20", pain="99"))
 check("bad numbers are refused", s["record"] == "" and not queue_ids(s))
 
+c.predict("Nurse Tan", api_name="/sign_in")
+
 # made-up waiting list, most urgent first
 s = press("/load_demo")
+check("board lists every patient with stage and doctor", s["board"].count("<tr") == 4 and "Waiting" in s["board"] and "unassigned" in s["board"])
 ids, labels = queue_ids(s), queue_labels(s)
 check("waiting list has 3 made-up patients", len(ids) == 3)
 check("most urgent first", "Chest pain" in labels[0] and "L2" in labels[0] and "unconfirmed" in labels[0])
@@ -62,7 +68,8 @@ s = dict(zip(NAMES, out))
 check("selecting shows the header", all(x in s["header"] for x in ("LEVEL 2", "67 yrs", "Chest pain", "waited 6 min", "See within 15 min", "rough PACS P2")))
 check("header says AI suggestion until a nurse confirms", "not yet confirmed" in s["header"])
 check("selecting fills the form", "67" in out[len(NAMES):] and "Chest pain" in out[len(NAMES):])
-check("selecting clears the Change level boxes", out[-2] is None and out[-1] == "")
+check("selecting clears the Change level boxes", out[-3] is None and out[-2] == "")
+check("case file starts with the triage entry", "Triage" in s["timeline"] and "Arrival card created by Nurse Tan" in s["timeline"])
 check("AI box shows the suggestion", "AI suggests" in s["ai"] and "Urgency score" in s["ai"] and "FLAGGED URGENT" in s["ai"])
 check("no explanation until asked", "No explanation written yet" in s["why"])
 check("record has card, ED assessment and decision", all(x in s["record"] for x in ("PRESENTING COMPLAINT", "ED ASSESSMENT", "URGENCY DECISION")))
@@ -76,6 +83,7 @@ check("re-triage of a selected patient is refused", "Chest pain" in s["header"] 
 # nurse decides
 s = press("/accept")
 check("accept is recorded", "Nurse accepted the AI's level 2" in s["nurse"] and "Nurse accepted" in s["record"] and "nurse confirmed" in s["header"])
+check("accept is signed in the case file", "Nurse Tan" in s["timeline"] and "Nurse accepted" in s["timeline"])
 check("accept clears unconfirmed in the list", "unconfirmed" not in queue_labels(s)[0])
 out = c.predict("3", "   ", api_name="/change_level")
 check("change without a reason is refused", "Nurse set level" not in out[3])
@@ -109,6 +117,22 @@ for key in ("ecg", "urine_swabs", "history", "past_history", "medications", "all
     check(f"section {key} reaches the record", f"test {key}" in s["record"])
 check("arrival card lines not repeated", s["record"].count("ALLERGIES:") == 1 and s["record"].count("IMAGING:") == 1)
 
+# board, handover, case file
+s = press("/set_stage", "Being seen", "Dr Lim")
+check("stage and doctor reach the board and header", "Being seen" in s["board"] and "Dr Lim" in s["board"] and "Dr Lim" in s["header"])
+check("board change is in the case file", "Waiting -> Being seen" in s["timeline"])
+s = press("/set_stage", "Being seen", "Dr Lim")
+check("an unchanged board update adds nothing", s["timeline"].count("Board") == 1)
+out = c.predict("Ward 7 (cardiology)", "Troponin rising", api_name="/handover")
+s = dict(zip(NAMES, out))
+check("handover sets the new doctor and is logged", "Ward 7" in s["doctor"] and "Handed over to Ward 7" in s["timeline"] and out[-1] == "")
+path = c.predict(api_name="/case_file")
+text = Path(path if isinstance(path, str) else path["path"]).read_text(encoding="utf8")
+check("case file download has the timeline and the record", "TIMELINE" in text and "Handed over to Ward 7" in text and "CURRENT RECORD" in text)
+s = press("/set_stage", "Discharged", "Ward 7 (cardiology)")
+check("discharged patients move to the bottom of the board", "Discharged" in s["board"].split("<tr")[-1])
+s = press("/set_stage", "Results pending", "Ward 7 (cardiology)")
+
 # images
 if IMAGE:
     s = press("/read_image", handle_file(IMAGE), "bone_xray")
@@ -118,6 +142,13 @@ if IMAGE:
     check("chest X-ray: no fracture detector", bool(s["overlay"]) and "Fracture detector" not in s["image_text"])
     s = press("/read_image", handle_file(IMAGE), "ecg")
     check("ECG picture goes to the ECG section", "12-lead ECG, AI description" in s["record"])
+    s = press("/read_image", handle_file(IMAGE), "auto")
+    check("auto: the AI sorts the image and says so", "sorted by the AI" in s["image_text"] and "image type sorted by AI" in s["record"])
+    s = press("/read_image", handle_file(IMAGE), "chest_xray")
+    check("chest X-ray: the 18-finding check is shown", "Chest X-ray check" in s["image_text"] and bool(s["overlay"]))
+    before = s["timeline"]
+    s = press("/outline", handle_file(IMAGE))
+    check("outline without two corners is refused", s["timeline"] == before)
 else:
     print("SKIP image tests: no image given")
 
@@ -147,7 +178,7 @@ check("back to the first: their work is still there", len(s["chat"]) == 6 and "T
 # critical look
 out = c.predict(api_name="/new_patient")
 s = dict(zip(NAMES, out))
-check("new patient clears the screen and form", s["header"] == "" and s["record"] == "" and list(out[len(NAMES):len(NAMES) + 14]) == BLANK and out[-2] is None and out[-1] == "")
+check("new patient clears the screen and form", s["header"] == "" and s["record"] == "" and list(out[len(NAMES):len(NAMES) + 14]) == BLANK and out[-3] is None and out[-2] == "")
 s = press("/critical", *form())
 check("critically ill with no typing: level 1 at the top", "LEVEL 1" in s["header"] and "See immediately" in s["header"] and "L1" in queue_labels(s)[0])
 check("critical look is recorded", "Nurse critical look" in s["record"] and "Critically ill on arrival" in s["record"])

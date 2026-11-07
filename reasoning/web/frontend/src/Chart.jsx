@@ -1,0 +1,158 @@
+// Screen A: the triage nurse types everything messy in one box, adds images, presses Submit.
+// The case file opens by itself in another window; the AI's questions appear on the right.
+import { useEffect, useState } from "react";
+import { api, usePoll } from "./api";
+
+export function ImagePicker({ files, setFiles, compact = false }) {
+  const [over, setOver] = useState(false);
+  const add = (list) => setFiles([...files, ...[...list].filter((f) => f.type.startsWith("image/") || /\.(dcm|tif+)$/i.test(f.name))]);
+  const thumbs = files.length > 0 && (
+    <div className="thumbs">
+      {files.map((f, i) => (
+        <div key={i} style={{ textAlign: "center" }}>
+          <img src={URL.createObjectURL(f)} alt={f.name} />
+          <div><button className="small" onClick={() => setFiles(files.filter((_, j) => j !== i))}>Remove</button></div>
+        </div>
+      ))}
+    </div>
+  );
+  if (compact) return { button: (
+    <label className="small-btn attach" title="Add X-rays or photos">
+      📎 Image{files.length ? ` (${files.length})` : ""}
+      <input type="file" accept="image/*,.dcm,.tif,.tiff" multiple hidden onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
+    </label>), thumbs };
+  return (
+    <>
+      <label className={`drop ${over ? "over" : ""}`} style={{ display: "block", cursor: "pointer" }}
+        onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
+        onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}>
+        📎 Drop X-rays or photos here, or click to choose
+        <input type="file" accept="image/*,.dcm,.tif,.tiff" multiple hidden onChange={(e) => add(e.target.files)} />
+      </label>
+      {files.length > 0 && (
+        <div className="thumbs">
+          {files.map((f, i) => (
+            <div key={i} style={{ textAlign: "center" }}>
+              <img src={URL.createObjectURL(f)} alt={f.name} />
+              <div><button className="small" onClick={() => setFiles(files.filter((_, j) => j !== i))}>Remove</button></div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+export function form(text, me, files) {
+  const fd = new FormData();
+  fd.append("text", text);
+  fd.append("who", me.who || "not recorded");
+  files.forEach((f) => fd.append("files", f));
+  return fd;
+}
+
+export function Questions({ p, onPick }) {
+  if (!p) return <p className="muted">After you submit, the AI's questions about what's missing appear here.</p>;
+  if (p.status === "working") return <p className="muted">⏳ {p.progress}…</p>;
+  if (!p.questions.length) return <p className="muted">No questions from the AI.</p>;
+  return p.questions.map((q, i) => (
+    <div key={i} className="q" onClick={() => onPick(q)} title="Click to answer">{i + 1}. {q}</div>
+  ));
+}
+
+export default function Chart({ me, setMe }) {
+  const [done, setDone] = useState("");
+  const [board] = usePoll("/api/board", 4000);
+  const [target, setTarget] = useState("new");          // "new" or a patient id to add a note to
+  const [text, setText] = useState("");
+  const [files, setFiles] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [current, setCurrent] = useState(null);
+  const [p] = usePoll(current ? `/api/patients/${current}` : null);
+  const [answer, setAnswer] = useState("");
+
+  useEffect(() => { if (target !== "new") setCurrent(target); }, [target]);
+
+  const submit = async () => {
+    if (!text.trim() && !files.length) return setError("Type the note first");
+    if (!me.who.trim()) return setError("Type your name next to Submit, so the case file shows who wrote it");
+    setBusy(true); setError(""); setDone("");
+    const win = target === "new" ? window.open("", "_blank") : null;   // opened now, or the browser blocks it
+    try {
+      let id = target;
+      if (target === "new") id = (await api.post("/api/patients", form(text, me, files))).id;
+      else await api.post(`/api/patients/${id}/notes`, form(text, me, files));
+      if (win) win.location = `${location.pathname}#/case/${id}`;
+      setCurrent(id); setText(""); setFiles([]);
+      setDone(target === "new" ? "Sent. The case file opens in a new window, and the patient is on the whiteboard."
+        : "Added to the case file. The AI is updating it.");
+    } catch (e) { setError(e.message); if (win) win.close(); }
+    setBusy(false);
+  };
+
+  const sendAnswer = async () => {
+    if (!answer.trim()) return;
+    try { await api.post(`/api/patients/${current}/notes`, form(answer, me, [])); setAnswer(""); }
+    catch (e) { setError(e.message); }
+  };
+
+  return (
+    <div className="page">
+      <div className="split">
+        <div className="card">
+          <div className="row patient-pick">
+            <label htmlFor="which-patient" className="pick-label">Patient</label>
+            <select id="which-patient" value={target} onChange={(e) => setTarget(e.target.value)} aria-label="Which patient">
+              <option value="new">➕ New patient</option>
+              {board?.patients.length > 0 && (
+                <optgroup label={`Add to a patient in the ED (${board.patients.length}, most urgent first)`}>
+                  {board.patients.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.bed} · level {x.level ?? "…"} · {x.who} · {(x.complaint || "…").slice(0, 40)}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+          </div>
+          <div className="row" style={{ marginBottom: 10 }}>
+            <span className="muted">{target === "new" ? "Write it however you like. The AI tidies it up."
+              : "This note is added to the chosen patient's case file."}</span>
+            <label className="small-btn" style={{ marginLeft: "auto" }}>
+              📄 Open a text file
+              <input type="file" accept=".txt,text/plain" hidden onChange={async (e) => {
+                const f = e.target.files[0];
+                if (f) { const loaded = (await f.text()).trim(); setText((t) => (t.trim() ? t.trim() + "\n" : "") + loaded); }
+                e.target.value = "";
+              }} />
+            </label>
+          </div>
+          <textarea className="note-box" value={text} onChange={(e) => setText(e.target.value)}
+            placeholder={"Example: 67M CP since 0600, sweaty, radiating L arm. HR 112 BP 90/60 sats 94 RA RR 22. hx DM HTN on metformin. came by amb. pain 8/10"} />
+          <ImagePicker files={files} setFiles={setFiles} />
+          {error && <div className="error">{error}</div>}
+          {done && <div className="ok-msg">{done}</div>}
+          <div className="row" style={{ justifyContent: "flex-end", marginTop: 10 }}>
+            <label className="muted">Written by{" "}
+              <input value={me.who} onChange={(e) => setMe({ ...me, who: e.target.value })} placeholder="your name"
+                style={{ width: 140 }} aria-label="Written by" />
+            </label>
+            <button className="primary" onClick={submit} disabled={busy}>{busy ? "Sending…" : "Submit"}</button>
+          </div>
+        </div>
+        <div className="card">
+          <h3>AI questions {p && <>for {p.bed} · {p.who} · <a href={`#/case/${p.id}`} target="_blank">open case file</a></>}</h3>
+          <Questions p={p} onPick={(q) => setAnswer(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `)} />
+          {p && (
+            <div className="row" style={{ marginTop: 12 }}>
+              <input style={{ flex: 1 }} value={answer} onChange={(e) => setAnswer(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendAnswer()} placeholder="Answer or add information" />
+              <button onClick={sendAnswer}>Add</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

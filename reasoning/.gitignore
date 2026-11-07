@@ -4,3 +4,7 @@ __pycache__/
 data/
 models/lora/
 models/heads/
+app/case_files/
+web/case_files/
+web/frontend/node_modules/
+web/frontend/dist/

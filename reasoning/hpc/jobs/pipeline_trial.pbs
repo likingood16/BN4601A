@@ -3,9 +3,10 @@
 #PBS -j oe
 # Tiny version of pipeline_check.pbs (2 cases per check), to catch bugs before the full job.
 #   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=01:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/pipeline_trial.pbs
+set -eo pipefail                  # a failed check fails the job, so the full check never starts after a broken trial
 cd "$PBS_O_WORKDIR"
 source reasoning/hpc/hpc.conf
-export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-4b-it YOLO_OFFLINE=true TQDM_DISABLE=1
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it YOLO_OFFLINE=true TQDM_DISABLE=1
 cd reasoning/src
 for part in scores results images; do
   "$VENV/bin/python" -u pipeline_check.py --part $part --n 2 2>&1 | tee ../outputs/logs/pipeline_trial_${part}_live.log
