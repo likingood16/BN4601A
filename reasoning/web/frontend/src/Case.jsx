@@ -5,12 +5,15 @@ import { api, concern, LEVEL_COLOUR, usePoll, waited } from "./api";
 import { form, ImagePicker, Questions } from "./Chart";
 
 const TILES = [["hr", "HR"], ["bp", "BP"], ["rr", "RR"], ["spo2", "SpO₂ %"], ["temp_c", "Temp °C"], ["nrs_pain", "Pain /10"],
-  ["mental", "AVPU"], ["age", "Age"]];
+  ["mental", "ACVPU"], ["age", "Age"]];
+// "verbal" is also what new confusion (e.g. GCS 13-14) is stored as, since NEWS2 scores both 3; show both letters
+const ACVPU = { alert: "A", verbal: "C/V", pain: "P", unresponsive: "U" };
 
 function Vitals({ p, me, reload }) {
   const [edit, setEdit] = useState(null);
   const f = p.fields, src = p.found?.found || {};
-  const show = (k) => k === "bp" ? (f.sbp != null ? `${f.sbp}/${f.dbp ?? "?"}` : null) : f[k];
+  const show = (k) => k === "bp" ? (f.sbp != null ? `${f.sbp}/${f.dbp ?? "?"}` : null)
+    : k === "mental" && f.mental ? (ACVPU[f.mental] ?? f.mental) : f[k];
   const save = async () => {
     try { await api.put(`/api/patients/${p.id}/fields`, { fields: edit, who: me.who || "not recorded" }); setEdit(null); reload(); }
     catch (e) { alert(e.message); }
@@ -62,11 +65,13 @@ function Report({ text }) {
   if (!text) return <p className="muted">The case file appears here when the AI has finished.</p>;
   const out = [];
   let list = [];
-  const flush = () => { if (list.length) out.push(<ul key={out.length}>{list}</ul>); list = []; };
+  // keys must differ between a list and a heading: they used to clash (list keyed by count, heading by line), so after
+  // an update React showed old headings twice (7 Nov stress test)
+  const flush = () => { if (list.length) out.push(<ul key={`ul${out.length}`}>{list}</ul>); list = []; };
   text.split("\n").forEach((line, i) => {
-    if (line.startsWith("## ")) { flush(); out.push(<h2 key={i}>{line.slice(3)}</h2>); }
-    else if (/^\s*[-*] /.test(line)) list.push(<li key={i}>{line.replace(/^\s*[-*] /, "")}</li>);
-    else if (line.trim()) { flush(); out.push(<p key={i} className={/^_.*_$/.test(line) ? "muted" : ""}>{line.replace(/^_|_$/g, "")}</p>); }
+    if (line.startsWith("## ")) { flush(); out.push(<h2 key={`h${i}`}>{line.slice(3)}</h2>); }
+    else if (/^\s*[-*] /.test(line)) list.push(<li key={`li${i}`}>{line.replace(/^\s*[-*] /, "")}</li>);
+    else if (line.trim()) { flush(); out.push(<p key={`p${i}`} className={/^_.*_$/.test(line) ? "muted" : ""}>{line.replace(/^_|_$/g, "")}</p>); }
   });
   flush();
   return <div className="report">{out}</div>;

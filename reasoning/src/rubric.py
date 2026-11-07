@@ -119,7 +119,79 @@ def criteria():
         ("Fracture detector", "per-X-ray sensitivity (63 fractured)", *FRACTURE, {"cut-off 0.25": det["per_xray_sensitivity"], "cut-off 0.044 (app)": cut["sensitivity"]}),
         ("Fracture detector", "per-X-ray specificity (400 normal)", *FRACTURE, {"cut-off 0.25": det["per_xray_specificity"], "cut-off 0.044 (app)": cut["specificity"]}),
     ]
-    return rows
+    return rows + image_rows()
+
+
+# ---------------------------------------------------------------- the four ED image modalities (8 Nov 2026)
+# Result files are copied from vanda into vision/results/ (fetch_image_results.sh); a missing file skips its rows.
+RES = REPO / "vision" / "results"
+CATCH = (0.8, 0.9, 0.95), True, "own: an ED safety net should catch >= 90-95% of time-critical findings"
+BOXES = (0.3, 0.5, 0.7), True, "own (same scale as M1 boxes): box mAP50 / overlap >= 0.5"
+SORT = (0.85, 0.9, 0.95), True, "own: a wrong sort means the right check never runs"
+CHEST_CRITICAL = ["Pneumothorax", "Pleural effusion", "Consolidation", "Cardiomegaly"]
+
+
+def caught(sens, spec):
+    """A catch rate only counts if the cut-off still leaves most normal pictures alone: 'flag everything' catches 100%
+    (8 Nov: the first rubric pass graded pneumothorax 'Excellent, 100% caught' at specificity 0)."""
+    return (sens, "flags almost every picture") if spec is not None and spec < 0.5 else sens
+
+
+def _get(name):
+    p = RES / name
+    return load(p) if p.exists() else None
+
+
+def image_rows():
+    rows = []
+    chest = _get("chest_vindr.json")
+    if chest:
+        pi = chest["per_image"]
+        rows += [("Chest X-ray (VinDr detector)", "box mAP50, all 14 findings (2,250 test)", *BOXES, {"result": chest["box_mAP50"]}),
+                 ("Chest X-ray (VinDr detector)", "per-X-ray AUROC, ED-critical findings", *AUROC,
+                  {k: pi[k]["auroc"] for k in CHEST_CRITICAL}),
+                 ("Chest X-ray (VinDr detector)", "share caught at the validation cut-off", *CATCH,
+                  {k: caught(pi[k]["sensitivity"], pi[k]["specificity"]) for k in CHEST_CRITICAL}),
+                 ("Chest X-ray (VinDr detector)", "normal X-rays left unflagged (specificity)", (0.7, 0.8, 0.9), True, "own",
+                  {k: pi[k]["specificity"] for k in CHEST_CRITICAL})]
+    frac = _get("fracture_v2.json")
+    if frac:
+        pi = frac["per_image"]["fracture"]
+        rows += [("Bone X-ray (fracture detector v2)", "box mAP50 (3,399 test)", *BOXES, {"result": frac["box_mAP50"]}),
+                 ("Bone X-ray (fracture detector v2)", "per-X-ray AUROC", *AUROC, {"result": pi["auroc"]}),
+                 ("Bone X-ray (fracture detector v2)", "per-X-ray sensitivity / specificity", *FRACTURE,
+                  {"sensitivity": caught(pi["sensitivity"], pi["specificity"]), "specificity": pi["specificity"]})]
+    ich = _get("ich.json")
+    if ich:
+        rows += [("Head CT (bleed classifier)", "per-slice AUROC, any bleed", *AUROC, {"result": ich["auroc"]["any"]}),
+                 ("Head CT (bleed classifier)", "per-slice AUROC by bleed type", *AUROC,
+                  {k: v for k, v in ich["auroc"].items() if k != "any"}),
+                 ("Head CT (bleed classifier)", "bleed slices caught / normal slices unflagged", *CATCH,
+                  {"caught": ich["any_sensitivity"], "unflagged": ich["any_specificity"]})]
+    sort = _get("image_type.json")
+    if sort:
+        rows += [("Image sorter", "test accuracy, 7 types", *SORT, {"result": sort["test_accuracy"]}),
+                 ("Image sorter", "accuracy by source", *SORT, sort.get("accuracy_by_source", {}))]
+    ext = _get("external_tests.json") or {}
+    if "fracture" in ext:
+        rows.append(("Bone X-ray (fracture detector v2)", "per-X-ray AUROC by source (GRAZ children / FracAtlas adults)", *AUROC,
+                     {k.split(" (")[0]: v["auroc"] for k, v in ext["fracture"].items() if isinstance(v, dict) and k != "all"
+                      and v.get("auroc") is not None and not k.startswith("MultiCaRe")}))
+    if "chest" in ext:
+        cx = ext["chest"]["CheXpert classifier (no boxes), same tests"]
+        rows += [("Chest X-ray: detector vs CheXpert classifier", "pneumonia set AUROC (other hospital, 624)", *AUROC,
+                  {"detector": ext["chest"]["pneumonia set (children, 624)"]["auroc_highest_of_3"],
+                   "classifier": cx["Pneumonia"]["pneumonia set"]["auroc"]}),
+                 ("Chest X-ray: CheXpert classifier", "VinDr test AUROC, ED-critical", *AUROC,
+                  {k: v["VinDr test"]["auroc"] for k, v in cx.items() if v["VinDr test"]["auroc"] is not None})]
+    if "ich" in ext:
+        pp = ext["ich"]["per_patient"]
+        rows.append(("Head CT (bleed classifier)", "patients with a bleed caught / without left unflagged", *CATCH,
+                     {"caught": pp["sensitivity"], "unflagged": pp["specificity"]}))
+    if "imagetype" in ext:
+        rows.append(("Image sorter", "other datasets sorted right (200 each)", *SORT,
+                     {k.split(" ")[0]: v["correct"] for k, v in ext["imagetype"].items() if "correct" in v}))
+    return [r for r in rows if r[-1] and all(v is not None for v in r[-1].values())]
 
 
 def main():
@@ -127,8 +199,12 @@ def main():
     print("| Model | Criterion (own held-out test) | Results -> grade | Cut-offs (Acc / Good / Exc) | Source |")
     print("|---|---|---|---|---|")
     for model, name, cuts, higher, source, values in rows:
-        shown = "; ".join(f"{k} {v:.2f} **{grade(v, cuts, higher)}**" if k != "result" else f"{v:.2f} **{grade(v, cuts, higher)}**"
-                          for k, v in values.items())
+        def one(k, v):
+            name = "" if k == "result" else f"{k} "
+            if isinstance(v, tuple):                    # (value, why it can't pass), see caught()
+                return f"{name}{v[0]:.2f} **Poor** ({v[1]})"
+            return f"{name}{v:.2f} **{grade(v, cuts, higher)}**"
+        shown = "; ".join(one(k, v) for k, v in values.items())
         sign = ">=" if higher else "<="
         print(f"| {model} | {name} | {shown} | {sign} {' / '.join(f'{c:g}' for c in cuts)} | {source} |")
 

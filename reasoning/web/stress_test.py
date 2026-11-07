@@ -232,7 +232,6 @@ def main():
     ap.add_argument("--url", default="http://127.0.0.1:8001")
     ap.add_argument("--direct", action="store_true", help="no browser: the app's code called directly")
     ap.add_argument("--real", action="store_true", help="with --direct: real MedGemma (GPU)")
-    ap.add_argument("--real-metrics", action="store_true", help="http mode against the real-AI app: also score levels")
     ap.add_argument("--real-metrics", action="store_true", help="http mode against the real-AI app: also score levels and case files")
     ap.add_argument("--ktas", type=int, default=190)
     ap.add_argument("--nhamcs", type=int, default=200)

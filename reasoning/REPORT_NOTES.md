@@ -531,6 +531,132 @@ What it says, plainly:
     changes the card the urgency head reads. With 8 patients this is noise, but it shows the complaint wording feeds the score.
   - **Speed:** 12–44 s per patient on an A40, median 34 s.
 
+## 5k. Which images to focus on: real ED data (7 Nov 2026)
+- **NHAMCS 2022** (US national ED survey, 16,025 sampled visits = 155.4 million weighted visits; the same file as Pool 1):
+  any imaging 53% of visits; **X-ray 37%**; CT 23% (**head 10%, abdomen/pelvis 10%**, chest 3%, other 6%);
+  **ultrasound 6%**; MRI 1.5%. X-ray is used in 49% of injury visits; head CT in 19% of injury visits.
+- **X-ray body parts** (not in NHAMCS): chest is the most common single radiograph, then lower and upper limb
+  (urgent-care series 37% / 30% / 24%; paediatric ED series chest 28%, then ankle, foot, wrist, hand).
+- **Most common acute head-CT finding:** haemorrhage, about a third of positives, then infarct and mass (adult ED series:
+  15.5% of head CTs positive).
+- **Focus** chosen from this:
+  1. chest X-ray findings;
+  2. limb X-ray fractures;
+  3. head-CT bleed.
+
+  CT abdomen and ultrasound are left out: there's no suitable labelled public data in the time available.
+- **Models and data:**
+  - **Image type:** EfficientNet-B0 on MultiCaRe pictures, split by article.
+  - **Fractures:** YOLO11s on GRAZPEDWRI-DX (20,327 wrist X-rays, 6,091 patients, CC BY 4.0, split by patient) +
+    FracAtlas; tested on the unchanged FracAtlas test set (old detector: box mAP50 0.379, per-X-ray AUROC 0.856) and the
+    GRAZ test patients.
+  - **Chest:** YOLO11s at 1024 px on VinDr-CXR (VinBigData Kaggle; 15,000 X-rays, 14 findings, 3 radiologists, boxes
+    merged); per-finding AUROC and sensitivity at a validation-chosen cut-off.
+  - **Head-CT bleed:** EfficientNet-B0 per slice on RSNA 2019 ICH (jhoward JPG version), split by patient; AUROC for
+    any + 5 types. The location (Grad-CAM box + MedSAM) is not validated, since RSNA has no drawn boxes.
+  - **Outlines:** each box goes to MedSAM for an outline (fine-tuned for fractures, plain otherwise).
+- **Terms:** VinDr and RSNA are non-commercial, academic use; they stay on vanda and out of git.
+
+### 5k-1. Chest X-ray detector result (job 1530462, finished 7 Nov 2026)
+- **Training:** VinDr-CXR split 70/15/15 by X-ray (seed 42), test = 2,250 X-rays never seen in training. YOLO11s,
+  1024 px, 80 epochs on an A40 (~2.6 min/epoch).
+- **Boxes:** test box mAP50 = **0.365** (mAP50-95 0.182). For rough comparison, the top Kaggle VinBigData private leaderboard
+  score was about 0.31 mAP40 (a different, hidden test set, so not a direct comparison; check the figure before citing). Boxes are good for large findings (aortic
+  enlargement 0.94, cardiomegaly 0.93, pleural effusion 0.48) and weak for small or vague ones (other lesion 0.10,
+  calcification 0.14, pneumothorax 0.15).
+- **Per X-ray "is it there?"** (AUROC of the top box score):
+
+  | Finding | Test X-rays with it | AUROC | Sensitivity / specificity at the val cut-off |
+  |---|---|---|---|
+  | Aortic enlargement | 474 | 0.99 | 0.84 / 0.98 |
+  | Cardiomegaly | 367 | 0.98 | 0.82 / 0.98 |
+  | Pleural effusion | 165 | 0.97 | 0.82 / 0.98 |
+  | ILD | 56 | 0.97 | 0.71 / 0.98 |
+  | Pleural thickening | 296 | 0.94 | 0.83 / 0.90 |
+  | Pulmonary fibrosis | 235 | 0.93 | 0.76 / 0.95 |
+  | Lung opacity | 201 | 0.91 | 0.79 / 0.93 |
+  | Nodule/mass | 113 | 0.90 | 0.76 / 0.94 |
+  | Infiltration | 82 | 0.89 | 0.61 / 0.97 |
+  | Consolidation | 58 | 0.85 | see below |
+  | Calcification | 62 | 0.84 | see below |
+  | Pneumothorax | **15** | 0.83 | see below |
+  | Atelectasis | 27 | 0.81 | 0.63 / 0.98 |
+  | Other lesion | 188 | 0.80 | see below |
+
+- **Problem found and fixed:** for 4 findings the detector draws no box at all on more than 20% of validation X-rays
+  that have them, so "catch 80%" gave a cut-off of 0 (every X-ray flagged, specificity 0). The rule now uses the lowest
+  real score instead and reports the lower sensitivity honestly (`reaches_80pct_on_val: false`). Re-scored without
+  retraining (job 1530821); the first file is kept as `test_metrics_first.json`.
+- **Clinical reading:** pneumothorax, the most time-critical chest finding, has only 81 training and 15 test X-rays in
+  VinDr. Its result is not reliable, and the app must not present it as a rule-out.
+
+### 5k-1b. Fracture detector v2 result + a scoring bug (job 1530469, finished 8 Nov 2026 00:53)
+- **Boxes:** test box mAP50 = **0.927**, mAP50-95 0.552 (3,399 test X-rays: 2,936 GRAZ + 463 FracAtlas; early stop at
+  epoch 58). The old detector scored 0.379 on FracAtlas alone, so the GRAZ wrists (children, one body part, many
+  fractures) make up most of this. The per-source split is in the extra tests (`vision/eval_external.py`).
+- **Bug in the per-X-ray score:** the first file said AUROC 0.45 with a cut-off of 0. The cause was the test code, not
+  the model. It sent X-rays to the model in batches of 32 mixed-size images, and the answers came back out of step
+  with the images. On the same 96 test X-rays, one at a time gives AUROC **0.975** and batches gave 0.34. The code now
+  predicts one image at a time. Fracture and chest are re-scored without retraining (jobs 1531345, 1530821); the
+  first files are kept as `test_metrics_first.json`.
+- **Foreign body:** GRAZ labels a few foreign bodies, but none landed in the test set, so it isn't scored.
+
+### 5k-1c. Image sorter v2: real hospital pictures added (8 Nov 2026)
+MultiCaRe alone is journal figures (cropped, arrows, letters). The sorter decides which model runs, so a real X-ray
+sorted wrong means no fracture or chest check at all. Added 700 train / 150 val / 150 test pictures from each of VinDr
+(chest), GRAZ and FracAtlas (bone) and RSNA (head-CT slices). Each comes from that dataset's own split, so no test
+patient is trained on. Test accuracy is reported per source (`labels_v2.csv`, `accuracy_by_source`).
+
+### 5k-1d. Extra tests on other datasets (`vision/eval_external.py`, job 1531353 after the others)
+- **Fracture:** GRAZ vs FracAtlas separately.
+- **Chest:** detector vs the CheXpert classifier the app already has, on VinDr test, the pneumonia set (624
+  children's X-rays, another hospital) and MultiCaRe captions.
+- **Head CT:** per patient (any slice flagged).
+- **Sorter:** 280 MultiCaRe + 200 each from VinDr, GRAZ, FracAtlas, RSNA and the pneumonia set.
+- **Too small to mean anything:** the MultiCaRe caption tests (1 fracture caption out of 40 bone X-rays, 2
+  pneumothorax, no head CT). Real external tests need more data (see the plan in the chat, 8 Nov).
+
+### 5k-2. Stress test in Chrome (laptop, test mode, 7 Nov 2026 night)
+- **Set-up:**
+  - The app runs on the laptop with the fake AI (`server.py --test`).
+  - `stress_test.py` sends 450 held-out patients (190 KTAS + 200 NHAMCS as messy notes, 60 MultiCaRe case
+    openings), 8 at once.
+  - At the same time, a person's actions are done by hand in Chrome: typing a stroke note, answering the AI's
+    questions, adding a note to an existing patient through the picker, changing a stage, Clear, Put back.
+- **Load:**
+  - 0 errors out of 450. Every patient reached the board, most urgent first.
+  - The board answers in about 0.1-0.2 s with 650 patients.
+  - The browser stays responsive with 650 rows (under 10 ms lag).
+  - With an open whiteboard refreshing every 3 s, the median time per patient goes from 8.7 s to 12.2 s (100 patients).
+    That's acceptable.
+- **Numbers:** 2,535 vital signs written into the notes, 100% pulled out correctly, none invented.
+- **Board vs truth (urgency score + safety floor, no level model in test mode):** 81% of urgent patients flagged
+  (KTAS 89%, NHAMCS 73%), specificity 51%.
+- **Problems the hand checks found, all fixed and re-checked:**
+  1. **"Already known" filter missed drug names.** The fixed stroke questions asked "on blood thinners?" with "on
+     warfarin" in the note, and "any allergies?" with NKDA. The questions are now also checked against the note's own
+     words (anticoagulant names, NKDA, glucose values, last known well).
+  2. **GCS 14 shown as AVPU "verbal".** It is stored that way on purpose: NEWS2 scores new confusion like V, and
+     Caleb's model only knows AVPU. But a clinician reads "verbal" as wrong, so the tile now shows ACVPU "C/V".
+  3. **Case-file headings appeared twice after a second note.** This was a React key clash in the screen, not in the
+     stored text.
+  4. **Old screens after an update.** Browsers kept running the old screens because the page had no cache rule. It
+     now sends `Cache-Control: no-cache`; one forced reload is needed the first time.
+  5. **Short complaints were lost in test mode.** For example, "rt flank pain brought by family" was skipped as "just
+     arrival", so the board showed "NRS on air alert". Junk complaints went from 19 to 9 of 450; the rest have no
+     complaint written. The real AI writes the complaint itself.
+  6. **BSL not filed under Investigations.**
+- **Two usability problems, fixed on 8 Nov and checked in Chrome:**
+  - The answer box moved down when the questions appeared, so a quick click could miss it. It now sits above them.
+  - The patient picker was one long list (650 in this test). It now has a search box: bed, age/sex or complaint
+    words, and Enter picks the top match. "chest pain" finds 6 of 80.
+  - Button tests 56/56; 80-patient load 0 errors.
+- **Tests after the fixes:**
+  - `test_app.py` 56/56 pass.
+  - Number checks: vitals still 100% on KTAS train (clean and messy).
+- Results: `outputs/metrics/stress_chrome_load.json`, `stress_chrome_load2.json`, `stress_ab_noboard.json` and
+  `stress_ab_board.json`.
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.

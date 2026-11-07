@@ -121,3 +121,5 @@ a { color: var(--accent); }
 .chip-btn.x { color: #ff8a80; }
 .note-box::placeholder { color: #9aa7b4; font-style: italic; }
 .board a { color: #90caf9; text-decoration: none; }
+.patient-find { margin-bottom: 8px; flex-wrap: nowrap; }
+.patient-find input { flex: 1; font-size: 14px; }

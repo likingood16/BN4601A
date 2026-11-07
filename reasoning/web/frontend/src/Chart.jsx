@@ -71,8 +71,16 @@ export default function Chart({ me, setMe }) {
   const [current, setCurrent] = useState(null);
   const [p] = usePoll(current ? `/api/patients/${current}` : null);
   const [answer, setAnswer] = useState("");
+  const [find, setFind] = useState("");                 // search the picker: bed, age/sex or complaint words
 
   useEffect(() => { if (target !== "new") setCurrent(target); }, [target]);
+
+  const label = (x) => `${x.bed} · level ${x.level ?? "…"} · ${x.who} · ${(x.complaint || "…").slice(0, 40)}`;
+  const words = find.toLowerCase().split(/\s+/).filter(Boolean);
+  const all = board?.patients || [];
+  // every word must match; "P12" matches bed P12 exactly, not P120
+  const matches = all.filter((x) => words.every((w) => /^p\d+$/.test(w) ? x.bed.toLowerCase() === w : label(x).toLowerCase().includes(w)));
+  const shown = matches.some((x) => x.id === target) || target === "new" ? matches : [...all.filter((x) => x.id === target), ...matches];
 
   const submit = async () => {
     if (!text.trim() && !files.length) return setError("Type the note first");
@@ -105,17 +113,22 @@ export default function Chart({ me, setMe }) {
             <label htmlFor="which-patient" className="pick-label">Patient</label>
             <select id="which-patient" value={target} onChange={(e) => setTarget(e.target.value)} aria-label="Which patient">
               <option value="new">➕ New patient</option>
-              {board?.patients.length > 0 && (
-                <optgroup label={`Add to a patient in the ED (${board.patients.length}, most urgent first)`}>
-                  {board.patients.map((x) => (
-                    <option key={x.id} value={x.id}>
-                      {x.bed} · level {x.level ?? "…"} · {x.who} · {(x.complaint || "…").slice(0, 40)}
-                    </option>
-                  ))}
+              {shown.length > 0 && (
+                <optgroup label={words.length ? `${matches.length} of ${all.length} match “${find}”`
+                  : `Add to a patient in the ED (${all.length}, most urgent first)`}>
+                  {shown.map((x) => <option key={x.id} value={x.id}>{label(x)}</option>)}
                 </optgroup>
               )}
             </select>
           </div>
+          {all.length > 0 && (
+            <div className="row patient-find">
+              <input value={find} onChange={(e) => setFind(e.target.value)} aria-label="Find a patient"
+                placeholder="Find a patient: bed (P12), age/sex (F, 72) or complaint words, then Enter"
+                onKeyDown={(e) => { if (e.key === "Enter" && matches.length) { setTarget(matches[0].id); setFind(""); } }} />
+              {words.length > 0 && <span className="muted">{matches.length ? `${matches.length} found` : "no match"}</span>}
+            </div>
+          )}
           <div className="row" style={{ marginBottom: 10 }}>
             <span className="muted">{target === "new" ? "Write it however you like. The AI tidies it up."
               : "This note is added to the chosen patient's case file."}</span>
@@ -143,14 +156,15 @@ export default function Chart({ me, setMe }) {
         </div>
         <div className="card">
           <h3>AI questions {p && <>for {p.bed} · {p.who} · <a href={`#/case/${p.id}`} target="_blank">open case file</a></>}</h3>
-          <Questions p={p} onPick={(q) => setAnswer(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `)} />
+          {/* the answer box sits ABOVE the questions so it doesn't jump down when they arrive (7 Nov stress test) */}
           {p && (
-            <div className="row" style={{ marginTop: 12 }}>
+            <div className="row" style={{ marginBottom: 12 }}>
               <input style={{ flex: 1 }} value={answer} onChange={(e) => setAnswer(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendAnswer()} placeholder="Answer or add information" />
               <button onClick={sendAnswer}>Add</button>
             </div>
           )}
+          <Questions p={p} onPick={(q) => setAnswer(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `)} />
         </div>
       </div>
     </div>

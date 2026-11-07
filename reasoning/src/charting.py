@@ -148,10 +148,12 @@ def first_clause(note):
     """Test-mode complaint: the first piece of the note that isn't just age/sex, numbers or how they arrived."""
     for part in re.split(SENTENCE + "|,", note):
         words = re.sub("|".join([AGE_SEX[0], AGE_SEX[1], BP, *(p for ps in PATTERNS.values() for p in ps)]), " ", part, flags=re.I).strip(" -:")
-        arrival = re.search(AMBULANCE, words, re.I) or re.search(WALK_IN, words, re.I)
-        if arrival and len(words.split()) <= len(arrival.group(0).split()) + 3:
-            continue                                   # "brought by ambulance" is not a complaint
-        words = re.sub(r"\s+", " ", words).strip()
+        # "brought by ambulance" is not a complaint, but "rt flank pain brought by family" has one (7 Nov stress test:
+        # the old rule skipped any part with <= 3 other words, so short complaints were lost)
+        words = re.sub(f"{AMBULANCE}|{WALK_IN}", " ", words, flags=re.I)
+        words = re.sub(r"\s+", " ", words).strip(" -:,")
+        words = re.sub(r"(?:\s|^)(?:via|by|brought(?: in)?(?: by)?|came(?: in)?(?: by)?|arrived(?: by)?)$", "", words,
+                       flags=re.I).strip()
         words = re.sub(r"^(?:an?\s+)?(?:(?:who|that)\s+)?(?:presented|presenting|presents)?\s*(?:with\s+)?", "", words, flags=re.I)
         if re.fullmatch(NOT_COMPLAINT, words, re.I):
             continue                                   # "NRS", "AVPU A", "alert", "nan" are not complaints
@@ -180,7 +182,7 @@ def complaint(ai, note):
 SORT_RULES = [
     ("Impression (as written by clinicians)", r"\bimpression\b|\bimp\b|\bdx\b|diagnos|\blikely\b|suspected|\?\s?[a-z]{4,}"),
     ("Imaging", r"x-?ray|\bxr\b|\bct\b|mri|ultrasound|\bus\b|scan|image"),
-    ("Investigations", r"trop|ecg|\bhb\b|wbc|crp|lactate|glucose|cbg|bloods?|\bfbc\b|u/?e|\bna\b|\bk\b|urine|swab|abg|vbg"),
+    ("Investigations", r"trop|ecg|\bhb\b|wbc|crp|lactate|glucose|cbg|\bbsl\b|\bhgt\b|\binr\b|bloods?|\bfbc\b|u/?e|\bna\b|\bk\b|urine|swab|abg|vbg"),
     ("Plan and actions", r"\bgave\b|given|start(ed)?|\biv\b|plan|refer|admit|discharge|review|send|stat\b|neb|analgesi"),
     ("Observations", r"\bhr\b|\bbp\b|\brr\b|sats|spo2|temp|gcs|avpu|pain \d"),
     ("Past history, medications, allergies", r"\bhx\b|pmh|history of|known|\bdm\b|\bhtn\b|\bon (?!air)\w+|meds|allerg|nkda"),
@@ -304,14 +306,28 @@ ASKS_FOR = {"sbp": r"blood pressure|\bbp\b", "hr": r"heart rate|pulse|\bhr\b", "
             "chief_complaint": r"presenting complaint|chief complaint"}
 
 
-def drop_known(items, fields):
-    """Drop questions/to-dos that only ask for values the note already has (run 2: 'What is the blood pressure?' with
+# Questions the notes' own words already answer: (what the question asks about, what in the notes answers it).
+# 7 Nov stress test: "Is the patient on blood thinners?" asked with "on warfarin" in the note.
+ANSWERED_BY_NOTE = [
+    (r"blood thinner|anticoagul", r"warfarin|apixaban|rivaroxaban|dabigatran|edoxaban|enoxaparin|heparin|anticoag|\bdoac\b|"
+                                  r"\bnoac\b|eliquis|xarelto|clexane|blood thinner"),
+    (r"allerg", r"\bnkda\b|\bnka\b|allerg"),
+    (r"glucose|\bbsl\b|\bcbg\b", r"(?:glucose|\bbsl\b|\bcbg\b|\bbm\b|\bhgt\b)\s*(?:of|is|:|=)?\s*\d"),
+    (r"last (?:seen|known)(?: to be)? (?:well|normal)", r"last (?:seen|known)(?: to be)? (?:well|normal)|\blkw\b"),
+]
+
+
+def drop_known(items, fields, notes=""):
+    """Drop questions/to-dos that only ask for things the notes already have (run 2: 'What is the blood pressure?' with
     BP 193/115 recorded). An item that also asks for something missing is kept."""
-    keep = []
+    keep, notes = [], notes.lower()
     for item in items:
         low = item.lower()
         asked = [k for k, rule in ASKS_FOR.items() if re.search(rule, low)]
         if asked and all(fields.get(k) not in (None, "", "not recorded") for k in asked):
+            continue
+        topics = [ans for q, ans in ANSWERED_BY_NOTE if re.search(q, low)]
+        if topics and not asked and all(re.search(ans, notes) for ans in topics):
             continue
         keep.append(item)
     return keep

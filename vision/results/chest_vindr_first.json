@@ -1,0 +1,139 @@
+{
+ "box_mAP50": 0.3647,
+ "box_mAP50_95": 0.1816,
+ "mAP50_by_finding": {
+  "Aortic enlargement": 0.9363,
+  "Atelectasis": 0.275,
+  "Calcification": 0.1428,
+  "Cardiomegaly": 0.9311,
+  "Consolidation": 0.3561,
+  "ILD": 0.3112,
+  "Infiltration": 0.3184,
+  "Lung opacity": 0.2393,
+  "Nodule/mass": 0.3772,
+  "Other lesion": 0.1009,
+  "Pleural effusion": 0.4802,
+  "Pleural thickening": 0.2324,
+  "Pneumothorax": 0.1547,
+  "Pulmonary fibrosis": 0.2495
+ },
+ "per_image": {
+  "Aortic enlargement": {
+   "n_test_with": 474,
+   "auroc": 0.986,
+   "cut_off": 0.546,
+   "sensitivity": 0.844,
+   "specificity": 0.98
+  },
+  "Atelectasis": {
+   "n_test_with": 27,
+   "auroc": 0.807,
+   "cut_off": 0.003,
+   "sensitivity": 0.63,
+   "specificity": 0.977
+  },
+  "Calcification": {
+   "n_test_with": 62,
+   "auroc": 0.835,
+   "cut_off": 0.0,
+   "sensitivity": 1.0,
+   "specificity": 0.0
+  },
+  "Cardiomegaly": {
+   "n_test_with": 367,
+   "auroc": 0.976,
+   "cut_off": 0.541,
+   "sensitivity": 0.817,
+   "specificity": 0.981
+  },
+  "Consolidation": {
+   "n_test_with": 58,
+   "auroc": 0.847,
+   "cut_off": 0.0,
+   "sensitivity": 1.0,
+   "specificity": 0.0
+  },
+  "ILD": {
+   "n_test_with": 56,
+   "auroc": 0.966,
+   "cut_off": 0.047,
+   "sensitivity": 0.714,
+   "specificity": 0.976
+  },
+  "Infiltration": {
+   "n_test_with": 82,
+   "auroc": 0.886,
+   "cut_off": 0.039,
+   "sensitivity": 0.61,
+   "specificity": 0.972
+  },
+  "Lung opacity": {
+   "n_test_with": 201,
+   "auroc": 0.908,
+   "cut_off": 0.03,
+   "sensitivity": 0.791,
+   "specificity": 0.932
+  },
+  "Nodule/mass": {
+   "n_test_with": 113,
+   "auroc": 0.895,
+   "cut_off": 0.036,
+   "sensitivity": 0.761,
+   "specificity": 0.938
+  },
+  "Other lesion": {
+   "n_test_with": 188,
+   "auroc": 0.804,
+   "cut_off": 0.0,
+   "sensitivity": 1.0,
+   "specificity": 0.0
+  },
+  "Pleural effusion": {
+   "n_test_with": 165,
+   "auroc": 0.97,
+   "cut_off": 0.108,
+   "sensitivity": 0.818,
+   "specificity": 0.979
+  },
+  "Pleural thickening": {
+   "n_test_with": 296,
+   "auroc": 0.937,
+   "cut_off": 0.04,
+   "sensitivity": 0.831,
+   "specificity": 0.902
+  },
+  "Pneumothorax": {
+   "n_test_with": 15,
+   "auroc": 0.829,
+   "cut_off": 0.0,
+   "sensitivity": 1.0,
+   "specificity": 0.0
+  },
+  "Pulmonary fibrosis": {
+   "n_test_with": 235,
+   "auroc": 0.927,
+   "cut_off": 0.049,
+   "sensitivity": 0.762,
+   "specificity": 0.953
+  }
+ },
+ "model": "yolo11s.pt",
+ "imgsz": 1024,
+ "smoke": false,
+ "names": [
+  "Aortic enlargement",
+  "Atelectasis",
+  "Calcification",
+  "Cardiomegaly",
+  "Consolidation",
+  "ILD",
+  "Infiltration",
+  "Lung opacity",
+  "Nodule/mass",
+  "Other lesion",
+  "Pleural effusion",
+  "Pleural thickening",
+  "Pneumothorax",
+  "Pulmonary fibrosis"
+ ]
+}

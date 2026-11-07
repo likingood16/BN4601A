@@ -278,11 +278,12 @@ class Store:
         context = (f"PATIENT: age {f.get('age', 'not recorded')}, {f.get('sex', 'sex not recorded')}, arrival {arrival}.\n"
                    + "\n".join(l.strip() for l in (p.visit.ed or "").splitlines() if "Pathway flags" in l))
         questions, todo = charting.ask_questions(ai, p.report, context)
+        typed = "\n".join(n["text"] for n in p.notes)
         if not self.test:                           # the small model sometimes asks for what's already recorded
-            questions, todo = charting.drop_known(questions, f), charting.drop_known(todo, f)
-        # the pathway's own questions first (fixed, specific), then MedGemma's; at most 5, no repeats
+            questions, todo = charting.drop_known(questions, f, typed), charting.drop_known(todo, f, typed)
+        # the pathway's own questions first (fixed, specific, minus any the notes answer), then MedGemma's; at most 5
         seen, merged = set(), []
-        for q in charting.pathway_questions(p.visit.ed) + questions:
+        for q in charting.drop_known(charting.pathway_questions(p.visit.ed), f, typed) + questions:
             key = re.sub(r"\W+", " ", q.lower()).strip()
             if key not in seen:
                 seen.add(key)
@@ -568,6 +569,14 @@ def main():
     store = Store(ai, path)
     dist = HERE / "frontend" / "dist"
     if dist.exists():
+        @app.middleware("http")
+        async def fresh_page(request, call_next):
+            # the page must be re-checked on every load, or browsers keep running old screens after an update
+            # (7 Nov stress test); /assets files have the version in their name, so they can be cached
+            response = await call_next(request)
+            if not request.url.path.startswith(("/api", "/assets")):
+                response.headers["Cache-Control"] = "no-cache"
+            return response
         app.mount("/", StaticFiles(directory=dist, html=True), name="screens")
     uvicorn.run(app, host="0.0.0.0" if a.lan else "127.0.0.1", port=a.port)
 
