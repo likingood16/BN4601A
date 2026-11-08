@@ -16,8 +16,9 @@ import requests
 
 HERE = Path(__file__).resolve().parent
 URL = "http://127.0.0.1:8002"
-# a FracAtlas TEST fracture (adult) that detector v3 marks at the adult cut-off (52 of the 63 test fractures are marked)
-IMAGE = HERE.parents[1] / "vision" / "detector" / "data" / "yolo" / "images" / "test" / "IMG0003458.jpg"
+# a FracAtlas TEST fracture (adult, IMG0003458, CC BY 4.0) that detector v3 marks at the adult cut-off
+# (52 of the 63 test fractures are marked); copied here so a fresh clone can run this test
+IMAGE = HERE / "test_images" / "bone_xray_fracture_fracatlas_IMG0003458.jpg"
 CHEST = HERE / "test_images" / "chest_xray_multicare.jpg"
 CT = HERE / "test_images" / "ct_slice_multicare.jpg"
 NURSE = {"who": "Nurse Tan", "role": "Triage nurse"}
