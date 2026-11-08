@@ -2,7 +2,7 @@
 // node guide_walkthrough.mjs <app url> <out dir> <test pack dir>   (make_guide.py explains the order)
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const APP = process.argv[2] || "http://127.0.0.1:8010";
 const OUT = process.argv[3] || "shots";
@@ -10,9 +10,10 @@ const PACK = process.argv[4];                       // test pack folder (picture
 mkdirSync(OUT, { recursive: true });
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const PORT = 9333;
-const profile = join(OUT, "..", "chrome_profile");
+const profile = resolve(OUT, "..", "chrome_profile");      // absolute: Chrome 157 ignores a relative --user-data-dir
 const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`,
-  "--no-first-run", "--disable-gpu", "--hide-scrollbars", "about:blank"], { stdio: "ignore" });
+  "--no-first-run", "--disable-gpu", "--hide-scrollbars", "about:blank"], { stdio: "pipe" });
+chrome.stdout.resume(); chrome.stderr.resume();          // read its output: with stdio "ignore" Chrome 157 never came up (9 Nov)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = [];
 const check = (name, ok, detail = "") => { log.push(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  " + detail}`); console.log(log.at(-1)); };
@@ -20,7 +21,7 @@ const check = (name, ok, detail = "") => { log.push(`${ok ? "PASS" : "FAIL"}  ${
 let ws, id = 0;
 const pending = new Map();
 async function connect() {
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 100; i++) {
     try {
       const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
       const page = list.find((t) => t.type === "page");
@@ -87,7 +88,7 @@ const note = (c) => readFileSync(join(PACK, "cases", `${c}.txt`), "utf8").trim()
 const bg = {};
 for (const c of ["T03", "T04", "T06", "R02", "R05"]) bg[c] = await newPatient(note(c));
 bg.P06 = await newPatient(note("P06"), ["cxr_pneumothorax.jpg"]);
-bg.P01 = await newPatient(note("P01"), ["adult_wrist_fracture.jpg"]);
+bg.P01 = await newPatient(note("P01"), ["adult_ankle_fracture.jpg"]);
 bg.P11 = await newPatient(note("P11"), ["ct_head_bleed_epidural.jpg"]);
 check("background patients created", Object.values(bg).every((p) => p.decision));
 

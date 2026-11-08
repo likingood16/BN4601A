@@ -94,7 +94,7 @@ python server.py --test</pre>
 </table>
 
 <h2>Why test mode?</h2>
-<p class="muted">The full AI (MedGemma) needs a big graphics card: on a 4 GB laptop GPU one patient takes about 6 minutes.
+<p class="muted">The full AI (MedGemma) needs a big graphics card: on a 4 GB laptop GPU one patient took 4 to 17 minutes in our test on 9 Nov (a picture is the slowest), and other patients wait in a queue.
 In test mode everything runs on a normal laptop: the number reading, urgency score, triage level, pathway rules, image
 models, whiteboard and learning log are real; only MedGemma's writing (case-file wording, chat answers, picture
 descriptions) is replaced by text marked [TEST MODE].</p>

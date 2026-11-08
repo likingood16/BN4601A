@@ -219,7 +219,7 @@ upload a still picture.</p>
 <span class="chip amber">? / • amber</span> possible, or seen but usually not urgent · <span class="chip green">✓</span> not found.
 The pictures are: <i>As uploaded</i>, <i>AI marks</i> (boxes) and <i>AI outline</i> (MedSAM traces the strongest box).
 A mark means <b>look here</b>, not a diagnosis.</p>
-{fig("10_pictures_fracture", "Case P01: adult wrist X-ray. The fracture is marked (adult cut-off) and outlined.")}
+{fig("10_pictures_fracture", "Case P01: adult ankle X-ray. The fracture is marked (adult cut-off) and outlined.")}
 <div class="page"></div>
 {fig("11_pictures_chest", "Case P06: large left pneumothorax. Red pneumothorax with a box and an outline. Effusion and "
      "pneumonia-type shadowing are also red here: false flags happen, which is why a person decides.")}
