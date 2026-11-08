@@ -22,6 +22,8 @@ SECTIONS = {"history": "HISTORY OF PRESENTING COMPLAINT", "past_history": "PAST 
             "allergies": "ALLERGIES", "imaging": "IMAGING", "notes": "CONSULTATION NOTES",
             "bedside": "BEDSIDE CHECKS", "ecg": "ECG", "bloods": "BLOOD TESTS", "urine_swabs": "URINE AND SWABS",
             "treatment": "TREATMENT GIVEN", "disposition": "DISPOSITION"}
+NOTE_SECTIONS = {"history", "past_history", "medications", "allergies"}     # usually written inside the notes
+SEE_NOTES = "not filled in separately: read the CONSULTATION NOTES"
 
 
 @dataclass(frozen=True)
@@ -84,15 +86,23 @@ class Visit:
         return "\n".join(lines + ["", "CURRENT RECORD", self.record()])
 
     def record(self):
-        """Arrival card + later results + the front-door decision. Missing information says 'not recorded'."""
+        """Arrival card + later results + the front-door decision. Missing information says 'not recorded'.
+        When there are typed notes, the card's empty history lines point to them instead of saying 'not recorded':
+        MedGemma copied 'PAST HISTORY: not recorded' over a note that said 'hx DM, HTN on metformin. NKDA'
+        (real-AI test, 9 Nov, REPORT_NOTES 5q #1). Only the record changes; the card the urgency model reads doesn't."""
         body = self.card.replace(END, "").rstrip()
         extra = [self.ed] if self.ed else []
+        has_notes = bool(self.results.get("notes"))
         for key, heading in SECTIONS.items():
             value = " | ".join(self.results.get(key, []))
             line = re.compile(rf"^{heading}: .*$", re.M)
             if line.search(body):
                 if value:                  # a lambda: the text may contain backslashes
                     body = line.sub(lambda _: f"{heading}: {value}", body)
+                elif has_notes and key in NOTE_SECTIONS:
+                    body = line.sub(lambda _: f"{heading}: {SEE_NOTES}", body)
             else:
                 extra.append(f"{heading}: {value or 'not recorded'}")
+        if self.timeline:                  # the chat can then work out time windows (stroke, chest pain)
+            body = body.replace("Time: not recorded", f"Time: arrived {self.timeline[0]['time']}", 1)
         return "\n".join([body, *extra, *self.decision.lines(), END])

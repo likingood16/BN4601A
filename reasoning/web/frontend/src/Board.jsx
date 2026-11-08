@@ -2,6 +2,7 @@
 // Everyone can look; only the triage nurse and the organising doctor can change it.
 import { useState } from "react";
 import { api, LEVEL_COLOUR, usePoll, waited } from "./api";
+import { whoLine } from "./Chart";
 
 function Row({ p, can, me, now, reload, stages }) {
   const [todo, setTodo] = useState("");
@@ -18,7 +19,7 @@ function Row({ p, can, me, now, reload, stages }) {
         {p.raised_by && <span className="raised" title={p.raised_by}>⬆</span>}</td>
       <td>{p.bed}</td>
       <td>
-        <a href={`#/case/${p.id}`} target="_blank"><b>{p.who}</b></a>
+        <a href={`#/case/${p.id}`} target="ed_case_file"><b>{whoLine(p.who)}</b></a>
         <div className="sub">{p.complaint || (p.status === "working" ? "AI working…" : "")}</div>
         {p.status === "working" && <div className="sub">⏳ {p.progress}</div>}
       </td>
@@ -82,7 +83,7 @@ export default function Board({ me, meta }) {
   const [left, setLeft] = useState(false);              // show the patients who left the ED instead
   const [board, error, reload] = usePoll(left ? "/api/board?cleared=true" : "/api/board", 3000);
   const can = (meta?.board_editors || []).includes(me.role);
-  const [learn] = usePoll("/api/learning", 30000);
+  const [learn] = usePoll("/api/learning", 4000);       // was 30 s: an outcome took that long to show (5q #11)
   if (!board) return <div className="page">{error || "Loading…"}</div>;
   return (
     <div className="page" style={{ maxWidth: "none" }}>

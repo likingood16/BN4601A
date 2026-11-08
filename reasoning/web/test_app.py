@@ -14,6 +14,9 @@ from pathlib import Path
 
 import requests
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+import charting  # noqa: E402  (same_meaning, for the to-do check)
+
 HERE = Path(__file__).resolve().parent
 URL = "http://127.0.0.1:8002"
 # a FracAtlas TEST fracture (adult, IMG0003458, CC BY 4.0) that detector v3 marks at the adult cut-off
@@ -74,11 +77,12 @@ def main():
     proc = start(save)
     try:
         run()
+        n = len(get("/api/board").json()["patients"]) + len(get("/api/board?cleared=true").json()["patients"])
         proc.terminate(); proc.wait(10)
         proc = start(save)                                    # restart: is everything still there?
         b = get("/api/board").json()
         left = get("/api/board?cleared=true").json()
-        check("restart: patients and case files are kept", len(b["patients"]) + len(left["patients"]) == 3
+        check("restart: patients and case files are kept", len(b["patients"]) + len(left["patients"]) == n
               and any(p["report"] for p in [get(f"/api/patients/{x['id']}").json() for x in b["patients"]]))
     finally:
         proc.terminate()
@@ -232,6 +236,19 @@ def run():
     check("remove a patient: organising doctor allowed", requests.delete(f"{URL}/api/patients/{d}?role=Organising%20doctor").status_code == 200
           and get(f"/api/patients/{d}").status_code == 404)
     check("the screens are served", get("/").status_code == 200 and "root" in get("/").text)
+    # fixes from the real-AI test (REPORT_NOTES 5q, 9 Nov)
+    e = new("45M SOB, cough. HR 400 BP 300/20 sats 150% temp 45 RR 2. alert").json()["id"]
+    r = board(e, {"who": "", "role": "Triage nurse", "doctor": "Dr Anon"})
+    check("board edit without a name refused (5q #9)", r.status_code == 400 and "name" in r.json().get("detail", ""))
+    board(e, {**LEAD, "doctor": "Dr Early"})                  # while the AI may still be working on it
+    wait(e)
+    pe = get(f"/api/patients/{e}").json()
+    check("impossible BP 300/20 dropped, each warning once (5q #8)", "sbp" not in pe["fields"]
+          and len(pe["found"]["warnings"]) == len(set(pe["found"]["warnings"])))
+    check("board change before the AI finished is on the timeline (5q #9)",
+          any(t["what"] == "Board" and "Dr Early" in t["text"] for t in pe["timeline"]))
+    check("no two to-dos say the same thing (5q #3)",
+          not any(charting.same_meaning(a["text"], b["text"]) for i, a in enumerate(pe["todos"]) for b in pe["todos"][i + 1:]))
 
 
 if __name__ == "__main__":

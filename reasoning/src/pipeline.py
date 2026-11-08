@@ -20,11 +20,13 @@ One MedGemma 1.5 sits in memory, with adapters switched per step (6 Nov 2026):
 No thinking block and capped answers (CAPS): an answer takes seconds on a big GPU instead of minutes.
 Urgency cut-off: catches 90% of urgent KTAS validation patients (was 80%); more false alarms, fewer misses.
 """
+import threading
 import time
 from contextlib import contextmanager
 
 import joblib
 import numpy as np
+import torch
 
 from answers import cut_off, final_answer, parse_triage
 from cards import assess, make_card
@@ -35,7 +37,7 @@ import image_models
 from image_reader import IMAGE_ADAPTER, IMAGE_TYPES, describe_image, imaging_line
 from image_checklist import LOCATABLE, chest_anatomy, checklist, checklist_line, locate
 from image_tools import outline, sort_image
-from model import _messages, ask_messages, load
+from model import _messages, ask_messages, compute_dtype, load
 from prompts import TRIAGE_SYSTEM, TURNS, VISIT_CHAT_SYSTEM, card_with_urgency
 from visit import Decision, Visit
 
@@ -69,6 +71,15 @@ class EDPipeline:
         if explainer and (LORA_DIR / NUMBER_READER / "adapter").exists():
             self.model.load_adapter(str(LORA_DIR / NUMBER_READER / "adapter"), adapter_name="numbers")
             self.step_adapter["numbers"] = "numbers"
+        # adapters in the compute dtype (bfloat16 on RTX 30xx/A40) instead of float32: half the memory, and 2-3x faster
+        # on the 4 GB laptop GPU (same calls timed: number reader 504 s -> 246 s, picture question 76 s -> 23 s, 9 Nov)
+        dtype = compute_dtype()
+        for name, param in self.model.named_parameters():
+            if "lora_" in name and param.dtype == torch.float32:
+                param.data = param.data.to(dtype)
+        # one model, many screens: each AI step takes the model on its own (not a whole patient's run), so a nurse's
+        # re-score or a chat question waits seconds, not for another patient to finish (5q #4: it waited 21-34 min)
+        self.gpu = threading.RLock()
         self.think = think
         self.times = {}                                  # seconds of the last call of each step, for the trial run
         urgent = joblib.load(HEADS_DIR / f"urgent__{emb}__ktas_nhamcs.joblib")
@@ -89,15 +100,16 @@ class EDPipeline:
 
     @contextmanager
     def _adapter(self, name, step):
-        """Run one step with one adapter (None = plain MedGemma) and time it."""
-        start = time.time()
-        if name is None:
-            with self.model.disable_adapter():
+        """Run one step with one adapter (None = plain MedGemma) and time it. Holds the model for just this step."""
+        with self.gpu:
+            start = time.time()
+            if name is None:
+                with self.model.disable_adapter():
+                    yield
+            else:
+                self.model.set_adapter(name)
                 yield
-        else:
-            self.model.set_adapter(name)
-            yield
-        self.times[step] = round(time.time() - start, 2)
+            self.times[step] = round(time.time() - start, 2)
 
     def _ask(self, messages, step):
         with self._adapter(self.step_adapter.get(step, self.text_adapter), step):
@@ -185,7 +197,8 @@ class EDPipeline:
     def outline(self, visit, path, box, who="not recorded", fracture=True):
         """MedSAM outline inside a box (the clinician's or a detector's). fracture=True: the MedSAM tuned on fracture
         outlines, when it's on this computer. Only the size goes on the record; the picture is shown."""
-        found = outline(path, box, fracture=fracture)
+        with self.gpu:                                   # MedSAM shares the GPU with MedGemma
+            found = outline(path, box, fracture=fracture)
         visit.log("Imaging", f"Area outlined by AI inside a box drawn by {who}: {found['area_pct']:.1f}% of the picture.")
         return found
 

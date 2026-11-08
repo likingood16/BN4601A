@@ -134,10 +134,19 @@ class PathwayFlagger:
         g, P = self.scores(vectors, complaints)
         return (P >= np.array([h["cut_off"] for h in self.heads.values()])) & (g >= self.gate_cut)[:, None]
 
-    def flags(self, vector, complaint):
-        """One patient -> the flag texts the app shows."""
-        row = self.flag_matrix(np.asarray(vector).reshape(1, -1), [complaint])[0]
-        return [h["flag"] for h, on in zip(self.heads.values(), row) if on]
+    def flags(self, vector, complaint, most=3):
+        """One patient -> the flag texts the app shows, strongest first (score over its cut-off), at most `most`;
+        a pathway named in the complaint words is always kept. A very sick chest-pain patient got 6 flags (stroke,
+        seizure, sepsis ...) in the real-AI test (9 Nov, REPORT_NOTES 5q #3). On the 1,452 test patients, at most 3:
+        caught 82.6% -> 80.6% of pathways, false flags per patient 0.76 -> 0.68, patients with 4+ flags 6.7% -> 0%."""
+        g, P = self.scores(np.asarray(vector).reshape(1, -1), [complaint])
+        cut = np.array([h["cut_off"] for h in self.heads.values()])
+        on = (P[0] >= cut) & (g[0] >= self.gate_cut)
+        named = [bool(re.search(PATHWAYS[n][3], (complaint or "").lower())) for n in self.heads]
+        order = [j for j in np.argsort(-(P[0] / cut)) if on[j]]
+        keep = order[:most] + [j for j in order[most:] if named[j]]
+        texts = [h["flag"] for h in self.heads.values()]
+        return [texts[j] for j in keep]
 
 
 def _fit(F, y, tr, va, Cs=(0.01, 0.1, 1)):

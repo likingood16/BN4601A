@@ -38,7 +38,7 @@ QUESTION_SYSTEM = (
     "urgent first. Each item at most 12 words. These are suggestions for clinicians to accept or ignore.")
 
 # ---------------------------------------------------------------- numbers
-RANGES = {"hr": (20, 250), "rr": (4, 70), "spo2": (50, 100), "temp_c": (30, 44), "sbp": (40, 300), "dbp": (20, 200),
+RANGES = {"hr": (20, 250), "rr": (4, 70), "spo2": (50, 100), "temp_c": (30, 44), "sbp": (40, 280), "dbp": (20, 200),
           "nrs_pain": (0, 10), "age": (0, 120)}
 # Between a long label and its number, case reports put a few known words: "heart rate was stable at 80",
 # "blood pressure on arrival was 113/67", "pulse rate, 136". Only these words are skipped, so "respiratory distress
@@ -150,6 +150,7 @@ def extract_numbers(note):
     m = re.search(INJURY, text)
     if m:                  # no injury word is not proof of no injury (e.g. "chin pain"), so it stays 'not recorded'
         fields["injured"], found["injured"] = 1.0, m.group(0)
+    _check_bp(fields, found, warnings)
     return fields, {"found": found, "warnings": warnings}
 
 
@@ -231,7 +232,20 @@ def extract_numbers_ai(ai, note):
             continue
         if value is not None:
             fields[key], found[key] = value, item.get("quote", "").strip()
+    _check_bp(fields, found, warnings)
     return fields, {"found": found, "warnings": warnings}
+
+
+def _check_bp(fields, found, warnings):
+    """A blood pressure that can't be real is dropped whole (BP 300/20 was used and made the patient level 1, 9 Nov,
+    5q #8): the diastolic must be below the systolic, at most 200 apart, and never used on its own."""
+    s, d = fields.get("sbp"), fields.get("dbp")
+    if s is not None and d is not None and not (d < s and s - d <= 200):
+        warnings.append(f"ignored {found.get('sbp', 'the blood pressure')!r}: BP {s:g}/{d:g} is not possible")
+        for k in ("sbp", "dbp"):
+            fields.pop(k, None), found.pop(k, None)
+    elif s is None and d is not None:
+        fields.pop("dbp"), found.pop("dbp", None)
 
 
 def _agree(key, a, b):
@@ -266,7 +280,7 @@ def read_numbers(ai, note):
             fields[key], found[key], by[key] = rf[key], rinfo["found"].get(key, ""), "rules"
         else:
             fields[key], found[key], by[key] = af[key], ainfo["found"].get(key, ""), "AI"
-    warnings = rinfo["warnings"] + ainfo["warnings"] + [
+    warnings = rinfo["warnings"] + [w for w in ainfo["warnings"] if w not in rinfo["warnings"]] + [
         f"please check {c['field']}: rules read {c['rules']} from {c['rules_words']!r}, AI read {c['ai']} "
         f"from {c['ai_words']!r}" for c in check]
     return fields, {"found": found, "warnings": warnings, "by": by, "check": check}
@@ -322,12 +336,18 @@ def complaint(ai, note):
 
 # ---------------------------------------------------------------- case file
 SORT_RULES = [
+    # onset / last known well first: "known" alone means past history ("known asthmatic"), but an answer to "When was
+    # the patient last known to be well?" is history (Gradio test, 9 Nov)
+    ("History", r"last (?:seen|known)(?: to be)? well|\blkw\b|\bonset\b"),
     ("Impression (as written by clinicians)", r"\bimpression\b|\bimp\b|\bdx\b|diagnos|\blikely\b|suspected|\?\s?[a-z]{4,}"),
     ("Imaging", r"x-?ray|\bxr\b|\bct\b|mri|ultrasound|\bus\b|scan|image"),
     ("Investigations", r"trop|ecg|\bhb\b|wbc|crp|lactate|glucose|cbg|\bbsl\b|\bhgt\b|\binr\b|bloods?|\bfbc\b|u/?e|\bna\b|\bk\b|urine|swab|abg|vbg"),
     ("Plan and actions", r"\bgave\b|given|start(ed)?|\biv\b|plan|refer|admit|discharge|review|send|stat\b|neb|analgesi"),
     ("Observations", r"\bhr\b|\bbp\b|\brr\b|sats|spo2|temp|gcs|avpu|pain \d"),
-    ("Past history, medications, allergies", r"\bhx\b|pmh|history of|known|\bdm\b|\bhtn\b|\bon (?!air)\w+|meds|allerg|nkda"),
+    # "on <a medicine>" (on metformin, on warfarin, on salbutamol), not "cut finger on glass" (Gradio test, 9 Nov)
+    ("Past history, medications, allergies", r"\bhx\b|pmh|history of|known|\bdm\b|\bhtn\b|meds|allerg|nkda|"
+                                             r"\bon (?:insulin|aspirin|\w+(?:in|ol|ide|pril|artan|statin|pine|zole|mab|"
+                                             r"done|xaban|gatran|lone|sone|mide|amine))\b"),
     ("Examination", r"o/e|on exam|tender|chest clear|crackles|wheeze|abdo|soft|pupils|neuro"),
 ]
 
@@ -366,7 +386,8 @@ def _split(report):
 def _empty(line):
     """A placeholder line: 'not recorded', 'none', 'Investigations not recorded.' ..."""
     t = line.strip().lstrip("-*• ").strip().rstrip(".").lower()
-    return t in ("", "not recorded", "none", "none recorded", "nil", "n/a", "not done") or (t.endswith("not recorded") and len(t) < 45)
+    return (t in ("", "not recorded", "none", "none recorded", "nil", "n/a", "not done") or (t.endswith("not recorded") and len(t) < 45)
+            or t.startswith("not filled in separately"))         # the record's pointer, if MedGemma copies it
 
 
 def set_section(report, heading, lines):
@@ -404,6 +425,13 @@ def file_notes_ai(ai, new_notes, new_images=()):
     from answers import final_answer
     pieces = [p.strip() for note in new_notes for p in re.split(SENTENCE, note) if p.strip()]
     sections = {h: [] for h in HEADINGS if h != TRIAGE}
+    # the word rules first: MedGemma filed "Trop 45 ng/L" under Presenting complaint, "ECG ST depression" under History
+    # and "aspirin given" under Impression (real-AI test, 9 Nov, 5q #2); it now only places what the rules can't
+    unsure = []
+    for p in pieces:
+        head = next((h for h, rule in SORT_RULES if re.search(rule, p, re.I)), None)
+        (sections[head].append(p) if head else unsure.append(p))
+    pieces = unsure
     if pieces:
         q = "\n".join(f"{i + 1}. {p}" for i, p in enumerate(pieces))
         raw = final_answer(ai._ask(_messages(FILING_SYSTEM, q), "filing")) or ""
@@ -443,6 +471,62 @@ def merge_into(current, addition):
     return f"{pre}\n\n{body}" if pre else body
 
 
+# ED shorthand -> a word MedGemma uses when it writes it out, so an expanded note still counts as covered
+SHORTHAND = {"cp": "chest", "sob": "breath", "dm": "diabet", "htn": "hypertens", "nkda": "allerg", "biba": "ambulance",
+             "hx": "history", "pmh": "history", "abdo": "abdom", "n": "nausea", "v": "vomit", "loc": "conscious",
+             "ra": "room air", "pt": "patient", "yo": "year", "c/o": "complain", "l": "left", "r": "right",
+             "rt": "right", "lt": "left", "amb": "ambulance", "meds": "medic", "sats": "spo2", "t": "temp"}
+_FILLER = {"and", "the", "to", "of", "on", "in", "at", "a", "an", "with", "for", "since", "is", "was", "has", "had",
+           "from", "by", "x", "or", "no", "not", "came", "pt", "patient"}
+
+
+_WORD = r"[a-z/]+|\d+(?:\.\d+)?"
+
+
+def _covered(piece, text, words_in):
+    """Is this piece of a note already in the case file? Most of its words are there as whole words (shorthand
+    written out counts; single letters only when they are known shorthand, e.g. 'L' = left)."""
+    words = [w for w in re.findall(_WORD, piece.lower()) if w not in _FILLER and (len(w) > 1 or w in SHORTHAND)]
+    if not words:
+        return True
+
+    def there(w):
+        if w in words_in or (w in SHORTHAND and SHORTHAND[w] in text):
+            return True
+        if re.fullmatch(r"\d{4}", w):                        # 0600 written out as 06:00 or 6:00
+            return f"{w[:2]}:{w[2:]}" in text or f"{int(w[:2])}:{w[2:]}" in text
+        return len(w) >= 5 and any(b.startswith(w[:5]) for b in words_in)   # sweaty ~ sweating
+    # a clock time (onset, last known well) must be there itself: it decides stroke and chest-pain care
+    if any(not there(t) for t in re.findall(r"\b(?:[01]\d|2[0-3])[0-5]\d\b", piece)):
+        return False
+    return sum(map(there, words)) / len(words) >= 0.6
+
+
+def same_meaning(a, b):
+    """Two to-dos or questions that ask for the same thing: one's key words are all in the other, or they mostly
+    overlap ('Chest pain: ECG within 10 minutes of arrival' and 'ECG within 10 minutes')."""
+    def key(s):
+        s = s.split(":", 1)[1] if re.match(r"^[\w /-]{3,30}:", s) else s      # drop a "Chest pain:" label
+        return {w for w in re.findall(_WORD, s.lower()) if w not in _FILLER and w not in ("any", "what", "is", "are")}
+    ka, kb = key(a), key(b)
+    if not ka or not kb:
+        return False
+    return ka <= kb or kb <= ka or len(ka & kb) / len(ka | kb) >= 0.6
+
+
+def keep_every_note(report, notes):
+    """Real-AI check (9 Nov, REPORT_NOTES 5q #1): MedGemma's first case file left out past history, medicines,
+    allergies and the onset. Every piece of a note it left out is now filed by the word rules, as typed, under the
+    right heading, so nothing typed is lost (it may sit next to MedGemma's own wording of the same fact)."""
+    if not report.strip():
+        return report
+    # only what is written under the headings counts (the heading "allergies" is not an allergy history)
+    body = "\n".join(l for l in report.lower().splitlines() if not l.startswith("#") and not _empty(l.lstrip("-* ")))
+    words_in = set(re.findall(_WORD, body))
+    missing = [p.strip() for n in notes for p in re.split(SENTENCE, n) if p.strip() and not _covered(p, body, words_in)]
+    return merge_into(report, file_notes(missing)) if missing else report
+
+
 def build_report(ai, record, current="", new_notes=(), notes=(), images=(), new_images=()):
     """The tidy case file. First time: written from the whole record. After that, only the NEW notes are filed under
     the headings and merged in (merge_into), so the case file is never rewritten and people's edits are kept."""
@@ -451,7 +535,10 @@ def build_report(ai, record, current="", new_notes=(), notes=(), images=(), new_
         if ai is None:
             return _test_report(record, list(notes), list(images))
         q = "PATIENT RECORD (arrival card, notes, image readings, triage decision):\n" + record + "\n\nWrite the case file."
-        return final_answer(ai._ask(_messages(REPORT_SYSTEM, q), "report")) or ""
+        written = final_answer(ai._ask(_messages(REPORT_SYSTEM, q), "report")) or ""
+        # MedGemma copied the record's pointer "not filled in separately: read the CONSULTATION NOTES" (9 Nov)
+        written = "\n".join("- not recorded" if "not filled in separately" in l.lower() else l for l in written.splitlines())
+        return keep_every_note(written, notes)
     # Real AI check (7 Nov): asking MedGemma to REWRITE with the new notes lost 10 image readings and a referral. Now it
     # only picks the heading for each piece (file_notes_ai); the words go in as typed. Test mode: word rules.
     return merge_into(current, file_notes(new_notes, new_images) if ai is None else file_notes_ai(ai, new_notes, new_images))
@@ -488,6 +575,14 @@ ANSWERED_BY_NOTE = [
     (r"allerg", r"\bnkda\b|\bnka\b|allerg"),
     (r"glucose|\bbsl\b|\bcbg\b", r"(?:glucose|\bbsl\b|\bcbg\b|\bbm\b|\bhgt\b)\s*(?:of|is|:|=)?\s*\d"),
     (r"last (?:seen|known)(?: to be)? (?:well|normal)", r"last (?:seen|known)(?: to be)? (?:well|normal)|\blkw\b"),
+    # real-AI test, 9 Nov (5q #6): "When did the pain start?" and "Does it spread to the arm?" with "CP since 0600,
+    # sweaty, radiating to L arm" in the note
+    (r"when did (?:it|the \w+) (?:start|begin)|\bonset\b|how long ago",
+     r"\bsince\b|\bstarted\b|\bonset\b|\d+\s*(?:h|hrs?|hours?|mins?|minutes?|days?|wks?|weeks?)\b(?:\s*ago)?|\bx\s*\d+\s*(?:h|days?)"),
+    (r"spread to the arm|radiat", r"radiat"),
+    (r"risk factors|known heart disease", r"\bhx\b|\bpmh\b|\bdm\b|diabet|\bhtn\b|hypertens|smok|\bihd\b|\bcad\b|\bmi\b"),
+    (r"mechanism of injury", r"\bfell\b|\bfall\b|\bmv[ac]\b|\brta\b|\bhit\b|struck|assault|kicked|tripped|ladder|stairs|bars\b"),
+    (r"collapse witnessed|was the collapse witnessed", r"witnessed"),
 ]
 
 

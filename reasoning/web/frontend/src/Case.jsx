@@ -2,7 +2,7 @@
 // notes as typed, files, and on the right the AI's questions/to-dos and the chat. Add-info bar at the bottom.
 import { useEffect, useState } from "react";
 import { api, concern, LEVEL_COLOUR, usePoll, waited } from "./api";
-import { form, ImagePicker, Questions } from "./Chart";
+import { form, ImagePicker, Questions, whoLine } from "./Chart";
 
 const TILES = [["hr", "HR"], ["bp", "BP"], ["rr", "RR"], ["spo2", "SpO₂ %"], ["temp_c", "Temp °C"], ["nrs_pain", "Pain /10"],
   ["mental", "ACVPU"], ["age", "Age"]];
@@ -11,14 +11,17 @@ const ACVPU = { alert: "A", verbal: "C/V", pain: "P", unresponsive: "U" };
 
 function Vitals({ p, me, reload, meta }) {
   const [edit, setEdit] = useState(null);
+  const [saving, setSaving] = useState(false);
   const f = p.fields, src = p.found?.found || {}, by = p.found?.by || {};
   const checks = Object.fromEntries((p.found?.check || []).map((c) => [c.field, c]));
   const checkOf = (k) => k === "bp" ? (checks.sbp || checks.dbp) : checks[k];
   const show = (k) => k === "bp" ? (f.sbp != null ? `${f.sbp}/${f.dbp ?? "?"}` : null)
     : k === "mental" && f.mental ? (ACVPU[f.mental] ?? f.mental) : f[k];
   const save = async () => {
+    setSaving(true);          // it used to look like nothing happened while the AI was busy (5q #4)
     try { await api.put(`/api/patients/${p.id}/fields`, { fields: edit, who: me.who || "not recorded" }); setEdit(null); reload(); }
     catch (e) { alert(e.message); }
+    setSaving(false);
   };
   if (edit) {
     const keys = ["age", "sex", "hr", "sbp", "dbp", "rr", "spo2", "temp_c", "nrs_pain", "mental", "ambulance", "injured", "chief_complaint"];
@@ -33,7 +36,7 @@ function Vitals({ p, me, reload, meta }) {
             </div>
           ))}
         </div>
-        <div className="row"><button className="primary" onClick={save}>Save and re-score</button><button onClick={() => setEdit(null)}>Cancel</button></div>
+        <div className="row"><button className="primary" onClick={save} disabled={saving}>{saving ? "Re-scoring…" : "Save and re-score"}</button><button onClick={() => setEdit(null)}>Cancel</button></div>
       </div>
     );
   }
@@ -52,7 +55,8 @@ function Vitals({ p, me, reload, meta }) {
                 : from ? `From the note: "${from}"${who ? ` (read by: ${who})` : ""}` : "Not in the notes"}>
               <div className="k">{label}{chk && <span className="check-tag">check</span>}</div>
               <div className="v">{v ?? "not recorded"}</div>
-              <div className="src">{chk ? `AI read ${chk.ai}` : from ? `“${from}”` : " "}</div>
+              <div className="src">{chk ? `AI read ${chk.ai}` : who === "nurse" ? `fixed by ${p.found?.checked_by || "a nurse"}`
+                : from ? `“${from}”` : " "}</div>
             </div>
           );
         })}
@@ -188,7 +192,7 @@ export default function Case({ id, me, meta }) {
   const [text, setText] = useState("");
   const [files, setFiles] = useState([]);
   const [msg, setMsg] = useState("");
-  const picker = ImagePicker({ files, setFiles, compact: true });     // a plain call: the 📎 button + thumbnails
+  const picker = ImagePicker({ files, setFiles, compact: true, onReject: setMsg });     // a plain call: the 📎 button + thumbnails
   useEffect(() => { if (p) document.title = `${p.bed} · case file`; }, [p?.bed]);
   if (!p) return <div className="page">{error ? <div className="error">{error}</div> : "Loading…"}</div>;
   const d = p.decision;
@@ -207,7 +211,7 @@ export default function Case({ id, me, meta }) {
       <div className="head">
         <div className="level" style={{ background: d ? LEVEL_COLOUR[d.level] : "#cfd8dc" }}>{d ? d.level : "…"}</div>
         <div>
-          <div className="name">{p.bed} · {p.who} · {p.complaint || "…"}</div>
+          <div className="name">{p.bed} · {whoLine(p.who)} · {p.complaint || "…"}</div>
           <div className="row" style={{ marginTop: 4 }}>
             {d && <span className={`pill ${d.flagged ? "red" : ""}`}>{d.flagged ? "Urgent: flagged" : "Not flagged"} · {Math.round(d.p_urgent * 100)}% chance of level 1–2</span>}
             {d && <span className="pill">Levels it can't rule out: {d.level_set.join(", ")}</span>}

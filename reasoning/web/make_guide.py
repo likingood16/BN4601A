@@ -152,7 +152,7 @@ wording, chat answers, picture descriptions) is replaced by text marked <span cl
 <b>📄 Open a text file</b> and pick <span class="mono">cases/T01.txt</span>. Pictures can be dropped on the dashed box.</p>
 {fig("02_charting_typed", "The charting screen with case T01 typed in. Shorthand such as CP, BIBA, NKDA and RA is fine.")}
 <h3>A2. Submit</h3>
-<p>Press <b>Submit</b>. A green line says it was sent; <b>the case file opens in a new tab</b> and the patient appears on
+<p>Press <b>Submit</b>. A green line says it was sent; <b>the case file opens in the case-file tab</b> (the same tab for every patient) and the patient appears on
 the whiteboard. The right-hand side shows the AI's questions about anything missing. T01's note already has onset,
 history, medicines and allergies, so there are none ("No questions from the AI"). Case T02 (stroke) shows questions,
 such as when the patient was last known to be well. Click a question to answer it in the box above.</p>

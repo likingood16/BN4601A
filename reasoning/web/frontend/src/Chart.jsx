@@ -3,9 +3,17 @@
 import { useEffect, useState } from "react";
 import { api, usePoll } from "./api";
 
-export function ImagePicker({ files, setFiles, compact = false }) {
+const isPicture = (f) => f.type.startsWith("image/") || /\.(dcm|tif+)$/i.test(f.name);
+// "?, ?" before the numbers are read looked broken (5q #11)
+export const whoLine = (who) => (who === "?, ?" ? "reading the note…" : who);
+
+export function ImagePicker({ files, setFiles, compact = false, onReject = alert }) {
   const [over, setOver] = useState(false);
-  const add = (list) => setFiles([...files, ...[...list].filter((f) => f.type.startsWith("image/") || /\.(dcm|tif+)$/i.test(f.name))]);
+  const add = (list) => {
+    const bad = [...list].filter((f) => !isPicture(f));   // a PDF used to vanish without a word (5q #11)
+    if (bad.length) onReject(`${bad.map((f) => f.name).join(", ")}: only pictures can be added (JPG, PNG ...)`);
+    setFiles([...files, ...[...list].filter(isPicture)]);
+  };
   const thumbs = files.length > 0 && (
     <div className="thumbs">
       {files.map((f, i) => (
@@ -75,7 +83,7 @@ export default function Chart({ me, setMe }) {
 
   useEffect(() => { if (target !== "new") setCurrent(target); }, [target]);
 
-  const label = (x) => `${x.bed} · level ${x.level ?? "…"} · ${x.who} · ${(x.complaint || "…").slice(0, 40)}`;
+  const label = (x) => `${x.bed} · level ${x.level ?? "…"} · ${whoLine(x.who)} · ${(x.complaint || "…").slice(0, 40)}`;
   const words = find.toLowerCase().split(/\s+/).filter(Boolean);
   const all = board?.patients || [];
   // every word must match; "P12" matches bed P12 exactly, not P120
@@ -86,14 +94,15 @@ export default function Chart({ me, setMe }) {
     if (!text.trim() && !files.length) return setError("Type the note first");
     if (!me.who.trim()) return setError("Type your name next to Submit, so the case file shows who wrote it");
     setBusy(true); setError(""); setDone("");
-    const win = target === "new" ? window.open("", "_blank") : null;   // opened now, or the browser blocks it
+    // opened now, or the browser blocks it; always the same named tab, not a new tab per patient (5q #11)
+    const win = target === "new" ? window.open("", "ed_case_file") : null;
     try {
       let id = target;
       if (target === "new") id = (await api.post("/api/patients", form(text, me, files))).id;
       else await api.post(`/api/patients/${id}/notes`, form(text, me, files));
       if (win) win.location = `${location.pathname}#/case/${id}`;
       setCurrent(id); setText(""); setFiles([]);
-      setDone(target === "new" ? "Sent. The case file opens in a new window, and the patient is on the whiteboard."
+      setDone(target === "new" ? "Sent. The case file opens in the case-file tab, and the patient is on the whiteboard."
         : "Added to the case file. The AI is updating it.");
     } catch (e) { setError(e.message); if (win) win.close(); }
     setBusy(false);
@@ -136,26 +145,32 @@ export default function Chart({ me, setMe }) {
               📄 Open a text file
               <input type="file" accept=".txt,text/plain" hidden onChange={async (e) => {
                 const f = e.target.files[0];
-                if (f) { const loaded = (await f.text()).trim(); setText((t) => (t.trim() ? t.trim() + "\n" : "") + loaded); }
+                if (f) {
+                  const loaded = (await f.text()).trim();
+                  // a picture opened here filled the note with junk (5q #10)
+                  if (!/\.(txt|text|md)$/i.test(f.name) || loaded.includes("\u0000") || loaded.includes("�"))
+                    setError(`${f.name} isn't a text file: open a .txt note here, and add pictures in the picture box`);
+                  else { setError(""); setText((t) => (t.trim() ? t.trim() + "\n" : "") + loaded); }
+                }
                 e.target.value = "";
               }} />
             </label>
           </div>
-          <textarea className="note-box" value={text} onChange={(e) => setText(e.target.value)}
+          <textarea className="note-box" value={text} onChange={(e) => { setText(e.target.value); setError(""); setDone(""); }}
             placeholder={"Example: 67M CP since 0600, sweaty, radiating L arm. HR 112 BP 90/60 sats 94 RA RR 22. hx DM HTN on metformin. came by amb. pain 8/10"} />
-          <ImagePicker files={files} setFiles={setFiles} />
+          <ImagePicker files={files} setFiles={setFiles} onReject={setError} />
           {error && <div className="error">{error}</div>}
           {done && <div className="ok-msg">{done}</div>}
           <div className="row" style={{ justifyContent: "flex-end", marginTop: 10 }}>
             <label className="muted">Written by{" "}
-              <input value={me.who} onChange={(e) => setMe({ ...me, who: e.target.value })} placeholder="your name"
+              <input value={me.who} onChange={(e) => { setMe({ ...me, who: e.target.value }); setError(""); }} placeholder="your name"
                 style={{ width: 140 }} aria-label="Written by" />
             </label>
             <button className="primary" onClick={submit} disabled={busy}>{busy ? "Sending…" : "Submit"}</button>
           </div>
         </div>
         <div className="card">
-          <h3>AI questions {p && <>for {p.bed} · {p.who} · <a href={`#/case/${p.id}`} target="_blank">open case file</a></>}</h3>
+          <h3>AI questions {p && <>for {p.bed} · {whoLine(p.who)} · <a href={`#/case/${p.id}`} target="ed_case_file">open case file</a></>}</h3>
           {/* the answer box sits ABOVE the questions so it doesn't jump down when they arrive (7 Nov stress test) */}
           {p && (
             <div className="row" style={{ marginBottom: 12 }}>

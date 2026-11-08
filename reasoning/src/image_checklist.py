@@ -47,17 +47,48 @@ def _ask(model, processor, path, question, tokens):
     return final_answer(ask_messages(model, processor, image_messages(path, question), tokens, False)) or ""
 
 
+def _ask_all(model, processor, path, questions, tokens):
+    """All the checklist questions about one picture in ONE batched call (left-padded), so the picture and prompts are
+    read side by side instead of 4-8 times one after another (one question took 23-76 s on the laptop, 9 Nov, 5q #5).
+    Falls back to one question at a time if the batch doesn't fit in memory or the processor can't batch."""
+    import torch
+    from model import compute_dtype
+    try:
+        tok = processor.tokenizer
+        side, tok.padding_side = tok.padding_side, "left"
+        try:
+            inputs = processor.apply_chat_template([image_messages(path, q) for q in questions], add_generation_prompt=True,
+                                                   tokenize=True, return_dict=True, return_tensors="pt",
+                                                   processor_kwargs={"padding": True})
+        finally:
+            tok.padding_side = side
+        inputs = inputs.to(model.device, dtype=compute_dtype())
+        with torch.no_grad():
+            out = model.generate(**inputs, max_new_tokens=tokens, do_sample=False,
+                                 suppress_tokens=[tok.convert_tokens_to_ids("<unused94>")])
+        n = inputs["input_ids"].shape[-1]
+        return [final_answer(processor.decode(o[n:], skip_special_tokens=True)) or "" for o in out]
+    except Exception as e:                           # e.g. out of GPU memory on a small card
+        print(f"checklist: batched call failed ({type(e).__name__}); asking one question at a time", flush=True)
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        return [_ask(model, processor, path, q, tokens) for q in questions]
+
+
 def checklist(model, processor, path, kind):
     """-> {item: {"seen": "yes" | "no" | "unclear", "where": str}} for this kind's ED checklist.
     One short question per item. (Real-AI run 4, 7 Nov: asking for all items in one JSON answer came back unreadable,
-    so every item was 'unclear', even a large pleural effusion the description itself named.)"""
+    so every item was 'unclear', even a large pleural effusion the description itself named.) The questions go to
+    MedGemma together, as one batch (_ask_all)."""
     from image_reader import IMAGE_TYPES
     label = IMAGE_TYPES.get(kind, ("medical image",))[0]
+    items = CHECKLIST.get(kind, CHECKLIST["other"])
+    questions = [f"Look at this {label}. Is there {item.lower()}? Answer with one word, yes, no or unclear, then, if "
+                 "yes, a dash and where it is in a few words." for item in items]
+    answers = _ask_all(model, processor, path, questions, 24)
     out = {}
-    for item in CHECKLIST.get(kind, CHECKLIST["other"]):
-        q = (f"Look at this {label}. Is there {item.lower()}? Answer with one word, yes, no or unclear, then, if yes, "
-             "a dash and where it is in a few words.")
-        raw = _ask(model, processor, path, q, 24).strip().lower()
+    for item, raw in zip(items, answers):
+        raw = raw.strip().lower()
         word = re.match(r"\W*(yes|not sure|no|unclear|cannot|can't)\b", raw)     # "not sure" before "no"
         seen = {"not sure": "unclear", "cannot": "unclear", "can't": "unclear"}.get(word.group(1), word.group(1)) if word else "unclear"
         parts = re.split(r"\s*[-–—:,]\s*", raw, maxsplit=1)

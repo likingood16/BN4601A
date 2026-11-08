@@ -72,6 +72,7 @@ class Patient:
     error: str = ""
     pending: list = field(default_factory=list)     # note indexes the AI hasn't put in the case file yet
     report_seen_by_chat: str = ""
+    early_log: list = field(default_factory=list)   # board changes made before the AI's first result
 
     def complaint(self):
         """The case file's 'Presenting complaint', so a person's correction shows on the header and the whiteboard.
@@ -121,7 +122,10 @@ class Store:
     def __init__(self, ai, path):
         self.ai, self.path = ai, path               # ai: EDPipeline or TestPipeline
         self.test = not hasattr(ai, "_ask")
+        # lock: one patient's AI job at a time. The model itself is shared step by step (EDPipeline.gpu), so a
+        # re-score or a chat doesn't wait for a whole job (5q #4). chat_lock: one chat answer at a time.
         self.lock, self.save_lock, self.state_lock = threading.Lock(), threading.Lock(), threading.Lock()
+        self.chat_lock = threading.Lock()
         self.version = 0
         self.patients = {}
         if path and path.exists():
@@ -214,6 +218,8 @@ class Store:
                 p.fields["chief_complaint"] = charting.complaint(ai, text)
             self._step(p, "Scoring urgency (trained models)")
             p.visit = self.ai.triage(p.fields, explain=False)
+            p.visit.timeline += getattr(p, "early_log", [])     # board changes made while the AI was still busy
+            p.early_log = []
             p.visit.log("Triage", f"Arrival card made from the notes of {p.notes[0]['who']}; level {p.visit.decision.level}"
                         f", urgency {p.visit.decision.p_urgent:.0%}", "AI (decision support)")
         image_lines = []
@@ -292,21 +298,20 @@ class Store:
         typed = "\n".join(n["text"] for n in p.notes)
         if not self.test:                           # the small model sometimes asks for what's already recorded
             questions, todo = charting.drop_known(questions, f, typed), charting.drop_known(todo, f, typed)
-        # MedGemma writes the questions, steered by the AI pathway flags in `context` (ai-reasoning branch). The fixed
-        # pathway question lists only stand in for it in test mode. At most 5, no repeats.
-        fixed = charting.drop_known(charting.pathway_questions(p.visit.ed), f, typed) if self.test else []
-        seen, merged = set(), []
+        # The flagged pathways' own questions come first (a stroke always asks for the time last known well), then
+        # MedGemma's, steered by the same flags in `context`. With the real AI MedGemma alone asked "When did it
+        # start?" for a stroke (9 Nov, 5q #6). At most 5, no two asking the same thing.
+        fixed = charting.drop_known(charting.pathway_questions(p.visit.ed), f, typed)
+        merged = []
         for q in fixed + questions:
-            key = re.sub(r"\W+", " ", q.lower()).strip()
-            if key not in seen:
-                seen.add(key)
+            if not any(charting.same_meaning(q, m) for m in merged):
                 merged.append(q)
         p.questions = merged[:5]
-        have = {t["text"].lower() for t in p.todos}
+        have = [t["text"] for t in p.todos]
         flags_by = "ED rules (test mode)" if self.test else "AI pathway model"
         for text, by in [(t, flags_by) for t in charting.pathway_todos(p.visit.ed)] + [(t, "AI") for t in todo]:
-            if text.lower() not in have:
-                have.add(text.lower())
+            if not any(charting.same_meaning(text, h) for h in have):    # "ECG within 10 minutes" twice (5q #3)
+                have.append(text)
                 p.todos.append({"text": text, "done": False, "ai": True, "by": by})
         with self.state_lock:
             p.pending = [i for i in p.pending if i not in doing]
@@ -430,7 +435,8 @@ def fix_numbers(pid: str, body: FieldsIn):
     if changed:
         store.learn("numbers_corrected", p, notes=[n["text"] for n in p.notes], ai_read=ai_read, corrected=clean,
                     changed=changed, who=body.who)
-    with store.lock:
+    new_visit = store.ai.triage(clean, explain=False)       # one model step: seconds, even while other jobs run
+    with store.state_lock:
         before = p.visit
         p.fields = clean
         p.found["checked_by"] = body.who
@@ -438,7 +444,7 @@ def fix_numbers(pid: str, body: FieldsIn):
         p.found["by"] = {k: ("nurse" if v == "check" or k in changed else v) for k, v in p.found.get("by", {}).items()}
         p.found["check"] = []
         p.found["warnings"] = [w for w in p.found.get("warnings", []) if not w.startswith("please check")]
-        p.visit = store.ai.triage(clean, explain=False)
+        p.visit = new_visit
         if before:                                  # keep everything learned since arrival; only the card + decision change
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
         p.visit.log("Triage", f"Numbers corrected; level {old} -> {p.visit.decision.level}", body.who)
@@ -458,11 +464,18 @@ def chat(pid: str, body: ChatIn):
     p = store.get(pid)
     if p.visit is None:
         raise HTTPException(409, "The case file isn't ready yet")
-    with store.lock:
+    with store.chat_lock:
         if p.report and p.report != p.report_seen_by_chat:     # the chat always sees the latest case file
             p.visit.unseen.append("CURRENT CASE FILE:\n" + p.report)
             p.report_seen_by_chat = p.report
-        answer = store.ai.chat(p.visit, body.text)
+        # the times, written out, so time windows can be worked out (5q #7): with only the record, MedGemma said "the
+        # time last known well is not stated" although the note said "since 0830"
+        typed = " ".join(n["text"] for n in p.notes)
+        clock = re.findall(r"\b(?:since|from|at|onset|lkw|last (?:seen|known)(?: to be)? well)\s*:?\s*"
+                           r"(?:[01]?\d|2[0-3]):?[0-5]\d\b", typed, re.I)
+        times = (f"Time now: {now()}. Arrived: {p.notes[0]['time']}."
+                 + (f" Times written in the notes: {'; '.join(clock)}." if clock else ""))
+        answer = store.ai.chat(p.visit, f"({times}) {body.text}")
     p.chat += [{"role": "user", "text": body.text, "who": body.who, "time": now()},
                {"role": "ai", "text": answer, "who": "AI", "time": now()}]
     p.visit.log("Chat", f"Q ({body.who}): {body.text}")
@@ -480,14 +493,25 @@ class BoardIn(BaseModel):
     final_level: int | None = None                  # the level the clinician judges was right (optional)
 
 
-def _editor(role):
+def _editor(role, who=None):
     if role not in BOARD_EDITORS:
         raise HTTPException(403, "Only the triage nurse or the organising doctor can change the board")
+    if who is not None and who.strip().lower() in ("", "not recorded"):     # an unnamed edit was saved (5q #9)
+        raise HTTPException(400, "Type your name (top right) first, so the timeline shows who changed the board")
+
+
+def _log(p, what, text, who):
+    """On the timeline; before the AI's first result there is no timeline yet, so it waits in p.early_log (an
+    unnamed board change on a queued patient was saved but never logged, 5q #9)."""
+    if p.visit:
+        p.visit.log(what, text, who)
+    else:
+        p.early_log = getattr(p, "early_log", []) + [{"time": now(), "who": who, "what": what, "text": text}]
 
 
 @app.patch("/api/patients/{pid}/board")
 def set_board(pid: str, body: BoardIn):
-    _editor(body.role)
+    _editor(body.role, body.who)
     p = store.get(pid)
     if body.final_level is not None and not 1 <= body.final_level <= 5:
         raise HTTPException(400, "level must be 1-5")
@@ -507,8 +531,8 @@ def set_board(pid: str, body: BoardIn):
         p.cleared = body.cleared
         if body.cleared:
             _log_outcome(p, body)
-    if change and p.visit:
-        p.visit.log("Board", "; ".join(change), body.who)
+    if change:
+        _log(p, "Board", "; ".join(change), body.who)
     store.changed()
     return {"ok": True}
 
@@ -547,7 +571,7 @@ class TodoIn(BaseModel):
 
 @app.post("/api/patients/{pid}/todos")
 def add_todo(pid: str, body: TodoIn):
-    _editor(body.role)
+    _editor(body.role, body.who)
     p = store.get(pid)
     if not (body.text or "").strip():
         raise HTTPException(400, "empty to-do")
@@ -558,7 +582,7 @@ def add_todo(pid: str, body: TodoIn):
 
 @app.patch("/api/patients/{pid}/todos/{i}")
 def change_todo(pid: str, i: int, body: TodoIn):
-    _editor(body.role)
+    _editor(body.role, body.who)
     p = store.get(pid)
     if not 0 <= i < len(p.todos):
         raise HTTPException(404, "no such to-do")
@@ -572,8 +596,7 @@ def change_todo(pid: str, i: int, body: TodoIn):
     if t.get("ai"):                                 # monitoring only: ticking an AI to-do is not proof it was needed
         store.learn("todo", p, text=t["text"], by=t.get("by", "AI"),
                     action="removed" if body.delete else ("done" if t["done"] else "not done"), who=body.who)
-    if p.visit:
-        p.visit.log("To do", what, body.who)
+    _log(p, "To do", what, body.who)
     store.changed()
     return {"ok": True}
 
