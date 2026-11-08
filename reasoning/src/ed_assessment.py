@@ -44,7 +44,8 @@ def _band(sub, param, text):
     return f"{text} ({LEVEL[sub[param]]})" if param in sub else f"{text.split()[0]} not recorded"
 
 
-def ed_assessment(row):
+def ed_assessment(row, flags=None):
+    """flags: ED pathway flags from the trained heads (pathway_heads.py). None = the old word rules (test mode)."""
     rr, spo2, sbp, hr, temp = (_val(row, c) for c in ("rr", "spo2", "sbp", "hr", "temp_c"))
     mental, pain, injured = _val(row, "mental"), _val(row, "nrs_pain"), _val(row, "injured")
     n2 = news2.score(rr=rr, spo2=spo2, sbp=sbp, hr=hr, temp_c=temp, consciousness=mental)
@@ -77,19 +78,22 @@ def ed_assessment(row):
     if len(met) >= 2:
         qsofa += " -> higher sepsis risk if infection suspected"
 
-    complaint = str(row.get("chief_complaint") or "").lower()
-    flags = [flag for pattern, flag in PATHWAYS if re.search(pattern, complaint)]
+    from_ai = flags is not None
+    if flags is None:      # test mode and old training cards only: the word rules (the app uses trained heads)
+        complaint = str(row.get("chief_complaint") or "").lower()
+        flags = [flag for pattern, flag in PATHWAYS if re.search(pattern, complaint)]
+    flags = list(flags)
     if injured:
         flags.append("trauma -> mechanism of injury not recorded; primary survey")
     if str(mental).lower() == "unresponsive":
         flags.insert(0, "UNRESPONSIVE -> immediate resuscitation assessment")
 
     return "\n".join([
-        "ED ASSESSMENT (rules applied to the recorded data):",
+        "ED ASSESSMENT (NEWS2 bands from the recorded vitals; pathway flags from trained AI heads):" if from_ai else "ED ASSESSMENT (rules applied to the recorded data):",
         f"  A/B airway-breathing: {breathing}",
         f"  C circulation: {circulation}",
         f"  D disability: {disability}",
         f"  E exposure: {exposure}",
         f"  Screens: {qsofa}",
-        f"  Pathway flags: {'; '.join(flags) if flags else 'none from the presenting complaint'}",
+        f"  Pathway flags: {'; '.join(flags) if flags else 'none'}",
     ])

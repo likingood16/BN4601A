@@ -31,17 +31,21 @@ from cards import assess, make_card
 from config import HEADS_DIR, LORA_DIR
 from ed_assessment import ed_assessment
 from embed import embed_one
-from image_reader import IMAGE_ADAPTER, IMAGE_TYPES, describe_image, detect_fracture, imaging_line
+import image_models
+from image_reader import IMAGE_ADAPTER, IMAGE_TYPES, describe_image, imaging_line
 from image_checklist import LOCATABLE, chest_anatomy, checklist, checklist_line, locate
-from image_tools import chest_findings, outline, sort_image, tools_line
+from image_tools import outline, sort_image
 from model import _messages, ask_messages, load
 from prompts import TRIAGE_SYSTEM, TURNS, VISIT_CHAT_SYSTEM, card_with_urgency
 from visit import Decision, Visit
 
 NO_ANSWER = "[No answer: the model ran out of room. Please ask again, more briefly.]"
 EXPLAINER = "task/stage1"
+QUESTIONER = "questions/stage1"        # make_question_data.py + lora_train.py --task-file questions (8 Nov); questions step only
+NUMBER_READER = "numbers/stage1"       # make_number_data.py + lora_train.py --task-file numbers (8 Nov); numbers step only
 URGENT_SENSITIVITY = 0.90
-CAPS = {"explain": 768, "chat": 512, "sbar": 768, "report": 900, "questions": 600, "complaint": 24}  # tokens per answer
+CAPS = {"explain": 768, "chat": 512, "sbar": 768, "report": 900, "questions": 600, "complaint": 24,
+        "numbers": 600, "filing": 300}                                               # tokens per answer
 
 
 class EDPipeline:
@@ -58,6 +62,13 @@ class EDPipeline:
         if explainer:
             self.model.load_adapter(str(LORA_DIR / explainer / "adapter"), adapter_name="text")
             self.text_adapter = "text"
+        self.step_adapter = {}
+        if explainer and (LORA_DIR / QUESTIONER / "adapter").exists():
+            self.model.load_adapter(str(LORA_DIR / QUESTIONER / "adapter"), adapter_name="questions")
+            self.step_adapter["questions"] = "questions"
+        if explainer and (LORA_DIR / NUMBER_READER / "adapter").exists():
+            self.model.load_adapter(str(LORA_DIR / NUMBER_READER / "adapter"), adapter_name="numbers")
+            self.step_adapter["numbers"] = "numbers"
         self.think = think
         self.times = {}                                  # seconds of the last call of each step, for the trial run
         urgent = joblib.load(HEADS_DIR / f"urgent__{emb}__ktas_nhamcs.joblib")
@@ -67,6 +78,14 @@ class EDPipeline:
             raise ValueError(f"no cut-off saved for {sensitivity}: run heads.py --add-threshold {sensitivity}")
         self.head, self.threshold = urgent["head"], thresholds[sensitivity]
         self.level_model, self.cutoff = level["model"], level["conformal_cutoff"]
+        # ED pathway flags by a trained gate + heads on the same vector + complaint words (pathway_heads.PathwayFlagger),
+        # not word rules (branch rules-reasoning)
+        import pathway_heads  # noqa: F401  (the saved flagger's class)
+        self.pathway_flagger = joblib.load(HEADS_DIR / f"pathways__{emb}.joblib")
+
+    def pathways(self, vector, complaint):
+        """Vector + complaint -> ED pathway flags: the gate must say "needs a pathway" and that pathway's head agree."""
+        return self.pathway_flagger.flags(vector, complaint or "")
 
     @contextmanager
     def _adapter(self, name, step):
@@ -81,7 +100,7 @@ class EDPipeline:
         self.times[step] = round(time.time() - start, 2)
 
     def _ask(self, messages, step):
-        with self._adapter(self.text_adapter, step):
+        with self._adapter(self.step_adapter.get(step, self.text_adapter), step):
             return ask_messages(self.model, self.processor, messages, CAPS[step], self.think)
 
     def decide(self, vector, vitals_out):
@@ -102,8 +121,10 @@ class EDPipeline:
         out = assess(self.vm, patient)
         card = make_card(patient, out)
         with self._adapter(None, "decide"):
-            decision = self.decide(embed_one(self.model, self.processor, card), out)
-        visit = Visit(card=card, decision=decision, ed=ed_assessment(patient))
+            vector = embed_one(self.model, self.processor, card)
+            decision = self.decide(vector, out)
+        visit = Visit(card=card, decision=decision, ed=ed_assessment(patient, flags=self.pathways(vector, patient.get("chief_complaint"))),
+                      vector=np.asarray(vector, dtype=np.float32).ravel())
         if explain:
             self.explain(visit)
         return visit
@@ -117,50 +138,54 @@ class EDPipeline:
         visit.explanation = parse_triage(final_answer(raw)) or {"valid_json": False, "reasoning": NO_ANSWER}
         visit.explanation["cut_off"] = cut_off(raw)
 
-    def read_image(self, visit, path, image_type=None, who="not recorded"):
-        """Stage 2: any image. image_type=None: MedGemma sorts it first (the clinician can still pick it).
-        Its reading goes on the record, so the chat and SBAR can use it."""
+    def read_image(self, visit, path, image_type=None, who="not recorded", age=None, note=""):
+        """Stage 2: any image. image_type=None: the trained sorter picks the kind (MedGemma only if the sorter isn't on
+        this computer); the clinician can still correct it. Then (8 Nov 2026, fix plan 5o item 1):
+          the trained model for that kind (image_models.py): fracture v3 with an age cut-off, the VinDr chest detector
+          (+ CheXpert for pneumothorax), the head-CT bleed model;
+          MedGemma: a short description (Cato's adapter on X-rays) and the ED checklist for that kind;
+          for MRI and ultrasound, which have no trained detector, MedGemma's box + MedSAM outline (experimental).
+        Everything goes on the record, so the chat and SBAR can use it."""
         sorted_as = None
-        if image_type is None:
+        if image_type is None and image_models.SORTER.exists():
+            image_type, _ = image_models.sort_type(path)
+            sorted_as = "image sorter"
+        elif image_type is None:
             with self._adapter(None, "sort"):
                 image_type, sorted_as = sort_image(self.model, self.processor, path, self.think)
+        start = time.time()
+        models = image_models.read_picture(path, image_type, age, note)
+        anatomy = chest_anatomy(path) if image_type == "chest_xray" else None
+        self.times["image_models"] = round(time.time() - start, 2)
         # Cato's adapter only for X-rays: on CT/MRI/ultrasound/ECG it wrote figure-caption text (real-AI check, 7 Nov)
         xray = image_type in ("bone_xray", "chest_xray")
         with self._adapter("image" if xray else None, "image"):
             text = describe_image(self.model, self.processor, path, image_type, think=self.think)
-        # the ED checklist for this kind of picture, then a box + outline for up to 2 positive findings
         with self._adapter(None, "checklist"):
             found_list = checklist(self.model, self.processor, path, image_type)
             located = []
-            if image_type in LOCATABLE:
+            if image_type in ("mri_slice", "ultrasound"):        # no trained detector for these
                 for item in [k for k, v in found_list.items() if v["seen"] == "yes"][:2]:
-                    if image_type == "bone_xray" and item == "Fracture":
-                        continue                     # the fracture detector does this one
                     box = locate(self.model, self.processor, path, item)
                     if box:
-                        located.append({"finding": item, "box": box, "experimental": image_type != "chest_xray"})
-        start = time.time()
-        found = detect_fracture(path) if image_type == "bone_xray" else None
-        chest = chest_findings(path) if image_type == "chest_xray" else None
-        anatomy = chest_anatomy(path) if image_type == "chest_xray" else None
+                        located.append({"finding": item, "box": box, "experimental": True})
         for loc in located:
             seg = outline(path, loc["box"], fracture=False)
             loc.update({"area_pct": seg["area_pct"], "overlay": seg["overlay"]})
-        self.times["detector"] = round(time.time() - start, 2)
-        line = (imaging_line(image_type, text, found) + (tools_line("chest_xray", chest) if chest else "")
+        line = (imaging_line(image_type, text) + (" " + models["line"] if models["line"] else "")
                 + checklist_line(image_type, found_list, anatomy and anatomy["ctr"]))
         if located:
-            line += " Outlined: " + ", ".join(f"{l['finding']}{' (experimental)' if l['experimental'] else ''}"
-                                               for l in located) + "."
+            line += " Outlined: " + ", ".join(f"{l['finding']} (experimental)" for l in located) + "."
         if sorted_as is not None:
-            line = f"(image type sorted by AI: {IMAGE_TYPES[image_type][0]}) " + line
+            line = f"(image type sorted by {sorted_as if sorted_as == 'image sorter' else 'AI'}: {IMAGE_TYPES[image_type][0]}) " + line
         visit.add(IMAGE_TYPES[image_type][1], line, who)
-        return {"kind": image_type, "sorted_by_ai": sorted_as is not None, "text": text, "detector": found, "chest": chest,
+        return {"kind": image_type, "sorted_by_ai": sorted_as is not None, "text": text, "models": models,
                 "checklist": found_list, "located": located, "anatomy": anatomy, "line": line}
 
-    def outline(self, visit, path, box, who="not recorded"):
-        """MedSAM outline of the area the clinician boxed. Only the size goes on the record; the picture is shown."""
-        found = outline(path, box)
+    def outline(self, visit, path, box, who="not recorded", fracture=True):
+        """MedSAM outline inside a box (the clinician's or a detector's). fracture=True: the MedSAM tuned on fracture
+        outlines, when it's on this computer. Only the size goes on the record; the picture is shown."""
+        found = outline(path, box, fracture=fracture)
         visit.log("Imaging", f"Area outlined by AI inside a box drawn by {who}: {found['area_pct']:.1f}% of the picture.")
         return found
 

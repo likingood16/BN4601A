@@ -95,17 +95,33 @@ def main():
     ap.add_argument("--split", default="train", choices=["train", "val", "test"])
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--messy", action="store_true", help="add real nurse shorthand (messier)")
+    ap.add_argument("--ai", action="store_true", help="GPU: MedGemma reads the numbers (extract_numbers_ai), same notes")
+    ap.add_argument("--limit", type=int, default=0, help="only the first N notes (the AI takes seconds per note)")
+    ap.add_argument("--both", action="store_true", help="GPU: rules + AI together, as the app reads (charting.read_numbers)")
+    ap.add_argument("--consistency", type=int, default=0,
+                    help="N patients, each written 3 different ways: do all 3 readings agree with each other and the truth?")
     a = ap.parse_args()
     rng = random.Random(a.seed)
     df = load_pool1(source="ktas")
     df = df[df["split"] == a.split]
+    if a.limit:
+        df = df.head(a.limit)
+    read = extract_numbers
+    if a.ai or a.both:
+        from charting import extract_numbers_ai, read_numbers
+        from pipeline import EDPipeline
+        ai = EDPipeline()
+        read = (lambda note: read_numbers(ai, note)) if a.both else (lambda note: extract_numbers_ai(ai, note))   # noqa: E731
+    reader = "rules + MedGemma (read_numbers)" if a.both else "MedGemma (extract_numbers_ai)" if a.ai else "rules (extract_numbers)"
+    if a.consistency:
+        return consistency(df.head(a.consistency), read, reader, a, rng)
     counts = {f: {"correct": 0, "wrong": 0, "missed": 0, "invented": 0, "written": 0} for f in FIELDS}
     examples = []
     for _, row in df.iterrows():
         note = note_for(row, rng)
         if a.messy:
             note = messier(note, rng)
-        got, _ = extract_numbers(note)
+        got, _ = read(note)
         bad = []
         for f in FIELDS:
             truth = row[f]
@@ -141,11 +157,47 @@ def main():
     res = {"split": a.split, "n_notes": len(df), "vital_numbers_correct": round(all_numbers, 4),
            "vital_numbers_wrong_or_invented": wrong_numbers, "correct_by_field": summary, "counts": counts,
            "examples": examples}
-    path = OUTPUTS / "metrics" / f"charting_numbers_{a.split}{'_messy' if a.messy else ''}.json"
+    res["reader"] = reader
+    tag = "_both" if a.both else "_ai" if a.ai else ""
+    path = OUTPUTS / "metrics" / f"charting_numbers_{a.split}{'_messy' if a.messy else ''}{tag}.json"
     path.write_text(json.dumps(res, indent=1, default=str))
     print(json.dumps({k: v for k, v in res.items() if k not in ("examples", "counts")}, indent=1))
     for e in examples[:12]:
         print("-", e["problems"], "|", e["note"][:150])
+    print("saved", path)
+
+
+def _same_reading(f, got, truth_row):
+    t = truth_row[f]
+    if t != t or t is None:
+        return f not in got
+    if f == "injured":                  # note_for writes no injury words, so only "never claimed when not injured"
+        return t == 1 or got.get(f) != 1
+    return f in got and same(f, t, got[f])
+
+
+def consistency(df, read, reader, a, rng):
+    """The full-app check (8 Nov) found the same patient written 3 ways got 3 different urgency scores. Here each test
+    patient is written 3 ways (plain, messy, messy again with other styles); a patient passes if every field of all 3
+    readings is right (so they also agree with each other)."""
+    passed, agree, rows = 0, 0, []
+    for _, row in df.iterrows():
+        notes = [note_for(row, rng), messier(note_for(row, rng), rng), messier(note_for(row, rng), rng)]
+        reads = [read(n)[0] for n in notes]
+        ok = all(_same_reading(f, r, row) for r in reads for f in FIELDS
+                 if not (f in ("sex", "age") and (row["age"] != row["age"] or not row["sex"]))
+                 and not (f in ("sbp", "dbp") and (row["sbp"] != row["sbp"] or row["dbp"] != row["dbp"])))
+        same3 = all({k: r.get(k) for k in FIELDS} == {k: reads[0].get(k) for k in FIELDS} for r in reads)
+        passed += ok
+        agree += same3
+        if not ok and len(rows) < 15:
+            rows.append({"notes": notes, "reads": reads})
+    res = {"reader": reader, "split": a.split, "n_patients": len(df), "all_3_right": round(passed / len(df), 3),
+           "all_3_identical": round(agree / len(df), 3), "examples": rows}
+    tag = "both" if a.both else "ai" if a.ai else "rules"
+    path = OUTPUTS / "metrics" / f"charting_consistency_{a.split}_{tag}.json"
+    path.write_text(json.dumps(res, indent=1, default=str))
+    print(json.dumps({k: v for k, v in res.items() if k != "examples"}, indent=1))
     print("saved", path)
 
 

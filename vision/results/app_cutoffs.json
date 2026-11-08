@@ -1,0 +1,95 @@
+{
+ "pneumothorax": {
+  "rule": "flag if the detector box score >= detector_cut OR the CheXpert score >= chexpert_cut",
+  "detector_cut": 0.2239,
+  "chexpert_cut": 0.064,
+  "val": {
+   "n_with": 17,
+   "sensitivity": 0.941,
+   "specificity": 0.483
+  },
+  "test_or_rule": {
+   "n": 2250,
+   "n_with": 15,
+   "sensitivity": 0.867,
+   "specificity": 0.459
+  },
+  "test_detector_alone_old_cut": {
+   "n": 2250,
+   "n_with": 15,
+   "sensitivity": 0.533,
+   "specificity": 0.995
+  },
+  "test_auroc_detector": 0.829,
+  "test_auroc_chexpert": 0.727,
+  "test_auroc_max_rank": 0.845
+ },
+ "ich_grey": {
+  "original_cut_off": 0.5358,
+  "original_model_colour_input": {
+   "slice_auroc": 0.973,
+   "slice": {
+    "n": 30126,
+    "n_with": 15052,
+    "sensitivity": 0.906,
+    "specificity": 0.93
+   },
+   "patient_auroc": 0.988,
+   "patient": {
+    "n": 2558,
+    "n_with": 1073,
+    "sensitivity": 0.971,
+    "specificity": 0.899
+   }
+  },
+  "original_model_grey_input": {
+   "slice_auroc": 0.849,
+   "slice": {
+    "n": 30126,
+    "n_with": 15052,
+    "sensitivity": 0.419,
+    "specificity": 0.953
+   },
+   "patient_auroc": 0.904,
+   "patient": {
+    "n": 2558,
+    "n_with": 1073,
+    "sensitivity": 0.819,
+    "specificity": 0.844
+   }
+  },
+  "grey_model_cut_off_90pct_grey_val": 0.5822,
+  "grey_model_colour_input": {
+   "slice_auroc": 0.973,
+   "slice": {
+    "n": 30126,
+    "n_with": 15052,
+    "sensitivity": 0.899,
+    "specificity": 0.934
+   },
+   "patient_auroc": 0.987,
+   "patient": {
+    "n": 2558,
+    "n_with": 1073,
+    "sensitivity": 0.968,
+    "specificity": 0.897
+   }
+  },
+  "grey_model_grey_input": {
+   "slice_auroc": 0.968,
+   "slice": {
+    "n": 30126,
+    "n_with": 15052,
+    "sensitivity": 0.905,
+    "specificity": 0.916
+   },
+   "patient_auroc": 0.985,
+   "patient": {
+    "n": 2558,
+    "n_with": 1073,
+    "sensitivity": 0.973,
+    "specificity": 0.849
+   }
+  }
+ }
+}

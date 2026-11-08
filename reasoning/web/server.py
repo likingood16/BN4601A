@@ -30,6 +30,7 @@ from fastapi.staticfiles import StaticFiles                                 # no
 from pydantic import BaseModel                                              # noqa: E402
 
 import charting                                                             # noqa: E402
+import learning                                                             # noqa: E402
 
 # The client's actions (6 Nov 2026): where the patient is going. The last four mean the patient leaves the ED; the
 # organising doctor or triage nurse then clears them off the board (the case file is kept, under "Left the ED").
@@ -134,6 +135,12 @@ class Store:
                     p.status, p.progress = "error", "Server restarted during the AI step; press Re-run AI"
         self.images = (path.parent if path else HERE / "case_files") / "images"
         self.images.mkdir(parents=True, exist_ok=True)
+        # learning from use (learning.py): corrections are logged next to the board; no board file = nothing saved
+        self.learning = learning.FeedbackLog(path.parent / "learning") if path else None
+
+    def learn(self, kind, p, **data):
+        if self.learning is not None:
+            self.learning.add(kind, p.id, **data)
 
     def changed(self):
         self.version += 1
@@ -199,8 +206,9 @@ class Store:
         if p.visit is None:                         # first note: numbers -> urgency + level
             self._step(p, "Pulling out the numbers")
             text = "\n".join(n["text"] for n in p.notes)
-            if not p.fields:
-                p.fields, p.found = charting.extract_numbers(text)
+            if not p.fields:                        # rules + MedGemma both read them; disagreements go to the nurse
+                p.fields, p.found = charting.read_numbers(ai, text)
+                p.found["ai_fields"] = dict(p.fields)   # what the AI read, kept so a correction can be learned from
             if not p.fields.get("chief_complaint"):
                 self._step(p, "Writing the complaint line")
                 p.fields["chief_complaint"] = charting.complaint(ai, text)
@@ -215,22 +223,25 @@ class Store:
                 if img.get("text"):
                     continue
                 self._step(p, f"Reading image {img['name']}")
-                out = self.ai.read_image(p.visit, str(self.images / img["file"]), None, n["who"])
+                all_notes = "\n".join(x["text"] for x in p.notes)
+                out = self.ai.read_image(p.visit, str(self.images / img["file"]), None, n["who"],
+                                         age=p.fields.get("age"), note=all_notes)
                 img["kind"], img["text"] = out["kind"], out["text"]
-                found, chest = out.get("detector"), out.get("chest")
-                if found is not None:
-                    img["text"] += (f" Fracture detector: {found['n']} possible fracture(s) marked, check them."
-                                    if found["n"] else " Fracture detector: nothing marked (it misses about 1 in 5).")
-                if chest:
-                    img["text"] += " Chest X-ray check: " + ", ".join(f"{k} {v:.0%}" for k, v in chest["top"]) + "."
-                picture = (found or {}).get("overlay") if found and found["n"] else (chest or {}).get("overlay")
-                if picture is not None:
-                    img["overlay"] = self._save_picture(img, picture, "marked")
-                if found and found["n"]:                # detect -> segment: the strongest box goes to MedSAM, no clicking
+                m = out.get("models") or {}
+                if m.get("line"):
+                    img["text"] += " " + m["line"]
+                if m.get("sorted_by"):
+                    img["sorted_by"] = m["sorted_by"]
+                # plain numbers for the screen (pictures are saved as files, not kept in the record)
+                img["findings"] = [{k: v for k, v in f.items()} for f in m.get("findings", [])]
+                img["model"] = m.get("model")
+                if m.get("overlay") is not None:
+                    img["overlay"] = self._save_picture(img, m["overlay"], "marked")
+                if m.get("outline_box"):                # detect -> segment: the strongest box goes to MedSAM, no clicking
                     self._step(p, f"Outlining the marked area on {img['name']}")
-                    box = found["boxes"][max(range(found["n"]), key=lambda i: found["confs"][i])]
                     try:
-                        seg = self.ai.outline(p.visit, str(self.images / img["file"]), box, "AI (detector box)")
+                        seg = self.ai.outline(p.visit, str(self.images / img["file"]), m["outline_box"], "AI (detector box)",
+                                              fracture=m.get("outline_kind") == "fracture")
                         img["outline"] = self._save_picture(img, seg["overlay"], "outline")
                         img["text"] += f" Outline of the strongest mark: {seg['area_pct']:.1f}% of the picture."
                     except Exception as e:               # e.g. MedSAM not downloaded on this computer
@@ -281,16 +292,19 @@ class Store:
         typed = "\n".join(n["text"] for n in p.notes)
         if not self.test:                           # the small model sometimes asks for what's already recorded
             questions, todo = charting.drop_known(questions, f, typed), charting.drop_known(todo, f, typed)
-        # the pathway's own questions first (fixed, specific, minus any the notes answer), then MedGemma's; at most 5
+        # MedGemma writes the questions, steered by the AI pathway flags in `context` (ai-reasoning branch). The fixed
+        # pathway question lists only stand in for it in test mode. At most 5, no repeats.
+        fixed = charting.drop_known(charting.pathway_questions(p.visit.ed), f, typed) if self.test else []
         seen, merged = set(), []
-        for q in charting.drop_known(charting.pathway_questions(p.visit.ed), f, typed) + questions:
+        for q in fixed + questions:
             key = re.sub(r"\W+", " ", q.lower()).strip()
             if key not in seen:
                 seen.add(key)
                 merged.append(q)
         p.questions = merged[:5]
         have = {t["text"].lower() for t in p.todos}
-        for text, by in [(t, "ED rules") for t in charting.pathway_todos(p.visit.ed)] + [(t, "AI") for t in todo]:
+        flags_by = "ED rules (test mode)" if self.test else "AI pathway model"
+        for text, by in [(t, flags_by) for t in charting.pathway_todos(p.visit.ed)] + [(t, "AI") for t in todo]:
             if text.lower() not in have:
                 have.add(text.lower())
                 p.todos.append({"text": text, "done": False, "ai": True, "by": by})
@@ -411,10 +425,19 @@ def fix_numbers(pid: str, body: FieldsIn):
             continue
         clean[k] = v if k in ("sex", "mental", "chief_complaint") else float(v)
     old = p.visit.decision.level if p.visit else None
+    ai_read = p.found.get("ai_fields", p.fields)
+    changed = sorted(k for k in set(ai_read) | set(clean) if k != "chief_complaint" and ai_read.get(k) != clean.get(k))
+    if changed:
+        store.learn("numbers_corrected", p, notes=[n["text"] for n in p.notes], ai_read=ai_read, corrected=clean,
+                    changed=changed, who=body.who)
     with store.lock:
         before = p.visit
         p.fields = clean
         p.found["checked_by"] = body.who
+        # a nurse has looked: readings the two readers disagreed on are now settled
+        p.found["by"] = {k: ("nurse" if v == "check" or k in changed else v) for k, v in p.found.get("by", {}).items()}
+        p.found["check"] = []
+        p.found["warnings"] = [w for w in p.found.get("warnings", []) if not w.startswith("please check")]
         p.visit = store.ai.triage(clean, explain=False)
         if before:                                  # keep everything learned since arrival; only the card + decision change
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
@@ -453,6 +476,8 @@ class BoardIn(BaseModel):
     stage: str | None = None
     doctor: str | None = None
     cleared: bool | None = None
+    diagnosis: str | None = None                    # final diagnosis, typed when the patient leaves (optional)
+    final_level: int | None = None                  # the level the clinician judges was right (optional)
 
 
 def _editor(role):
@@ -464,6 +489,8 @@ def _editor(role):
 def set_board(pid: str, body: BoardIn):
     _editor(body.role)
     p = store.get(pid)
+    if body.final_level is not None and not 1 <= body.final_level <= 5:
+        raise HTTPException(400, "level must be 1-5")
     change = []
     if body.stage and body.stage != p.stage:
         if body.stage not in STAGES:
@@ -478,10 +505,36 @@ def set_board(pid: str, body: BoardIn):
             raise HTTPException(400, "Set where the patient went (surgery, transfer, ward or home) before clearing")
         change.append("cleared from the board (left the ED)" if body.cleared else "put back on the board")
         p.cleared = body.cleared
+        if body.cleared:
+            _log_outcome(p, body)
     if change and p.visit:
         p.visit.log("Board", "; ".join(change), body.who)
     store.changed()
     return {"ok": True}
+
+
+def _log_outcome(p, body):
+    """The patient left the ED: one labelled case for learning.py (what the AI said at arrival vs what happened)."""
+    d = p.visit.decision if p.visit else None
+    flags = re.search(r"Pathway flags: (.*)", (p.visit.ed if p.visit else "") or "")
+    store.learn("outcome", p, stage=p.stage, diagnosis=(body.diagnosis or "").strip(), final_level=body.final_level,
+                fields={k: v for k, v in p.fields.items() if k != "chief_complaint"}, complaint=p.complaint(),
+                ai_level=d.level if d else None, p_urgent=d.p_urgent if d else None, flagged=d.flagged if d else None,
+                floor_priority=d.floor_priority if d else None, pathway_flags=flags.group(1) if flags else "",
+                ai_todos=[{"text": t["text"], "done": t["done"]} for t in p.todos if t.get("ai")], who=body.who)
+    if store.learning is not None and p.visit is not None:
+        store.learning.save_vector(p.id, getattr(p.visit, "vector", None))
+    if p.visit:
+        p.visit.log("Outcome", f"final diagnosis: {body.diagnosis or 'not given'}; level judged right: "
+                    f"{body.final_level or 'not given'}", body.who)
+
+
+@app.get("/api/learning")
+def learning_status():
+    """What has been collected for learning, and how the AI is doing in real use (from the corrections)."""
+    if store.learning is None:
+        return {"enabled": False}
+    return {"enabled": True, **store.learning.summary()}
 
 
 class TodoIn(BaseModel):
@@ -516,6 +569,9 @@ def change_todo(pid: str, i: int, body: TodoIn):
     else:
         t["done"] = bool(body.done)
         what = f"{'done' if t['done'] else 'not done'}: {t['text']}"
+    if t.get("ai"):                                 # monitoring only: ticking an AI to-do is not proof it was needed
+        store.learn("todo", p, text=t["text"], by=t.get("by", "AI"),
+                    action="removed" if body.delete else ("done" if t["done"] else "not done"), who=body.who)
     if p.visit:
         p.visit.log("To do", what, body.who)
     store.changed()

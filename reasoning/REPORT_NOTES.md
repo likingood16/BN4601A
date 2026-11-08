@@ -657,6 +657,439 @@ patient is trained on. Test accuracy is reported per source (`labels_v2.csv`, `a
 - Results: `outputs/metrics/stress_chrome_load.json`, `stress_chrome_load2.json`, `stress_ab_noboard.json` and
   `stress_ab_board.json`.
 
+### 5l. All-AI reasoning (git branch `ai-reasoning`, 8 Nov 2026; the rules version is kept on `rules-reasoning`)
+The user asked for every reasoning step to be AI, even if slower. What changed:
+
+| Step | Rules version (branch rules-reasoning) | AI version |
+|---|---|---|
+| ED pathway flags (stroke, chest pain, sepsis, ...) | words in the complaint (ed_assessment.PATHWAYS) | 7 trained heads on MedGemma's vector of the card (`pathway_heads.py`) |
+| Pathway questions | fixed lists per pathway | MedGemma, steered by the AI flags |
+| Numbers from the note | regex patterns | MedGemma reads them and quotes the words; a value whose words aren't in the note is left out with a warning |
+| Filing later notes | keyword rules per heading | MedGemma picks the heading for each piece; the words go in as typed |
+
+Unchanged: Caleb's vitals model and safety floor (Model 2, not ours to replace) and plain formatting steps.
+
+**Pathway heads** (`pathway_heads.py`, `outputs/metrics/pathways__base4bit.json`):
+- **Model:** logistic regression per pathway on the same base4bit vectors as the urgency head. C is chosen on
+  validation, and the cut-off is set on validation to catch 90%.
+- **Answer key:** the final diagnosis is in the pathway's group (NHAMCS ICD-10 DIAG1-5, KTAS diagnosis names), or the
+  complaint names it. The diagnosis is never an input.
+- **Test (1,452 patients), AI vs the old app's word rules:**
+
+  | Pathway | Test patients | AUROC | AI caught / normal unflagged | Rules caught / normal unflagged | Hidden* caught, AI / rules |
+  |---|---|---|---|---|---|
+  | Chest pain | 147 | 0.91 | 0.84 / 0.84 | 0.74 / 1.00 | 39% / 0% |
+  | Stroke | 21 | 0.93 | 0.90 / 0.81 | 0.67 / 0.96 | 87% / 53% |
+  | Breathing | 190 | 0.96 | 0.90 / 0.88 | 0.71 / 1.00 | 66% / 0% |
+  | Collapse/syncope | 46 | 0.92 | 0.89 / 0.82 | 0.39 / 1.00 | 82% / 0% |
+  | Seizure | 24 | 0.95 | 0.92 / 0.89 | 0.75 / 1.00 | 67% / 0% |
+  | Poisoning | 22 | 0.89 | 0.68 / 0.94 | 0.27 / 1.00 | 62% / 0% |
+  | Infection | 189 | 0.87 | 0.92 / 0.56 | 0.42 / 1.00 | 86% / 0% |
+
+  *Hidden = the diagnosis needed the pathway but the complaint words don't say so (e.g. "mental change" that was a
+  stroke, "right hemiparesis" that the rule word "hemipleg" misses).
+- **Reading it:** the AI catches more on every pathway, but raises more false flags (infection: 44% of patients
+  without infection flagged). The rules' specificity of 1.00 is partly built in, since the answer key includes the
+  complaint words. Poisoning (68%) is the weakest.
+- **Small numbers:** stroke, seizure and poisoning have about 20 test patients each.
+
+**Safety checks kept (checks, not reasoning):**
+- a number whose quoted words aren't in the note is dropped;
+- a filing answer that can't be read puts the piece under History, so nothing typed is lost.
+- Tested with a fake model: an invented "RR 22" and a wrong "HR 120" are left out with a warning; a broken answer
+  gives a warning, not a crash.
+- Test mode (laptop, no MedGemma) still uses the rules as stand-ins. `test_app.py` 56/56.
+
+**Full app, real AI, all-AI reasoning** (`outputs/real_ai_check_ai.md` on vanda, job 1531377; same 10 notes as run 4):
+- **Same as the rules version:** 0 errors, urgent flagged 2/2, level within one 7/8, image type 9/10, imaging in the
+  case file 10/10, edits kept.
+- **Worse than the rules version:**
+  - **Same patient written 3 ways:** no longer the same flag and level (urgency 0.12 / 0.14 / 0.46). AI number
+    reading varies with the wording; the rules gave identical fields.
+  - **False pathway to-dos:** "Chest pain: ECG" on anal pain, painful urination and a wrist injury; "possible
+    stroke" on lightheadedness.
+  - **Questions without the fixed pathway lists:** often generic or invented ("last known time of consciousness
+    (LSTC)?", "patient's full name / date of birth?", "age?" when the note has it), as on 7 Nov.
+  - **A missed BP in a long case report** ("Blood pressure on arrival was 113/67"), so the app asked for it.
+- **Verdict:** not a success yet. The AI flags win on reworded notes, but in the full app they are too noisy, and the
+  question writing and number reading are less reliable than the rules they replaced.
+
+**Pathway flags, reworded notes (real AI, `pathways_reworded.json`, 15 test patients per pathway):**
+- AI with the reworded complaint: chest pain 100%, stroke 100%, breathing 93%, collapse 100%, seizure 100%,
+  poisoning 100%, infection 100%.
+- Old word rules on the same reworded complaints: **0% on every pathway**.
+- With the real complaints: AI 67-100%, rules 20-87%.
+- **Problem:** 68% of test patients who needed no pathway got at least one flag (1.08 flags each on average).
+  - **By pathway:** infection causes most of them (45%), then stroke 17%, collapse 16% and chest pain 13%.
+  - **Fix 1, infection answer key:** narrowed to infections that can become sepsis (no more "any A/B code"). Infection
+    false flags went 45% -> 36%, any false flag 68% -> 64%; infection caught 92% -> 87%.
+  - **Fix 2, a bigger model:** a small neural net on the same vectors was no better (val AUROC 0.86-0.97 vs logistic
+    0.88-0.98), so the limit is data, not the model. Stroke, seizure and poisoning have only about 90 training
+    patients each.
+  - **Next step:** more NHAMCS years (2019-2021, public domain, about 2-3 MB each), waiting for the user's OK.
+  - **Cut-off trade-off on test:**
+
+    | Setting | Any false flag | What it costs |
+    |---|---|---|
+    | Time-critical pathways 90%, others 80% | 55% | breathing caught 76%, infection 81% |
+    | All pathways 75% | 30% | everything caught about 70% |
+
+    Kept at 90% for now: a missed stroke costs more than an extra to-do.
+
+**MedGemma number reading, first try** (190 KTAS test notes, `charting_numbers_test_ai_try1.json`):
+- 88.9% of vital signs correct (rules: 100%); **0 wrong and 0 invented** vital signs, because the quote check works.
+- Misses:
+
+  | Problem | How often |
+  |---|---|
+  | Diastolic BP missing (it gave only the top number) | 48% |
+  | Consciousness missing ("alert", "AVPU A", "GCS 15" not reported) | 33% |
+  | BIBA not read as ambulance | 13 notes |
+  | "Injured" claimed for illness pain (chest or abdominal pain) | 66 notes |
+
+- **Second try** (job 1531532): clearer instructions (abbreviations, "alert counts", "injury = trauma only"), the BP
+  quote split, and 600 tokens. Tuned on 150 TRAIN notes, then the test notes once. If it is still short of the
+  rules, the next step is a small LoRA for number reading.
+
+**Real-AI tests queued** (`hpc/jobs/ai_reasoning_check.pbs`, job 1531377):
+1. MedGemma number reading on the 190 KTAS test notes, clean and messy (the rules score 100%).
+2. Pathway flags on reworded complaints ("passed out at church", "fitting at home") vs the rules
+   (`pathway_reworded_check.py`).
+3. The full app, real-AI 10-note check.
+
+**Number reading, second try results** (job 1531532, 190 KTAS test notes): clean 88.8% correct, 0 wrong or invented
+(try 1: 88.9%); messy 89.4%, 1 wrong (try 1: 86.5%). The clearer instructions helped the messy notes a little, not the
+clean ones; still short of the rules (100%).
+
+**Pathway flags, structure test** (8 Nov, laptop CPU, `outputs/metrics/pathway_structures.json`): 7 layouts on the
+same 1,452 test patients, every cut-off chosen on validation only. "Caught" = average over the 7 pathways; "hidden" =
+patients who needed the pathway although the complaint words don't say so; "false" = share of the 944 patients who
+needed no pathway that got at least one flag.
+
+| Structure | Caught | Hidden caught | False | Flags per patient |
+|---|---|---|---|---|
+| Old word rules | 0.56 | 0.03 | 4% | 0.30 |
+| 7 separate heads on the vector, 90% each (tries 1-2, in the app) | 0.86 | 0.73 | 64-69% | 1.58 |
+| 7 heads on the complaint words only (TF-IDF) | 0.87 | 0.69 | 80% | 1.87 |
+| 7 heads on vector + words | 0.86 | 0.71 | 61% | 1.41 |
+| Same, 80% each | 0.75 | 0.45 | 33% | 0.73 |
+| Time-critical pathways 90%, others 75% | 0.74 | 0.39 | 41% | 0.93 |
+| Only the strongest 1 / 2 flags | 0.60 / 0.79 | 0.38 / 0.57 | 61% | 0.74 / 1.13 |
+| One shared false-flag budget of 30% / 20% (on val) | 0.70 / 0.66 | 0.37 / 0.29 | 26% / 18% | 0.62 / 0.50 |
+| **Gate "needs any pathway?" (90%) + 7 heads (90%), vector + words** | **0.81** | **0.60** | **31%** | 1.13 |
+
+- **Chosen: gate + heads** (`pathway_heads.PathwayFlagger`, try 3, in the app now). It halves the false flags for a
+  small loss in catch, and still catches more than the rules on every pathway. Per pathway, AI vs rules: chest pain
+  0.87 / 0.74, stroke 0.86 / 0.67, breathing 0.89 / 0.71, collapse 0.80 / 0.39, seizure 0.88 / 0.75, poisoning
+  0.64 / 0.27, infection 0.75 / 0.41.
+- **Why not lower:** the false flags are often clinically arguable (dizziness or "mental change" flagged as possible
+  stroke, cough as breathing, abdominal pain as infection), but the answer key counts them as wrong because the final
+  diagnosis was something else. The limit is the labels and the data (88 stroke patients in training), not the model:
+  a small neural network was not better.
+- **Words are learned too:** the complaint-words part is a TF-IDF logistic regression trained on the same answer key,
+  not hand-written rules.
+
+**AI question writer** (8 Nov, `make_question_data.py`, `question_check.py`, job 1532070):
+- **Problem:** in the full-app check the 4B model's own questions were often useless ("LSTC", "full name", "age?"
+  with the age on the card).
+- **Training data:** one example per Pool 1 patient (same train/val/test split).
+  - Input: what the app gives the question step: the patient line, the AI pathway flags (the real ones for that
+    patient, plus a wrong one 25% of the time), and a case file from a messy note. Some values, onset, allergies and
+    medicines are written, some not.
+  - Answer: the clinician questions for each pathway the patient really needed (final diagnosis), then the
+    important missing values, then onset, allergies or medicines if not written. Never something already in the note.
+  - So the model learns to ask about the real problem, and to ignore a flag the note doesn't support.
+- **Adapter:** a LoRA started from the task adapter, used only for the questions step, 1 pass, 1,000 old examples
+  mixed in.
+- **Test:** 150 held-out test patients, current adapter vs trained one. Measures: valid answers; asks for something
+  already known; junk (identity details or 1-word fragments); asked the real pathway's question. The targets
+  themselves score 0.2% / 0% / 98% on this test, so the scorer is fair.
+- **Result** (job 1532070, 22 min of training, val loss 0.325; `outputs/metrics/question_check.json`):
+
+  | 150 held-out test patients | Current task adapter | Trained questions adapter |
+  |---|---|---|
+  | Valid answer | 100% | 100% |
+  | Asks for something the note already has | 65% | **11%** |
+  | Junk (name, address, 1-word fragment) | 0% | 0% |
+  | Asks the real pathway's question (patients who needed one) | 20% | **78%** |
+
+  MedQA (letter method) 51.5% vs 56% before; the adapter is used only for the questions step, so the explanation
+  and SBAR are unchanged.
+
+**Full app, real AI, all-AI try 2** (job 1532071, gate + heads flags, questions adapter; `outputs/real_ai_check_ai_try2.md`):
+- 0 errors, urgent flagged 2/2, level exact 4/8 (rules run 4: 3/8), within one 7/8, image type 9/10, questions 20/20.
+- **Faster:** median 26 s per patient (rules run 4: 38 s; try 1: 28-62 s).
+- **Questions now clinical and specific** (e.g. chest pain: "spread to arm, jaw or back?", "known heart disease?";
+  injury: "mechanism of injury?", "on blood thinners?"); no more "LSTC", names or "age?".
+- **Pathway flags with the real model** (`pathways_reworded_try3.json`): patients needing no pathway with any flag
+  **68% → 22%**; reworded complaints still caught 80-100% (rules 0%).
+- **Still failing: the same patient written 3 ways.** Urgency 0.12 / 0.14 / 0.46 and the first is not flagged (rules
+  version: 0.135 / 0.141 / 0.166, all flagged). The complaint words are the same as in the rules run, so the cause is the
+  AI number reading (try 1: consciousness missed in 33%, diastolic BP in 48%); a missed value changes the card and
+  can stop the vitals floor firing. Next: a small LoRA for number reading (training notes are made from known values).
+
+**Fracture, adult cut-off** (job 1532072, cut-off set on 82 adult FracAtlas validation fractures, `external_tests.json`):
+
+| 463 adult FracAtlas test X-rays (63 fractured) | AUROC | Caught | Normal unflagged |
+|---|---|---|---|
+| v2, shared cut-off (in 5k-3) | 0.843 | 22% | – |
+| v2, adult cut-off | 0.843 | 89% | 50% |
+| **v3 (adult X-rays repeated 4x), adult cut-off** | **0.879** | **82.5%** | **77%** |
+
+v3 is better for adults and the same for children (GRAZ AUROC 0.989). The app knows the patient's age, so it can use
+the adult cut-off for adults and the children's cut-off for children.
+
+### 5k-3. Second rubric round, image models (8 Nov 2026)
+- **Image sorter v2** (with hospital pictures):
+  - 93.5% overall test accuracy: MultiCaRe 92.2%; VinDr, GRAZ and RSNA 100%; FracAtlas 99.3%.
+  - Extra tests: 200/200 right on each of VinDr, GRAZ, FracAtlas and RSNA test pictures, and on the pneumonia set
+    (never trained on).
+  - MultiCaRe 280 held out: 91.1%. Bone X-ray is the lowest at 82.5%.
+- **Fracture v2, re-scored:**
+  - Per-X-ray AUROC 0.983, sensitivity 0.82 / specificity 0.99 at the validation cut-off.
+  - **Split by source:** GRAZ children's wrists AUROC 0.986, caught 84%. FracAtlas adults AUROC 0.843, **caught only
+    22%**.
+  - The cut-off was set mostly by the 1,830 GRAZ fractures, so adults (most ED patients) are badly served.
+  - **Fixes:** (1) a cut-off set on adult validation X-rays (`eval_external.py fracture_adult`); (2) fracture v3, with
+    the adult training X-rays repeated 4x (`detector/prepare_v3.py`).
+- **The rubric's own flaw (fixed):** the first pass graded "100% caught" as Excellent when it came from flagging every
+  picture (specificity 0). Catch rates now only count when specificity is at least 0.5.
+- **Chest, re-scored (per X-ray, one image at a time):**
+  - The 4 findings that "flagged everything" now have real cut-offs: pneumothorax 0.53 / 0.99, consolidation
+    0.71 / 0.98, calcification 0.69 / 0.95, other lesion 0.69 / 0.89 (caught / unflagged).
+  - Other findings are unchanged: effusion 0.82 / 0.98, cardiomegaly 0.82 / 0.98.
+- **Chest, other hospital:** the pneumonia set (624 children's X-rays, Guangzhou, never trained on). The detector's
+  highest of consolidation / lung opacity / infiltration gives AUROC 0.89, caught 0.85, unflagged 0.82.
+- **Chest, detector vs the CheXpert classifier on the same pictures:**
+  - On VinDr test the classifier is worse: AUROC pneumothorax 0.73, effusion 0.86, cardiomegaly 0.87, pneumonia
+    0.83, against the detector's 0.83 / 0.97 / 0.98 / 0.85.
+  - On the pneumonia set they're about equal (0.90 vs 0.89).
+  - So the detector decides and draws the boxes; the planned switch to the classifier was rejected.
+- **Head CT, per patient** (any slice above the validation cut-off), 2,558 RSNA test patients:
+  - AUROC 0.988; **97.1% of patients with a bleed caught**, 89.9% of patients without one left unflagged.
+  - Caught by type: epidural 97.6%, intraparenchymal 98.2%, intraventricular 99.8%, subarachnoid 99.2%, subdural
+    97.3%.
+  - Caveat: this RSNA copy has about 50% bleed slices, more than a real ED.
+- **MultiCaRe caption tests:** too few positives (1-3 per finding) to mean anything; reported only as such.
+- **Grades now:**
+  - **Head CT:** Excellent/Good.
+  - **Sorter:** Good/Excellent.
+  - **Fracture:** Excellent for children's wrists, Poor for adults → v3 training (job 1531401).
+  - **Chest:** Good to Excellent for effusion, enlarged heart and pneumonia; **Poor for pneumothorax** (53% caught).
+    Fixing that needs pneumothorax training data (the SIIM-derived set, 4.8 GB, waiting for the user's OK).
+
+### 5m. Learning from use (`src/learning.py`, 8 Nov 2026, branch ai-reasoning)
+- **What the app collects while people work** (`web/case_files/learning/`, gitignored with the board):
+  - a nurse's number fix (the note, what the AI read, the correction);
+  - an AI to-do ticked or removed (monitoring only);
+  - when a patient is cleared: optional **final diagnosis** and **level the clinician judges was right**, typed in two
+    small boxes next to "Clear from board", plus what the AI said at arrival and MedGemma's vector of the card.
+- **What the update does** (`python learning.py --update`, CPU, minutes):
+  - retrains the urgency head and the pathway flagger with the same methods as before, on the original training
+    patients + 80% of the patients seen in use;
+  - cut-offs are still chosen on the original validation patients;
+  - the other 20% of in-use patients are kept to report how the candidate does on real use.
+- **Safety gate, fixed in advance**, on the original frozen test patients. The candidate replaces the current model
+  only if:
+  - urgency AUROC falls by at most 0.01 on KTAS and on NHAMCS;
+  - no fewer urgent patients are flagged;
+  - pathways caught fall by at most 2 points;
+  - false pathway flags rise by at most 2 points.
+  Old files are kept (`models/heads/versions/`); `--rollback` restores them; every run goes to
+  `outputs/learning/updates.json` and `CHANGELOG.md`; the whiteboard shows the model version.
+- **Design choices (for the report):**
+  1. No live learning inside the app. A model that changes mid-shift can't be checked. This follows the FDA's
+     "predetermined change control plan" idea (final guidance Dec 2024): what may change, how it is tested, and
+     what must not get worse are written down before any change.
+  2. Labels come from the final diagnosis and level, never from "the nurse accepted the AI's to-do". Otherwise the
+     AI teaches itself to repeat its own suggestions (a feedback loop, automation bias).
+  3. Number fixes become training data for the number-reader adapter (GPU job), not for the heads.
+- **Tests:**
+  - App button test 61/61, including 5 new learning checks.
+  - Plumbing check (40 fake in-use patients copied from training patients, models in a temporary folder): fewer
+    than 20 patients → nothing changes.
+  - With 40 patients the gate **refused** the candidate: 2 more urgent NHAMCS test patients missed (sensitivity
+    0.830 → 0.821) although AUROC rose. This shows the gate working.
+  - With the gate loosened (test only): switch worked, and the rollback restored the exact files.
+  - This is a check of the mechanism, not a learning result. A real one needs new patients, e.g. NHAMCS 2019-2021
+    used as "patients seen in use".
+
+### 5n. Whole-app evaluation, all branches, vs deployed systems (8 Nov 2026)
+**Branches** (laptop button test = every button through the back end, test mode; real-AI = vanda A40, 10 notes +
+10 pictures):
+
+| Branch | What it is | Button test | Real-AI full app |
+|---|---|---|---|
+| `reasoning` / `ed-app-v2` (2 Nov) | first one-screen Gradio desk, form input | not re-run (needs the old Gradio app running) | pipeline check 20/20 valid (5i) |
+| `fixed-models` (7 Nov) | chart-first React + FastAPI app, rules reasoning, tuned MedSAM | 55/56* | runs 0-3: 0 errors, urgent 2/2, within one 7/8 |
+| `rules-reasoning` (8 Nov) | + stress-test fixes; new image models trained but not wired in | 55/56* | run 4: 0 errors, 38 s/patient, same patient 3 ways: same flag and level |
+| `ai-reasoning` (working tree, uncommitted) | AI pathway gate + heads, questions adapter, AI number reading and filing, learning from use | **61/61** | try 2: 0 errors, 26 s/patient, level exact 4/8, clinical questions; **same patient 3 ways: not consistent** |
+
+*The 1 failure is "screens are served": the built screens aren't in git, so the scratch copy had none. All
+functional checks pass. First runs failed the image step because the laptop ran out of memory (2.6 GB free) with
+extra servers open; after closing them all passed.
+
+**Other tests (8 Nov):** Caleb's vitals tests 8/8; number reading by rules 100% (clean and messy, 190 KTAS test
+notes), by AI 88.8% / 89.4% with 0 / 1 wrong. Stress test, current tree (450 held-out patients, 8 at once, test
+mode, `stress_laptop_8nov.json`): 0 errors, numbers 2,535/2,535, board 41 ms, urgent caught 81% (KTAS 89%, NHAMCS
+73%; test mode scores with Caleb's vitals model, not the MedGemma head).
+
+**Against published deployed systems** (same kind of task; their tests are bigger and often vendor-funded):
+
+| Task | Ours (held-out test) | Deployed / published | Main difference |
+|---|---|---|---|
+| ED urgency | AUROC 0.90 KTAS, 0.81 NHAMCS; under-triage 11% / 17% at the app's cut-off | e-triage (Levin 2018, 172,726 visits): AUROC 0.73-0.92; Raita 2019 (NHAMCS 2007-15, 135,470 visits): critical care 0.86, hospitalisation 0.82; KATE: ESI accuracy 76% vs nurses 60% | similar discrimination, ~15x less data, our label is the nurse's level not the outcome; nobody meets the 5% under-triage target; no prospective test for us |
+| Fracture X-ray | children's wrist AUROC 0.989; adults v3 0.879, caught 82.5% / 77% normal unflagged | BoneView: 90.9% / 82.1% or 79.2% / 96.5% (FDA); children 91.3% / 90.0%; Kuo 2022 meta-analysis pooled 92% / 91% | adults behind (574 adult fractures vs tens of thousands); children on par |
+| Chest X-ray | effusion AUROC 0.97, cardiomegaly 0.98, pneumothorax 0.83 (caught 53%) | Annalise pneumothorax AUROC 0.979, 93.9% / 92.2% (FDA, 949 X-rays); Lunit ED AUROC 0.88-0.999 | pneumothorax far behind: VinDr has few pneumothorax cases; Annalise trained on ~800k X-rays |
+| Head CT bleed | per patient AUROC 0.988, caught 97.1%, 89.9% unflagged | Aidoc FDA 93.6% / 92.3% and 96.2% / 94.8%; independent sites 84-99% sensitivity, PPV ~81% | on par on RSNA, but RSNA is ~50% bleeds; at real ED rates (a few %) most flags would be false, as for Aidoc |
+| Notes → numbers | rules 100%, AI 89% on template notes | ambient scribes (DAX, Abridge): omissions the most common error, hallucinations rarer but present (NEJM AI 2025 RCT; Frontiers 2025) | ours reads typed notes, not speech; template notes are easier than real ones |
+| LLM triage level | MedGemma alone misses most urgent (under-triage 63-82%), so it never decides | GPT-4 ESI accuracy 70-77% in small studies, tends to over-triage | we keep the decision in the trained head + floor |
+
+**Is it a good clinical program?** A strong research prototype, not ready for clinical use:
+- **Good:** the urgency score is in the published range; the bleed and children's fracture models are on par with
+  cleared products on public test sets; the language model never decides urgency; every number shows its source;
+  every AI item is marked; the record keeps who did what; models change only through a tested update.
+- **Not yet:**
+  - under-triage is 11-17%, against a 5% target;
+  - the best image models aren't in the app yet;
+  - pneumothorax and adult fractures are behind deployed tools;
+  - AI number reading is 89%, and it makes the same patient score differently;
+  - every test is retrospective, on public data and template notes;
+  - no clinician has used it (no SUS or task study yet);
+  - no regulatory or data-protection process.
+- **Next step a hospital would want:** a silent (shadow) prospective run, where the app scores real patients but
+  nobody sees the output, compared with what actually happened.
+
+### 5o. Fix plan: what, why, and the research behind it (8 Nov 2026; deadline 16 Nov)
+**Priority 1: no new data needed**
+
+| # | Fix | Why (our result) | Research behind it | Done when |
+|---|---|---|---|---|
+| 1 | Put the new image models in the app: sorter v2, fracture v3, VinDr chest detector (keep CheXpert for pneumonia), head-CT bleed model, MedSAM outlines on the boxes | App still runs detector v1 (caught 81% / 73% normal unflagged) and has no head-CT model. The new ones score better on held-out tests (adult fracture AUROC 0.879, bleed 0.988, effusion 0.97) | Deployed tools use one model per task (Aidoc for bleeds, BoneView for fractures, 5n). MedSAM turns a box into an outline (Ma 2024). Heat-map boxes are rougher than a radiologist's (Saporta 2022), so the app labels them "rough area" | App test passes with all models; 10-picture real-AI check |
+| 2 | Fracture cut-off chosen by age (child / adult) | One cut-off for everyone: v2 left only 50% of normal adult X-rays unflagged. Adult cut-off on v3: 82.5% caught, 76.7% unflagged | One cut-off for all groups can miss more in one group (Seyyed-Kalantari 2021). Most fracture-AI evidence is in adults; results in children differ and need their own check. TRIPOD+AI asks for results per group (Collins 2024) | Each cut-off chosen on validation, reported on test, per age group |
+| 3 | Number reader: train a small "numbers" adapter on generated notes; compare it with the rule reader on every patient; if they disagree, show both and ask the nurse | AI reading is 89% vs rules 100%. The same patient written 3 ways gave urgency 0.12 / 0.14 / 0.46 (it missed consciousness or diastolic BP) | Fine-tuned small models match or beat prompted large ones for clinical extraction (ELMTEX 2025; QLoRA clinical extraction 2025). Wording changes alone move LLM accuracy (Sclar 2024), so a consistency test is needed. Leaving things out is the most common scribe error (5n) | ≥ 99% fields right, 0 wrong numbers, same patient 3 ways → same flag and level |
+| 4 | Pneumothorax cut-off retuned on validation for higher catch | Only 53% caught | Cut-offs are chosen on validation and reported on test (TRIPOD+AI). Cleared tools run at about 94% catch (Annalise, 5n). Retuning only moves along the same curve (AUROC 0.83), so fix 6 is the real fix | Catch ≥ 80% on test, with the false-flag cost reported |
+| 5 | Add a "95% catch" urgency cut-off and report what it costs | Under-triage is 11-17% at the app's cut-off | The ACS target is under-triage < 5%, with 25-35% over-triage accepted. Decision curves show whether the extra flags are worth it (Vickers 2006) | Under-triage and over-triage on KTAS + NHAMCS test |
+
+**Priority 2: needs downloads (ask first)**
+
+| # | Fix | Why | Research | Size |
+|---|---|---|---|---|
+| 6 | SIIM-ACR pneumothorax X-rays (on vanda) | VinDr has few pneumothorax cases; Annalise trained on about 800k X-rays | More examples of the rare finding is the main lever (5n comparison) | ~4.8 GB |
+| 7 | NHAMCS 2019-2021 (CDC, public domain) | More urgent patients; a real "learning from use" test: older years = training, newer years = "seen in use" | Raita 2019 reached AUROC 0.86 with 135k NHAMCS visits. Patients and coding change over time (Finlayson 2021), so testing on later years (temporal validation, TRIPOD+AI) is fairer than a random split | ~2-3 MB each |
+| 8 | Adult fracture X-rays (Bone Fracture Multi-Region), head-CT sets | 574 adult fractures vs tens of thousands for cleared tools | Same as 6 | 505 MB; 26 MB; 95 MB |
+
+**Priority 3: prove it works**
+
+| # | Step | Why | Research |
+|---|---|---|---|
+| 9 | Re-run the full app with the real AI on vanda + a real-AI stress test, then rubric round 3 | Laptop tests are test mode; most parts changed since the last real run | Test the whole system, not just each model (DECIDE-AI, Vasey 2022) |
+| 10 | Usability test: group members run 5-10 cases each; time, errors, SUS score | No person has used the app yet | DECIDE-AI asks for human-factors results in early clinical studies. SUS (Brooke 1996); about 68 is average (Bangor 2009) |
+| 11 | Report a silent trial as the next real-world step (not doable before 16 Nov) | All tests are retrospective | Silent trials catch drift and bias before patients are affected (Kwong 2022) |
+
+**Why learning from use is built this way (already done, 5m):**
+- Updates happen offline, behind a fixed gate: FDA PCCP guidance (Dec 2024).
+- Labels come from outcomes, not from accepted AI suggestions. If clinicians act on a model's output, retraining on that data can make the model worse (Adam 2020; Vaid 2023). People also tend to accept AI suggestions without checking (automation bias, Goddard 2012).
+
+### 5p. Fix plan, priority 1 done (8 Nov 2026 evening, branch ai-reasoning, uncommitted)
+**1-2. New image models in the app** (`src/image_models.py`, CPU, used by the real pipeline and by test mode):
+- **Sorter v2** replaces MedGemma's guess.
+- **Fracture v3** with an age cut-off: child < 18 uses 0.6636; adult or age unknown uses 0.0137.
+  - Check on the 63 FracAtlas adult test fractures: 52 marked (82.5%), as in 5o.
+  - IMG0003297 is one of the misses (it was the old app test's picture).
+- **VinDr chest detector**, one cut-off per finding (80% catch on validation).
+  - Only ED findings are red and boxed: pneumothorax, effusion, pneumonia-type shadowing, cardiomegaly, aortic
+    enlargement, nodule/mass, atelectasis.
+  - Chronic findings are listed as "also seen". The first laptop test flagged 4-6 findings per abnormal X-ray.
+  - Pneumonia uses the detector, not CheXpert: on the children's pneumonia set 85% / 82% vs CheXpert 97% / 51%.
+- **Head-CT bleed model**, plus a Grad-CAM box ("rough area"), runs only when the notes mention the head (CT head,
+  fall, GCS, headache ...), so a body CT never gets a bleed score.
+- **MedSAM** outlines the strongest box (the fracture-tuned MedSAM for fractures, when on the computer).
+- **Downloads blocked:** test mode never downloads weights.
+  - CheXpert's weights were copied from vanda (the same public file the app already used there).
+  - An automatic GitHub download attempt by torchxrayvision failed before that and saved nothing.
+- **App button test 64/64** (3 new image checks: sorter + adult cut-off, chest model, head-CT gate).
+
+**4. Pneumothorax** (`vision/app_cutoffs.py`, job 1533183; VinDr val 17 / test 15 pneumothoraces):
+
+| Rule | Test caught | Normal X-rays unflagged |
+|---|---|---|
+| Detector box alone (old) | 53% | 99.5% |
+| Detector OR CheXpert (cut-offs set together on val for >= 90% catch) | 86.7% | 45.9% |
+
+Flagging half of all chest X-rays as "pneumothorax" would be alarm fatigue. So the app shows **two levels**:
+- red = the detector's box;
+- amber "possible pneumothorax, check the lung edges" = CheXpert only.
+
+Detector + CheXpert by rank: AUROC 0.845 (detector 0.829, CheXpert 0.727). The real fix is more pneumothorax X-rays
+(SIIM, 5o item 6).
+
+**5. Urgency "95% catch" cut-off** (`outputs/metrics/urgency_cutoffs_95.json`; head + safety floor; test patients):
+
+| Cut-off set on | Target | KTAS under-triage | KTAS non-urgent flagged | NHAMCS under-triage | NHAMCS non-urgent flagged | All patients flagged |
+|---|---|---|---|---|---|---|
+| KTAS val (app now) | 90% | 10.8% | 29.4% | 17.0% | 36.7% | 41-45% |
+| KTAS + NHAMCS val | 90% | 8.1% | 43.8% | 9.4% | 49.6% | 53-57% |
+| KTAS + NHAMCS val | 95% | 5.4% | 64.1% | 4.3% | 65.1% | 70-71% |
+
+Reaching the 5% under-triage target means flagging 70% of all patients, far above the 25-35% over-triage the ACS
+accepts. A cut-off cannot fix this; the model's discrimination is the limit. The app keeps the 90% (KTAS val)
+cut-off, and the report should say so. More data (NHAMCS 2019-2021) is the next lever.
+
+**3. Number reading**
+- **Rules + AI cross-check** (`charting.read_numbers`): both readers read every note.
+  - Agree → used.
+  - Only one found it → used, marked with who read it.
+  - Disagree → the rules' value is used until a nurse checks. The tile gets a dashed amber border and a "check" tag;
+    Fix numbers settles it.
+- **Rule fixes found while writing the group test cases:**
+  - Ambulance-crew values come before "On arrival" values: the arrival values are now used, with a note saying so.
+  - "BP 130 over 85" is now read.
+  - "Brought by mum/dad/parents" counts as a walk-in.
+- **Rule reader after the fixes:**
+  - 100% on train and test, clean and messy, 0 wrong.
+  - Same patient written 3 ways: 190/190 test patients read identically and correctly (`charting_check.py --consistency`).
+- **Numbers adapter** (`make_number_data.py`: 6,770 train notes with exact quotes, more writing styles than the test
+  template; `hpc/jobs/train_numbers.pbs`, job 1533190): results pending.
+
+**Head-CT bleed model on plain grey pictures** (`app_cutoffs.py ich_grey`, job 1533183, RSNA test 30,126 slices /
+2,558 patients):
+- The RSNA JPGs pack 3 CT windows into the colour channels (brain, subdural, full range). A picture a clinician
+  uploads is one grey slice.
+- The grey copy was fine-tuned for 1 pass with half the slices turned grey; its cut-off was set on grey validation
+  slices (0.5822).
+
+| Model | Input | Slice AUROC | Patient AUROC | Patients caught | Patients unflagged (no bleed) |
+|---|---|---|---|---|---|
+| Original | colour windows | 0.973 | 0.988 | 97.1% | 89.9% |
+| Original | grey | 0.849 | 0.904 | 81.9% | 84.4% |
+| Grey copy (app) | colour windows | 0.973 | 0.987 | 96.8% | 89.7% |
+| Grey copy (app) | grey | 0.968 | 0.985 | 97.3% | 84.9% |
+
+**Head-CT checks in the group pack** (4 MultiCaRe pictures):
+- Epidural and subdural bleeds flagged; the normal head CT not flagged.
+- A chest CT forced through the model scored 0.94 "bleed", which is why it only runs when the notes say head.
+- Its bleed-type guess called the epidural bleed "subdural" (epidural type AUROC 0.87), so the app writes "possible
+  bleed" without a type.
+
+**Group test pack** (`web/make_test_pack.py`, `web/guide_walkthrough.mjs`, `web/make_guide.py`; output
+`web/test_pack/`, gitignored; zip 6.4 MB, guide 18 pages):
+- Final run: all 30 checked cases pass, and the scripted screen walkthrough passed 18 of 18 steps.
+- Steps covered: Submit, questions, answer, tiles, add info, fix numbers, chat, pictures, whiteboard, outcome +
+  clear, view-only role.
+- **40 cases:**
+  - T01-T10: triage and number reading, including 3 wordings of one patient;
+  - P01-P18: a note + a CC BY picture;
+  - R01-R10: held-out real patients with their true level.
+- **Checks:** every case was sent to the running test-mode app; all 30 checked cases pass.
+- **Guide PDF:** screenshots come from a scripted headless-Chrome run of the real screens, which also checks each
+  step.
+- **What the pictures show** (left in on purpose):
+  - P02: an adult fracture missed;
+  - P03: a normal adult X-ray marked;
+  - P10: a normal child's chest X-ray with a false shadowing flag;
+  - P06: a pneumothorax caught (red), but with false effusion and shadowing flags on a journal figure.
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.
@@ -713,3 +1146,27 @@ patient is trained on. Test accuracy is reported per source (`labels_v2.csv`, `a
 - Fracture detector: Abedeen et al., "FracAtlas: A Dataset for Fracture Classification, Localization and
   Segmentation of Musculoskeletal Radiographs", Scientific Data 10:521 (2023), doi:10.1038/s41597-023-02432-4.
   Ultralytics YOLO11 (software, Jocher et al.).
+- Deployed-system comparison (5n): Levin S et al. Ann Emerg Med 2018;71:565-74 (e-triage). Raita Y et al. Crit Care
+  2019;23:64. Ivanov O et al. J Emerg Nurs 2021 (KATE). FDA 510(k) K180647 and K221240 (Aidoc ICH); Voter AF et al.
+  AJNR 2021 (Aidoc single-site). FDA 510(k) K212365 / K222176 (Gleamer BoneView); Kuo RYL et al. Radiology
+  2022;304:50-62. FDA 510(k) K213941 (Annalise CXR pneumothorax). Lunit INSIGHT CXR, Clin Radiol 2023
+  (doi 10.1016/j.crad.2022.08.129). Ambient scribes: NEJM AI 2025 randomised trial (DAX vs Nabla); Frontiers in AI
+  2025 (doi 10.3389/frai.2025.1691499). FDA, Predetermined Change Control Plans for AI-enabled device software
+  functions, final guidance, Dec 2024 (5m).
+- Fix plan (5o, checked 8 Nov 2026):
+  - Ma J et al. "Segment anything in medical images" (MedSAM), Nat Commun 2024;15:654.
+  - Saporta A et al. "Benchmarking saliency methods for chest X-ray interpretation", Nat Mach Intell 2022;4:867-878.
+  - Seyyed-Kalantari L et al. Nat Med 2021;27:2176-2182, doi 10.1038/s41591-021-01595-0.
+  - Collins GS et al. TRIPOD+AI, BMJ 2024;385:e078378.
+  - ELMTEX, arXiv:2502.05638 (2025). "For clinical data extraction, QLoRA attains accuracy close to LoRA",
+    medRxiv 2025, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12633606/
+  - Sclar M et al. "Quantifying Language Models' Sensitivity to Spurious Features in Prompt Design", ICLR 2024,
+    arXiv:2310.11324.
+  - Finlayson SG et al. "The Clinician and Dataset Shift in Artificial Intelligence", NEJM 2021;385:283-286.
+  - Vasey B et al. DECIDE-AI, Nat Med 2022;28:924-933, doi 10.1038/s41591-022-01772-9.
+  - Brooke J. SUS, 1996. Bangor A, Kortum P, Miller J. J Usability Studies 2009;4(3):114-123.
+  - Kwong JCC et al. "The silent trial", Front Digit Health 2022;4:929508, doi 10.3389/fdgth.2022.929508.
+  - Adam GA et al. "Hidden Risks of Machine Learning Applied to Healthcare: Unintended Feedback Loops...", MLHC
+    2020, PMLR 126:710-731. Vaid A et al. Ann Intern Med 2023 (retraining after deployment can degrade models).
+  - Goddard K, Roudsari A, Wyatt JC. "Automation bias: a systematic review", JAMIA 2012;19:121-127.
+  - SIIM-ACR Pneumothorax Segmentation (Kaggle, 2019).

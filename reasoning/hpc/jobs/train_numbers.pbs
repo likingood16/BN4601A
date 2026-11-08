@@ -1,0 +1,33 @@
+#!/bin/bash
+#PBS -N train_numbers
+#PBS -j oe
+# AI number reader (8 Nov 2026, fix plan 5o item 3): a small LoRA adapter, started from the task adapter, trained on
+# make_number_data.py notes (Pool 1 train patients, +500 old examples so nothing is forgotten), 1 pass. Then on the
+# 190 KTAS test notes: the AI alone (clean, messy), the app's reader = rules + AI (clean, messy), and the
+# "same patient written 3 ways" check, before and after training.
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=06:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/train_numbers.pbs
+set -o pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TQDM_DISABLE=1 \
+       BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it
+nvidia-smi --query-gpu=name,memory.total --format=csv
+test -s reasoning/data/processed/numbers_train.jsonl || { echo "no numbers data - stop"; exit 1; }
+M=reasoning/outputs/metrics
+cd reasoning/src
+if [ ! -s ../models/lora/numbers/stage1/adapter/adapter_model.safetensors ]; then
+  "$VENV/bin/python" -u charting_check.py --ai --split test --consistency 60
+  cp ../outputs/metrics/charting_consistency_test_ai.json ../outputs/metrics/charting_consistency_test_ai_before.json
+fi
+cd ../..
+"$VENV/bin/python" -u reasoning/src/lora_train.py --arm task --task-file numbers --init-from reasoning/models/lora/task/stage1 \
+    --epochs 1 --replay 500 --stages 99 --max-hours 3 --lr 1e-4 --batch 4 --grad-acc 4 --max-seq-len 1024 \
+    --ckpt-dir reasoning/models/lora/numbers/run 2>&1 | tee reasoning/outputs/logs/train_numbers_live.log
+test -s reasoning/models/lora/numbers/stage1/adapter/adapter_model.safetensors || { echo "no adapter - stop"; exit 1; }
+cd reasoning/src
+"$VENV/bin/python" -u charting_check.py --ai --split test
+"$VENV/bin/python" -u charting_check.py --ai --split test --messy
+"$VENV/bin/python" -u charting_check.py --ai --split test --consistency 60
+"$VENV/bin/python" -u charting_check.py --both --split test
+"$VENV/bin/python" -u charting_check.py --both --split test --messy
+"$VENV/bin/python" -u charting_check.py --both --split test --consistency 60

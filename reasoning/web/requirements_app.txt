@@ -1,0 +1,17 @@
+# Packages for the ED app in test mode (Python 3.11). Runs on CPU; no GPU needed.
+#   pip install -r requirements_app.txt
+fastapi
+uvicorn
+python-multipart
+pydantic
+torch
+torchvision
+ultralytics
+torchxrayvision
+scikit-learn==1.9.1     # Caleb's saved vitals model (vitals/models/*.joblib) needs this exact version
+joblib
+numpy
+pandas
+scipy
+pillow
+transformers            # only used for MedSAM outlines, if MedSAM is on the computer

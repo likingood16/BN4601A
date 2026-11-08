@@ -112,6 +112,30 @@ def fracture(res):
     res["fracture"] = out
 
 
+def fracture_adult(res, run="fracture_v2"):
+    """8 Nov: at the shared cut-off adults (FracAtlas) were caught 22% vs children's wrists 84%, because the cut-off was
+    set mostly by GRAZ. Here the cut-off is set on ADULT validation X-rays only (catch 90%), then tested on both."""
+    from ultralytics import YOLO
+    w = HERE / "runs" / run / "weights" / "best.pt"
+    if not w.exists():
+        return
+    m, root = YOLO(str(w)), HERE / "detector" / "data" / "combined"
+
+    def scored(split, prefix):
+        imgs = sorted((root / "images" / split).glob(f"{prefix}*"))
+        y = np.array([any(l.split()[0] == "0" for l in (root / "labels" / split / f"{p.stem}.txt").read_text().splitlines())
+                      if (root / "labels" / split / f"{p.stem}.txt").exists() else False for p in imgs])
+        return y, top_scores(m, [str(p) for p in imgs], 640, 2)[:, 0]
+    yv, sv = scored("val", "fa_")
+    cut = float(np.quantile(sv[yv], 0.1))
+    cut = cut if cut > 0 else float(sv[yv][sv[yv] > 0].min())
+    out = {"cut_off_from_adult_val": round(cut, 4), "adult_val_with": int(yv.sum())}
+    for name, prefix in [("FracAtlas (adults)", "fa_"), ("GRAZ (children, wrist)", "graz_")]:
+        y, s = scored("test", prefix)
+        out[name] = {"auroc": auroc(y, s), **rates(y, s >= cut)}
+    res[f"fracture_adult_cut__{run}"] = out
+
+
 CHEST = ["Aortic enlargement", "Atelectasis", "Calcification", "Cardiomegaly", "Consolidation", "ILD", "Infiltration",
          "Lung opacity", "Nodule/mass", "Other lesion", "Pleural effusion", "Pleural thickening", "Pneumothorax",
          "Pulmonary fibrosis"]
@@ -278,7 +302,10 @@ if __name__ == "__main__":
     res = json.loads(OUT.read_text()) if OUT.exists() else {}
     for part in a.parts.split(","):
         print("==", part, flush=True)
-        globals()[part](res)
+        name, _, run = part.partition(":")                 # e.g. fracture_adult:fracture_v3
+        globals()[name](res, run) if run else globals()[name](res)
+        part = f"{name}_cut__{run}" if name == "fracture_adult" and run else (
+            "fracture_adult_cut__fracture_v2" if name == "fracture_adult" else name)
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(json.dumps(res, indent=1, default=str))
         print(json.dumps(res.get(part, "model not trained yet: skipped"), indent=1, default=str)[:3000], flush=True)

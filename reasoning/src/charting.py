@@ -32,7 +32,8 @@ QUESTION_SYSTEM = (
     "You support emergency department clinicians. Read the case file. Reply with JSON only, in this form: "
     '{"questions": ["..."], "todo": ["..."]}. '
     '"questions": up to 4 questions about missing information that would change care for THIS complaint, most '
-    "important first. Never ask for something the case file already has. "
+    "important first. If pathway flags are given, first ask what that pathway needs to decide treatment (for a "
+    "possible stroke, for example, the time last known well). Never ask for something the case file already has. "
     '"todo": up to 4 tasks that probably need doing or sending for THIS patient (tests, treatments, referrals), most '
     "urgent first. Each item at most 12 words. These are suggestions for clinicians to accept or ignore.")
 
@@ -60,11 +61,15 @@ PATTERNS = {             # several ways of writing each; the earliest match in t
     "nrs_pain": [r"\bpain(?: score)?\s*(?:of|is|:|=)?\s*(\d{1,2})\s*/\s*10\b|\b(\d{1,2})\s*/\s*10\b",
                  r"\b(?:pain(?: score)?|nrs)\s*(?:of|is|:|=)?\s*(\d{1,2})(?!\s*(?:/|days?|d\b|hours?|(?:hrs?|h)\b(?![:=\s]*\d)|weeks?|wks?|mins?|x)|\d|[.,]\d)"],
 }
-BP = r"\b(?:bp|blood pressure|arterial pressure)" + r"(?:" + FILL + r")?" + r"(\d{2,3})\s*/\s*(\d{2,3})" + END
+BP = r"\b(?:bp|nibp|blood pressure|arterial pressure)" + r"(?:" + FILL + r")?" + r"(\d{2,3})\s*(?:/|over)\s*(\d{2,3})" + END
+# Ambulance-crew values come first in many notes ("EMS found BP 70/40. On arrival BP 112/70"): the ED's own
+# arrival values are used when the note marks them (group test pack check, 8 Nov 2026).
+ARRIVAL = r"\b(?:on arrival|on arr|at triage|triage obs|arrival obs|in (?:the )?(?:ed|ae|a&e)|on presentation)\b"
 AGE_SEX = [r"(?<![\d.])\b(\d{1,3})\s*(?:yo|y/o|y\.o\.|yrs?|years?(?: old)?|-year-old)?\s*-?\s*(m|f|male|female|man|woman|boy|girl)\b",
            r"\b(m|f|male|female)\s*,?\s*(\d{1,3})\b"]
 AMBULANCE = r"\b(ambulance|ems|paramedics?|995|scdf|by amb|biba|bibs)\b"
-WALK_IN = r"\b(walk[- ]?in|walked in|self[- ]?present\w*|brought (?:in )?by (?:family|friend|wife|husband|son|daughter|mother|father))\b"
+WALK_IN = (r"\b(walk[- ]?in|walked in|self[- ]?present\w*|brought (?:in )?by (?:family|friends?|wife|husband|son|daughter|"
+           r"mother|father|mum|mom|dad|parents?|guardian|carer|partner|teacher))\b")
 INJURY = r"\b(fall|fell|injur\w*|trauma|mva|rta|accident|lacerat\w*|cut|fracture\w*|assault\w*|burns?|hit by|dog bite|sprain\w*)\b"
 SEX = {"m": "male", "male": "male", "man": "male", "boy": "male", "f": "female", "female": "female", "woman": "female", "girl": "female"}
 
@@ -99,15 +104,33 @@ def extract_numbers(note):
             return
         fields[key], found[key] = value, source.strip()
 
-    for key, patterns in PATTERNS.items():
+    arrival = re.search(ARRIVAL, text)
+    start = 0
+    if arrival:                                     # from the start of the sentence that says "on arrival"
+        breaks = [b.end() for b in re.finditer(r"(?<!\d)\.(?!\d)|\.(?=\s)|[;\n]", text[:arrival.start()])]
+        start = breaks[-1] if breaks else 0
+
+    def first(patterns):
+        """Earliest match; when the note marks arrival values, the earliest one from there on."""
         hits = [m for m in (re.search(p, text) for p in patterns) if m]
-        m = min(hits, key=lambda h: h.start()) if hits else None
+        after = [m for m in hits if m.start() >= start] if start else []
+        if start and not after:
+            after = [m for m in (re.compile(p).search(text, start) for p in patterns) if m]
+        best = min(after or hits, key=lambda h: h.start()) if (after or hits) else None
+        early = min(hits, key=lambda h: h.start()) if hits else None
+        if best is not None and early is not None and early.start() < start <= best.start() and early.group(0) != best.group(0):
+            warnings.append(f"used the arrival value {best.group(0).strip()!r}, not the earlier {early.group(0).strip()!r} "
+                            "(before arrival)")
+        return best
+
+    for key, patterns in PATTERNS.items():
+        m = first(patterns)
         if m:
             value = float(next(g for g in m.groups() if g is not None).replace(",", "."))   # "37,5" = 37.5
             if key == "temp_c" and value > 45:          # written in Fahrenheit
                 value = round((value - 32) * 5 / 9, 1)
             keep(key, value, m.group(0))
-    m = re.search(BP, text)
+    m = first([BP])
     if m:
         keep("sbp", float(m.group(1)), m.group(0))
         keep("dbp", float(m.group(2)), m.group(0))
@@ -128,6 +151,125 @@ def extract_numbers(note):
     if m:                  # no injury word is not proof of no injury (e.g. "chin pain"), so it stays 'not recorded'
         fields["injured"], found["injured"] = 1.0, m.group(0)
     return fields, {"found": found, "warnings": warnings}
+
+
+# ---------------------------------------------------------------- numbers by AI (branch ai-reasoning, 8 Nov 2026)
+NUMBERS_SYSTEM = (
+    "You read emergency department triage notes. Reply with JSON only. For each item the note states, give its value "
+    'and the exact words from the note it comes from, like {"hr": {"value": 112, "quote": "HR 112"}}. Items: '
+    "age (years), sex (male or female), hr (heart or pulse rate; PR and P mean pulse), sbp AND dbp (blood pressure: "
+    "give BOTH numbers, both quoting the same words, e.g. sbp 120 and dbp 80 from 'BP 120/80'), rr (breathing rate), "
+    "spo2 (oxygen saturation %), temp (the number as written), temp_unit (C or F), nrs_pain (pain score 0-10, e.g. "
+    "'3/10'), consciousness (always give it when the note says alert, AVPU or GCS: alert, confused, voice, pain or "
+    "unresponsive; 'AVPU A' or GCS 15 = alert, GCS 13-14 or new confusion = confused), ambulance (true if brought by "
+    "ambulance; BIBA, BIBS, EMS, SCDF, 995, paramedics all mean ambulance; false if walk-in, self-presented or brought "
+    "by family), injured (true ONLY for trauma: fall, accident, cut, burn, bite, assault, sprain, fracture; pain or "
+    "illness alone is not an injury). Leave out anything the note does not state. Never guess a value.")
+_AVPU = {"alert": "alert", "confused": "verbal", "voice": "verbal", "verbal": "verbal", "pain": "pain",
+         "unresponsive": "unresponsive"}
+
+
+def _norm(s):
+    return re.sub(r"\s+", " ", str(s).lower()).strip()
+
+
+def extract_numbers_ai(ai, note):
+    """MedGemma reads the numbers out of the note. Same output as extract_numbers. Safety check (not reasoning): every
+    value must come with the words it was read from, those words must be in the note, and a number must appear in
+    its own words; otherwise it is left out with a warning, so the urgency model never gets an invented vital sign."""
+    from answers import final_answer
+    raw = final_answer(ai._ask(_messages(NUMBERS_SYSTEM, f"Triage note:\n{note}"), "numbers")) or ""
+    m = re.search(r"\{.*\}", raw, re.S)
+    try:
+        got = json.loads(m.group(0)) if m else {}
+    except json.JSONDecodeError:
+        got = {}
+    text, fields, found, warnings = _norm(note), {}, {}, []
+    if not got:
+        warnings.append("the AI could not read numbers from this note; please check them")
+    # format only: the AI often gives the BP as one item ("bp": "160/100") or only the top number with a quote that
+    # holds both (test, 8 Nov: diastolic missing in 48%); split the quote it gave, still checked below
+    bp = got.get("bp") or got.get("blood_pressure") or got.get("sbp")
+    if isinstance(bp, dict) and "dbp" not in got:
+        m2 = re.search(r"(\d{2,3})\s*/\s*(\d{2,3})", str(bp.get("value", "")) + " " + str(bp.get("quote", "")))
+        if m2:
+            got["sbp"] = {"value": m2.group(1), "quote": bp.get("quote", "")}
+            got["dbp"] = {"value": m2.group(2), "quote": bp.get("quote", "")}
+    unit = got.get("temp_unit", "")
+    unit = str(unit.get("value", "") if isinstance(unit, dict) else unit).upper()   # {"value": "F"} or "F"
+    for key, item in got.items():
+        if key == "temp_unit" or not isinstance(item, dict) or item.get("value") in (None, ""):
+            continue
+        value, quote = item["value"], _norm(item.get("quote", ""))
+        if not quote or quote not in text:
+            warnings.append(f"AI value for {key} left out: its words {item.get('quote')!r} are not in the note")
+            continue
+        if key in ("age", "hr", "sbp", "dbp", "rr", "spo2", "temp", "nrs_pain"):
+            try:
+                value = float(str(value).replace(",", "."))
+            except ValueError:
+                continue
+            digits = re.findall(r"\d+(?:[.,]\d+)?", quote)
+            if not any(abs(float(d.replace(",", ".")) - value) < 1e-6 for d in digits):
+                warnings.append(f"AI value {key} {value:g} left out: not written in {item.get('quote')!r}")
+                continue
+            if key == "temp":
+                key, value = "temp_c", round((value - 32) * 5 / 9, 1) if unit == "F" or value > 45 else value
+            lo, hi = RANGES.get(key, (None, None))
+            if lo is not None and not lo <= value <= hi:
+                warnings.append(f"ignored {quote!r}: {key} {value:g} is outside {lo}-{hi}")
+                continue
+        elif key == "sex":
+            value = {"m": "male", "male": "male", "f": "female", "female": "female"}.get(str(value).lower())
+        elif key == "consciousness":
+            key, value = "mental", _AVPU.get(str(value).lower())
+        elif key in ("ambulance", "injured"):
+            value = 1.0 if str(value).lower() in ("true", "1", "yes") else 0.0
+            if key == "injured" and value == 0.0:
+                continue            # 'no injury word' is not proof of no injury (same as the rules version)
+        else:
+            continue
+        if value is not None:
+            fields[key], found[key] = value, item.get("quote", "").strip()
+    return fields, {"found": found, "warnings": warnings}
+
+
+def _agree(key, a, b):
+    if isinstance(a, str) or isinstance(b, str):
+        return a == b
+    return abs(float(a) - float(b)) <= (0.11 if key == "temp_c" else 1e-6)
+
+
+def read_numbers(ai, note):
+    """Both readers on every note (fix plan 5o item 3, 8 Nov 2026). The AI alone read 89% and the same patient written
+    3 ways got 3 different urgency scores, because it left things out (consciousness, diastolic BP). The rules read 100%
+    of the test notes but only know set phrasings. So:
+      - both found it and agree -> used;
+      - only one found it -> used, marked with who read it;
+      - they disagree -> the rules' value is used until a nurse checks, and both readings are shown ("check").
+    ai=None (test mode): rules only."""
+    rf, rinfo = extract_numbers(note)
+    if ai is None:
+        return rf, {**rinfo, "by": {k: "rules" for k in rf}, "check": []}
+    af, ainfo = extract_numbers_ai(ai, note)
+    fields, found, by, check = {}, {}, {}, []
+    for key in [k for k in rf] + [k for k in af if k not in rf]:
+        if key in rf and key in af:
+            fields[key], found[key] = rf[key], rinfo["found"].get(key, "")
+            if _agree(key, rf[key], af[key]):
+                by[key] = "both"
+            else:
+                by[key] = "check"
+                check.append({"field": key, "rules": rf[key], "ai": af[key],
+                              "rules_words": rinfo["found"].get(key), "ai_words": ainfo["found"].get(key)})
+        elif key in rf:
+            fields[key], found[key], by[key] = rf[key], rinfo["found"].get(key, ""), "rules"
+        else:
+            fields[key], found[key], by[key] = af[key], ainfo["found"].get(key, ""), "AI"
+    warnings = rinfo["warnings"] + ainfo["warnings"] + [
+        f"please check {c['field']}: rules read {c['rules']} from {c['rules_words']!r}, AI read {c['ai']} "
+        f"from {c['ai_words']!r}" for c in check]
+    return fields, {"found": found, "warnings": warnings, "by": by, "check": check}
 
 
 BODY_PARTS = ["head", "neck", "chest", "rib", "abdomen", "back", "pelvis", "hip", "shoulder", "arm", "elbow", "forearm",
@@ -248,6 +390,38 @@ def file_notes(new_notes, new_images=()):
     return "\n\n".join(f"## {h}\n" + "\n".join(f"- {x}" for x in xs) for h, xs in sections.items() if xs)
 
 
+FILING_SYSTEM = (
+    "You file emergency department notes into a case file. Each numbered line below is one piece of a note. Reply with "
+    'JSON only, mapping each line number to one heading, like {"1": "History", "2": "Observations"}. Headings: '
+    + "; ".join(h for h in HEADINGS if h not in (TRIAGE, "Imaging"))
+    + ". 'Impression (as written by clinicians)' only for a diagnosis or impression a clinician wrote.")
+
+
+def file_notes_ai(ai, new_notes, new_images=()):
+    """Later notes filed by MedGemma: it only CHOOSES the heading for each piece; the words go in exactly as typed,
+    so nothing is reworded, lost or invented (run 0, 7 Nov: asking it to rewrite the notes lost image readings and a
+    referral). A piece whose heading can't be read goes under History. Image readings always go under Imaging."""
+    from answers import final_answer
+    pieces = [p.strip() for note in new_notes for p in re.split(SENTENCE, note) if p.strip()]
+    sections = {h: [] for h in HEADINGS if h != TRIAGE}
+    if pieces:
+        q = "\n".join(f"{i + 1}. {p}" for i, p in enumerate(pieces))
+        raw = final_answer(ai._ask(_messages(FILING_SYSTEM, q), "filing")) or ""
+        m = re.search(r"\{.*\}", raw, re.S)
+        try:
+            where = json.loads(m.group(0)) if m else {}
+        except json.JSONDecodeError:
+            where = dict(re.findall(r'"(\d+)"\s*:\s*"([^"]+)"', raw))
+        for i, p in enumerate(pieces):
+            want = str(where.get(str(i + 1), "History")).lower().split(" (")[0].strip()
+            # exact heading first, then a short form ("Plan" -> "Plan and actions", "Past history" -> ...)
+            head = (next((h for h in sections if h.lower().split(" (")[0] == want), None)
+                    or next((h for h in sections if want and h.lower().startswith(want)), "History"))
+            sections[head].append(p)
+    sections["Imaging"] += list(new_images)
+    return "\n\n".join(f"## {h}\n" + "\n".join(f"- {x}" for x in xs) for h, xs in sections.items() if xs)
+
+
 def merge_into(current, addition):
     """Add the new bullets under the same headings of the current case file. Nothing already in it is changed or
     removed, so a person's edits are never lost; a 'not recorded' placeholder is replaced by the first real entry."""
@@ -278,9 +452,9 @@ def build_report(ai, record, current="", new_notes=(), notes=(), images=(), new_
             return _test_report(record, list(notes), list(images))
         q = "PATIENT RECORD (arrival card, notes, image readings, triage decision):\n" + record + "\n\nWrite the case file."
         return final_answer(ai._ask(_messages(REPORT_SYSTEM, q), "report")) or ""
-    # Real AI check (7 Nov): asking MedGemma to file only the new notes returned nothing usable, so 10 image readings
-    # and a referral never reached the case file. Fixed word rules file them instead: nothing typed is ever lost.
-    return merge_into(current, file_notes(new_notes, new_images))
+    # Real AI check (7 Nov): asking MedGemma to REWRITE with the new notes lost 10 image readings and a referral. Now it
+    # only picks the heading for each piece (file_notes_ai); the words go in as typed. Test mode: word rules.
+    return merge_into(current, file_notes(new_notes, new_images) if ai is None else file_notes_ai(ai, new_notes, new_images))
 
 
 def _test_questions(report):

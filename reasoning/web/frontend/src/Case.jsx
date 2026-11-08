@@ -9,9 +9,11 @@ const TILES = [["hr", "HR"], ["bp", "BP"], ["rr", "RR"], ["spo2", "SpO₂ %"], [
 // "verbal" is also what new confusion (e.g. GCS 13-14) is stored as, since NEWS2 scores both 3; show both letters
 const ACVPU = { alert: "A", verbal: "C/V", pain: "P", unresponsive: "U" };
 
-function Vitals({ p, me, reload }) {
+function Vitals({ p, me, reload, meta }) {
   const [edit, setEdit] = useState(null);
-  const f = p.fields, src = p.found?.found || {};
+  const f = p.fields, src = p.found?.found || {}, by = p.found?.by || {};
+  const checks = Object.fromEntries((p.found?.check || []).map((c) => [c.field, c]));
+  const checkOf = (k) => k === "bp" ? (checks.sbp || checks.dbp) : checks[k];
   const show = (k) => k === "bp" ? (f.sbp != null ? `${f.sbp}/${f.dbp ?? "?"}` : null)
     : k === "mental" && f.mental ? (ACVPU[f.mental] ?? f.mental) : f[k];
   const save = async () => {
@@ -42,18 +44,22 @@ function Vitals({ p, me, reload }) {
           const v = show(k);
           const c = k === "bp" ? concern("sbp", f.sbp) : concern(k, v);
           const from = k === "bp" ? src.sbp : src[k];
+          const chk = checkOf(k);
+          const who = k === "bp" ? by.sbp : by[k];
           return (
-            <div key={k} className={`vital ${v == null ? "none" : c}`} title={from ? `From the note: "${from}"` : "Not in the notes"}>
-              <div className="k">{label}</div>
+            <div key={k} className={`vital ${v == null ? "none" : c} ${chk ? "disagree" : ""}`}
+              title={chk ? `Rules read ${chk.rules} from "${chk.rules_words}", AI read ${chk.ai} from "${chk.ai_words}". Press Fix numbers to settle it.`
+                : from ? `From the note: "${from}"${who ? ` (read by: ${who})` : ""}` : "Not in the notes"}>
+              <div className="k">{label}{chk && <span className="check-tag">check</span>}</div>
               <div className="v">{v ?? "not recorded"}</div>
-              <div className="src">{from ? `“${from}”` : " "}</div>
+              <div className="src">{chk ? `AI read ${chk.ai}` : from ? `“${from}”` : " "}</div>
             </div>
           );
         })}
       </div>
       <div className="row muted" style={{ marginTop: -6, marginBottom: 12 }}>
-        Numbers pulled out of the note by fixed rules{p.found?.checked_by ? `, checked by ${p.found.checked_by}` : ""}.
-        {(p.found?.warnings || []).map((w) => <span key={w} className="pill red">{w}</span>)}
+        Numbers read by {meta?.test ? "fixed rules (test mode)" : "fixed rules and the AI, each checked against the note's words; where they disagree the tile says check"}{p.found?.checked_by ? `, checked by ${p.found.checked_by}` : ""}.
+        {(p.found?.warnings || []).filter((w) => !w.startsWith("please check")).map((w) => <span key={w} className="pill red">{w}</span>)}
         <button className="small" onClick={() => setEdit({ ...p.fields })} disabled={p.status === "working"}>Fix numbers</button>
       </div>
     </>
@@ -99,6 +105,17 @@ function Files({ p }) {
               </figure>
             ))}
           </div>
+          {img.findings?.length > 0 && (
+            <div className="checklist" title="Trained image model: red = above its cut-off, so look here; it is not a diagnosis">
+              <span className="muted">{img.model}:</span>
+              {img.findings.filter((f) => !f.type_of_bleed).map((f) => (
+                <span key={f.name} className={`check ${f.flag ? "yes" : f.possible || f.also_seen ? "unclear" : "no"}`}
+                  title={`model score ${f.score}${f.cut != null ? ` (cut-off ${f.cut})` : ""}, not a probability${f.possible ? "; the second model says possible: check" : ""}${f.also_seen ? "; seen, but usually not urgent" : ""}`}>
+                  {f.flag ? "⚠" : f.possible ? "?" : f.also_seen ? "•" : "✓"} {f.possible ? `Possible ${f.name.toLowerCase()}` : f.name}
+                </span>
+              ))}
+            </div>
+          )}
           {img.checklist && (
             <div className="checklist">
               {Object.entries(img.checklist).map(([item, v]) => (
@@ -163,7 +180,7 @@ function Chat({ p, me, reload }) {
   );
 }
 
-export default function Case({ id, me }) {
+export default function Case({ id, me, meta }) {
   const [p, error, reload] = usePoll(`/api/patients/${id}`);
   const [tab, setTab] = useState("case");
   const [side, setSide] = useState("questions");
@@ -208,7 +225,7 @@ export default function Case({ id, me }) {
           <span className="muted">{p.error}</span>
         </div>
       )}
-      <Vitals p={p} me={me} reload={reload} />
+      <Vitals p={p} me={me} reload={reload} meta={meta} />
       <div className="addbar">
         <div className="card">
           <div className="row" style={{ flexWrap: "nowrap" }}>

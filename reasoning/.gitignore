@@ -7,4 +7,5 @@ models/heads/
 app/case_files/
 web/case_files/
 web/frontend/node_modules/
-web/frontend/dist/
+web/test_pack/
+web/test_pack_pictures/

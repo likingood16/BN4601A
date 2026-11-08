@@ -17,9 +17,11 @@ nvidia-smi --query-gpu=name,memory.total --format=csv
 cd vision
 case "$PART" in
   fracture)  "$VENV/bin/python" -u train_yolo_det.py --data detector/data/combined/combined.yaml --name fracture_v2 $S ;;
+  fracture_v3) "$VENV/bin/python" -u train_yolo_det.py --data detector/data/combined_v3/combined_v3.yaml --name fracture_v3 $S ;;
   chest)     "$VENV/bin/python" -u train_yolo_det.py --data chest/data/vindr/vindr.yaml --name chest_vindr --imgsz 1024 --batch 16 $S ;;
   ich)       "$VENV/bin/python" -u ct_head/train_ich.py $S ;;
   imagetype) "$VENV/bin/python" -u image_type/train_image_type.py $S ;;
-  external)  "$VENV/bin/python" -u eval_external.py ${PARTS:+--parts $PARTS} ;;   # extra tests on other datasets
+  external)  "$VENV/bin/python" -u eval_external.py ${PARTS:+--parts ${PARTS//+/,}} ;;   # extra tests on other datasets
+  cutoffs)   "$VENV/bin/python" -u app_cutoffs.py ${PARTS:+--parts ${PARTS//+/,}} ;;      # app cut-offs: pneumothorax, grey CT
   *) echo "set PART"; exit 1 ;;
 esac

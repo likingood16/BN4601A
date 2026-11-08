@@ -64,6 +64,7 @@ class Visit:
     messages: list = field(default_factory=list)     # the conversation so far
     unseen: list = field(default_factory=list)       # results MedGemma hasn't been told about in the chat yet
     timeline: list = field(default_factory=list)     # the case file: {time, who, what, text}, oldest first
+    vector: object = None          # MedGemma's vector of the card (real AI only), kept so learning.py can retrain on it
 
     def log(self, what, text, who="AI (decision support)"):
         """A case-file entry that doesn't change the record, e.g. a chat answer or a handover."""

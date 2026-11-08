@@ -7,10 +7,11 @@
  "per_image": {
   "fracture": {
    "n_test_with": 1893,
-   "auroc": 0.452,
-   "cut_off": 0.0,
-   "sensitivity": 1.0,
-   "specificity": 0.0
+   "auroc": 0.983,
+   "cut_off": 0.6249,
+   "reaches_80pct_on_val": true,
+   "sensitivity": 0.82,
+   "specificity": 0.99
   },
   "foreignbody": {
    "n_test_with": 0,

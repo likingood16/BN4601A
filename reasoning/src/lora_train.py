@@ -26,6 +26,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--arm", default="mixed", choices=["mixed", "emergency", "two_stage", "task"])
 ap.add_argument("--epochs", type=int, default=1, help="task arm: passes over the (small) task data")
 ap.add_argument("--replay", type=int, default=2000, help="task arm: old Pool 2 examples mixed in")
+ap.add_argument("--task-file", default="task", help="task arm: data/processed/<name>_{train,val}.jsonl (e.g. questions)")
 ap.add_argument("--chunk-size", type=int, default=30_000)
 ap.add_argument("--stages", type=int, default=2, help="max stages to run in this job")
 ap.add_argument("--max-hours", type=float, default=None, help="save + stop cleanly after this long")
@@ -76,7 +77,7 @@ if args.arm == "emergency":
     train = train[train["scope"] == "emergency"]
 order = train.sample(frac=1, random_state=SEED)
 if args.arm == "task":
-    task = pd.read_json(PROCESSED / "task_train.jsonl", lines=True)
+    task = pd.read_json(PROCESSED / f"{args.task_file}_train.jsonl", lines=True)
     train = pd.concat([task, train.sample(args.replay, random_state=SEED)])
     order = pd.concat([train.sample(frac=1, random_state=SEED + e) for e in range(args.epochs)])
 if args.arm == "two_stage":
@@ -90,7 +91,7 @@ needed = set(range(progress["chunk"], min(progress["chunk"] + args.stages, len(s
 chunks = {i: order.iloc[s:s + args.chunk_size] for i, s in enumerate(starts) if i in needed}
 val = load_pool2("val").groupby("source").sample(args.val_examples // 4, random_state=SEED)
 if args.arm == "task":                                          # task val examples + a few old ones
-    val = pd.concat([pd.read_json(PROCESSED / "task_val.jsonl", lines=True),
+    val = pd.concat([pd.read_json(PROCESSED / f"{args.task_file}_val.jsonl", lines=True),
                      val.groupby("source").head(25)])
 bench = load_bench()
 del train, order

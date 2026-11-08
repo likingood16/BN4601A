@@ -6,6 +6,8 @@ import { api, LEVEL_COLOUR, usePoll, waited } from "./api";
 function Row({ p, can, me, now, reload, stages }) {
   const [todo, setTodo] = useState("");
   const [doctor, setDoctor] = useState(null);
+  const [dx, setDx] = useState("");                     // final diagnosis + level, for learning (optional)
+  const [finalLevel, setFinalLevel] = useState("");
   const body = { who: me.who || "not recorded", role: me.role };
   const act = async (fn) => { try { await fn(); reload(); } catch (e) { alert(e.message); } };
   const mins = (now - p.created) / 60;
@@ -28,7 +30,19 @@ function Row({ p, can, me, now, reload, stages }) {
         ) : p.stage}
         {can && p.leaving && (
           <div style={{ marginTop: 6 }}>
-            <button className="small clear-btn" onClick={() => act(() => api.patch(`/api/patients/${p.id}/board`, { ...body, cleared: !p.cleared }))}>
+            {!p.cleared && (
+              <div className="outcome" title="Optional. Used to check and improve the AI; never changes this patient's record">
+                <input value={dx} placeholder="Final diagnosis (optional)" aria-label="Final diagnosis"
+                  onChange={(e) => setDx(e.target.value)} />
+                <select value={finalLevel} aria-label="Level that was right" onChange={(e) => setFinalLevel(e.target.value)}>
+                  <option value="">Right level?</option>
+                  {[1, 2, 3, 4, 5].map((l) => <option key={l} value={l}>Level {l}{l === p.level ? " (as given)" : ""}</option>)}
+                </select>
+              </div>
+            )}
+            <button className="small clear-btn" onClick={() => act(() => api.patch(`/api/patients/${p.id}/board`, {
+              ...body, cleared: !p.cleared,
+              ...(p.cleared ? {} : { diagnosis: dx || null, final_level: finalLevel ? Number(finalLevel) : null }) }))}>
               {p.cleared ? "Put back on the board" : "✓ Clear from board"}
             </button>
           </div>
@@ -68,6 +82,7 @@ export default function Board({ me, meta }) {
   const [left, setLeft] = useState(false);              // show the patients who left the ED instead
   const [board, error, reload] = usePoll(left ? "/api/board?cleared=true" : "/api/board", 3000);
   const can = (meta?.board_editors || []).includes(me.role);
+  const [learn] = usePoll("/api/learning", 30000);
   if (!board) return <div className="page">{error || "Loading…"}</div>;
   return (
     <div className="page" style={{ maxWidth: "none" }}>
@@ -79,6 +94,12 @@ export default function Board({ me, meta }) {
           {left ? "← Back to the board" : `Left the ED (${board.n_cleared})`}
         </button>
       </div>
+      {learn?.enabled && (
+        <div className="learn-line" title="Corrections are collected while you work; the models only change after an update that passes the safety test (learning.py)">
+          Learning from use: {learn.usable_for_learning} of {learn.needed_before_update} patients with an outcome needed for the
+          next update · {learn.number_corrections} number fixes · AI models {learn.models_version}
+        </div>
+      )}
       {error && <div className="error">{error}</div>}
       <div className="board-wrap"><table className="board">
         <thead><tr><th>Level</th><th>Bed</th><th>Patient</th><th>Stage</th><th>Doctor</th><th>Waiting</th><th>To do</th></tr></thead>

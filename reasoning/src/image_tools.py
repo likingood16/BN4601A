@@ -96,8 +96,9 @@ def outline(path, box, fracture=True):
     from transformers import SamModel, SamProcessor
     name = MEDSAM if fracture else "wanglab/medsam-vit-base"
     if name not in _sam:
-        _sam[name] = SamModel.from_pretrained(name).eval()
-        _sam["processor"] = SamProcessor.from_pretrained("wanglab/medsam-vit-base")   # same pre-processing for both
+        local = os.environ.get("BN4601A_NO_DOWNLOAD") == "1"        # test mode: only what is already on this computer
+        _sam[name] = SamModel.from_pretrained(name, local_files_only=local).eval()
+        _sam["processor"] = SamProcessor.from_pretrained("wanglab/medsam-vit-base", local_files_only=local)   # same pre-processing for both
     image = Image.open(path).convert("RGB")
     proc = _sam["processor"]
     inputs = proc(image, input_boxes=[[list(map(float, box))]], return_tensors="pt")

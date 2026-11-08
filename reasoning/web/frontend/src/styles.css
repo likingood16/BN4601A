@@ -70,6 +70,8 @@ a { color: var(--accent); }
 .vital.red { background: var(--red-bg); border-color: #f3b5b0; } .vital.red .v { color: var(--red); }
 .vital.amber { background: var(--amber-bg); border-color: #ffd59e; } .vital.amber .v { color: var(--amber); }
 .vital.none .v { color: #b0bac4; font-size: 18px; padding-top: 8px; }
+.vital.disagree { border: 2px dashed var(--amber); }
+.check-tag { margin-left: 6px; font-size: 11px; font-weight: 700; color: #fff; background: var(--amber); border-radius: 8px; padding: 1px 6px; }
 .vital input { width: 100%; font-size: 18px; padding: 4px 6px; }
 
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: -4px 0 12px; }
@@ -123,3 +125,9 @@ a { color: var(--accent); }
 .board a { color: #90caf9; text-decoration: none; }
 .patient-find { margin-bottom: 8px; flex-wrap: nowrap; }
 .patient-find input { flex: 1; font-size: 14px; }
+
+/* learning from use (8 Nov): outcome boxes at "Clear", and the status line on the whiteboard */
+.outcome { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+.outcome input { width: 160px; font-size: 14px; }
+.outcome select { font-size: 14px; }
+.learn-line { color: #9fb3c8; font-size: 13px; margin-bottom: 6px; }
