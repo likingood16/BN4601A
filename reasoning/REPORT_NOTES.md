@@ -1143,6 +1143,44 @@ MedGemma's writing is replaced; #8-#11 they can meet. **For the report and demo:
 level, urgency, image models) is right in every real-AI case so far; the weak part is MedGemma's writing around it
 (#1-#3, #6-#7), which is fixable without retraining.
 
+### 5r. The 5q fixes, and how each was checked (9 Nov 2026, branch ed-app-group-test)
+All in the shared back end, so the React app and the Gradio app both get them.
+
+**Speed on the laptop GPU first** (scratchpad benchmark, same calls, same conditions; MedGemma 4-bit + 4 adapters):
+| Step | adapters float32 (before) | adapters bfloat16 (now) |
+|---|---|---|
+| number reader (198 tokens) | 504 s | 246 s |
+| case file, first 111 tokens | 451 s | 193 s |
+| picture description | 89 s | 37 s |
+| one picture checklist question | 76 s | 23 s |
+The laptop stays far too slow for live use (under 1 token/s; it doesn't fit in 4 GB and spills into shared memory):
+after the fixes, a text patient took 5.5-8 min (T01 466 s, T02 333-355 s), a patient with a picture 16 min (942 s) and a chat answer 3-9 min. On the vanda A40 the same pipeline
+took a median of about 30 s per patient (5l).
+
+| # | Fix | Checked |
+|---|---|---|
+| 1 | Record: the card's empty history lines point to the notes, and the arrival time is filled in (`visit.record`; the card the urgency model reads is unchanged). After MedGemma writes the case file, any piece of a note it left out is filed by the word rules, as typed (`charting.keep_every_note`; a clock time like 0830 must be there itself); a copied pointer line is removed | real AI: T01 now has "since 0600, sweaty", "hx DM, HTN on metformin", "NKDA", "BIBA"; T02 has "since 0830". Offline: a good case file is left unchanged |
+| 2 | Later notes: the word rules file what they can; MedGemma only for the rest. New rule: onset / last known well -> History; "on <medicine>" only for drug-like words ("cut finger on glass" was past history) | real AI: trop + ECG -> Investigations, aspirin + cardiology -> Plan, no MedGemma call needed |
+| 3 | Pathway flags: at most the 3 strongest (score over cut-off) + any named in the complaint; to-dos with the same meaning merged (`same_meaning`) | 1,452 test patients: caught 82.6% -> 80.6%, false flags per patient 0.76 -> 0.68, patients with 4+ flags 6.7% -> 0%. Real AI T01: 6 flags -> 3, to-dos 10 -> 5, no duplicate ECG |
+| 4 | The model is held per AI step (`EDPipeline.gpu`), not for a whole patient; re-score and chat no longer queue behind other patients' jobs; "Re-scoring…" shown | code path; not timed under load |
+| 5 | bfloat16 adapters (above); the picture checklist asked as one batch | batch gave the same answers; on the laptop no faster (memory-bound), expected faster on a real GPU but not measured. Not done: showing a level before the AI reads the note (a provisional level could mislead) |
+| 6 | Pathway questions first in real mode too; "already answered" rules for onset, radiation, risk factors, mechanism of injury, witnessed collapse | real AI T02: first question "When was the patient last known to be well?"; test pack: 6 question rows changed, all dropped questions were answered in the note |
+| 7 | Chat gets the time now, the arrival time and the clock times written in the notes ("since 0830") | before: "the time last known well is not stated". With the times written out it used 08:30, but worked the window out backwards ("last known well after 08:30 = outside"). So the app now also writes how long ago each time was ("since 0830, about 2 h 15 min ago"); not yet re-run with the real model. The chat stays advice for clinicians to check |
+| 8 | BP: systolic 40-280, diastolic below systolic and at most 200 apart, never a diastolic alone; each warning once | BP 300/20 and 120/130 dropped, 240/120 kept; rules still 100% right, 0 wrong on train, test and messy test |
+| 9 | Board and to-do edits need a name (server + board); board changes before the AI's first result are kept and put on the timeline | test_app: 2 new checks pass |
+| 10 | "Open a text file" refuses non-text (React and Gradio) | by hand in both apps |
+| 11 | Messages clear when typing; refused pictures say why; one reused case-file tab; "reading the note…" instead of "?, ?"; "fixed by <name>" on corrected tiles; learning line every 4 s | test_app, walkthrough |
+
+**Tests after the fixes:** test_app 68/68 (4 new checks), test pack 40 cases all checks pass, guide walkthrough 18/18,
+number reader 100% / 0 wrong.
+
+**Gradio version** (`reasoning/gradio_app/`, for a Hugging Face ZeroGPU Space, which only takes Gradio apps): Gradio
+screens over the same `server.Store`; one patient's AI run = one `@spaces.GPU` call (patient copied in and back),
+re-score and chat are calls of their own. Tested by hand in test mode, plain and with `BN4601A_FAKE_ZERO=1`
+(copy-in/copy-out): submit, text file, name checks, case file, questions, to-dos, fix numbers, chat, board, clear,
+left the ED, put back. Found and fixed on the way: an import race between two threads ("partially initialized module
+polars"), a patient list that dropped patients who left the ED, a download button that saved nothing (it now always holds the current case file). The Space zip (`make_space_bundle.py`, 669 MB) was unzipped into an empty folder and run: picture, marks, MedSAM outline, edit and save all work. Not tried: a real ZeroGPU Space (4-bit loading there).
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.

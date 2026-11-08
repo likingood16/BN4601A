@@ -473,14 +473,26 @@ def chat(pid: str, body: ChatIn):
         typed = " ".join(n["text"] for n in p.notes)
         clock = re.findall(r"\b(?:since|from|at|onset|lkw|last (?:seen|known)(?: to be)? well)\s*:?\s*"
                            r"(?:[01]?\d|2[0-3]):?[0-5]\d\b", typed, re.I)
+        # ... and how long ago each was: given only "since 0830", MedGemma worked the window out backwards (9 Nov)
         times = (f"Time now: {now()}. Arrived: {p.notes[0]['time']}."
-                 + (f" Times written in the notes: {'; '.join(clock)}." if clock else ""))
+                 + (f" Times written in the notes: {'; '.join(f'{c} ({_ago(c)})' for c in clock)}." if clock else ""))
         answer = store.ai.chat(p.visit, f"({times}) {body.text}")
     p.chat += [{"role": "user", "text": body.text, "who": body.who, "time": now()},
                {"role": "ai", "text": answer, "who": "AI", "time": now()}]
     p.visit.log("Chat", f"Q ({body.who}): {body.text}")
     store.changed()
     return {"answer": answer}
+
+
+def _ago(written, clock=None):
+    """'since 0830' -> 'about 2 h 15 min ago' (a time later than now is taken as yesterday)."""
+    m = re.search(r"(\d{1,2}):?(\d{2})$", written)
+    if not m:
+        return "time not clear"
+    t = time.localtime() if clock is None else clock
+    mins = (t.tm_hour * 60 + t.tm_min) - (int(m.group(1)) * 60 + int(m.group(2)))
+    mins += 24 * 60 if mins < 0 else 0
+    return f"about {mins // 60} h {mins % 60} min ago"
 
 
 class BoardIn(BaseModel):

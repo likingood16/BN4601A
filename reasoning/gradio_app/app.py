@@ -309,13 +309,23 @@ def case_view(pid):
     chat = [{"role": "user" if m["role"] == "user" else "assistant",
              "content": (f"**{m['who']}:** " if m["role"] == "user" else "") + m["text"]} for m in (p.chat if p else [])]
     return (_header(p), rows, warnings, f"{by}\n\n{report}", notes, pics, pic_text, timeline,
-            gr.update(choices=questions, value=None), todos, remove, chat, store.version)
+            gr.update(choices=questions, value=None), todos, remove, chat, _case_file_path(p), store.version)
+
+
+def _case_file_path(p):
+    """The download button downloads the file it already holds (a click can't hand it one: the first try saved
+    nothing, 9 Nov), so it is given the current case file whenever the screen refreshes."""
+    if p is None:
+        return None
+    path = Path(tempfile.gettempdir()) / f"case_file_{p.bed}.txt"
+    path.write_text(S.case_file(p.id), encoding="utf-8")
+    return str(path)
 
 
 def tick(pid, seen):
     """Polling: refresh only when something changed (store.version); the patient list too (its levels and names)."""
     if store.version == seen:
-        return [gr.skip()] * 14
+        return [gr.skip()] * 15
     return (*case_view(pid), gr.update(choices=_choices(new=False, everyone=True)))
 
 
@@ -466,14 +476,6 @@ def remove_todo(name, role, pid, i):
     _call(S.change_todo, pid, int(i), S.TodoIn(who=name, role=role, delete=True))
     return case_view(pid)
 
-
-def download(pid):
-    p = _call(store.get, pid) if pid else None
-    if p is None:
-        raise gr.Error("Pick a patient first")
-    path = Path(tempfile.gettempdir()) / f"case_file_{p.bed}.txt"
-    path.write_text(S.case_file(pid), encoding="utf-8")
-    return str(path)
 
 
 # ---------------------------------------------------------------- whiteboard
@@ -649,7 +651,7 @@ with gr.Blocks(title="ED triage app") as demo:
                         "Type your name first.")
 
     case_out = [header, numbers, warn, report, notes_md, gallery, pics_md, timeline, questions, todos, todo_pick, chat,
-                seen]
+                dl, seen]
     timer = gr.Timer(2)
     timer.tick(tick, [case_pick, seen], [*case_out, case_pick])
     case_pick.change(case_view, case_pick, case_out)
@@ -667,7 +669,6 @@ with gr.Blocks(title="ED triage app") as demo:
     on(todos.input, set_todos, [name, role, case_pick, todos], case_out)
     on(todo_add.click, add_todo, [name, role, case_pick, todo_new], [todo_new, *case_out])
     on(todo_del.click, remove_todo, [name, role, case_pick, todo_pick], case_out)
-    on(dl.click, download, case_pick, dl)
 
     b_timer = gr.Timer(3)
     b_timer.tick(board_tick, [b_seen, show_left], [b_table, b_line, b_pick, b_seen])
