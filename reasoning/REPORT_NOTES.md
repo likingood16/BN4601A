@@ -1090,6 +1090,59 @@ cut-off, and the report should say so. More data (NHAMCS 2019-2021) is the next 
   - P10: a normal child's chest X-ray with a false shadowing flag;
   - P06: a pneumothorax caught (red), but with false effusion and shadowing flags on a journal figure.
 
+### 5q. Hands-on test with the REAL AI, by mouse and keyboard (9 Nov 2026, 23:45-00:50, laptop)
+Set-up: branch `ed-app-group-test`, `server.py` without `--test` on the laptop's RTX 3050 4 GB (MedGemma 4-bit + image,
+task, questions and numbers adapters; questions/numbers adapters copied from vanda). Every step was done in Chrome by
+clicking and typing (a second browser for the two-person whiteboard test). 6 patients + stress notes.
+
+**Every button works** (as intended): Submit with name/empty-note checks, queue while busy, add a note while the AI
+works, Open a text file, picture drop + Remove, live progress, Find a patient, choose a patient, click a question to
+answer it, Fix numbers -> re-score (urgency 89% -> 97% after SBP 90 -> 82), Edit + Save ("Last edited by"), tick /
+add / remove to-dos (case file and board stay in sync), stage, doctor, view-only Doctor role, leaving stage -> final
+diagnosis + "Right level?" -> Clear -> Left the ED -> Put back, learning log (outcome and number fix recorded), Files
+tab (as uploaded / AI marks / MedSAM outline + chips), Download the whole case file, Timeline, Notes as typed, Chat,
+live whiteboard sync between two browsers.
+
+**Accuracy with the real AI:**
+| Patient | Numbers (rules + AI agree) | Level / urgent | Notes |
+|---|---|---|---|
+| T01 chest pain | 8/8 right | 2, urgent (expected 2) | case file lost PMH, meds, allergies, onset; 2 of 3 questions already answered in the note |
+| T02 stroke | 6/6 right | 2, urgent, raised from 3 (expected 2) | onset "0830" lost; 1 fitting pathway to-do |
+| P01 picture | 5/5 right | 4, not urgent (test mode 3) | fracture marked + outlined; MedGemma said "left ankle", and it IS an ankle (test-pack label was wrong, fixed) |
+| impossible numbers | HR 400, RR 2, SpO2 150, T 45 dropped | 1, urgent | BP 300/20 accepted (drives level 1); each warning shown twice |
+| T05 EMS vs arrival | 8/8 right, arrival values used | 2, urgent (expected 2) | both readers agreed |
+| R03 real patient (NHAMCS) | 10/10 right, "brought by family" = not ambulance | 3, not urgent (true 5; test mode said 2, urgent) | its number step alone took ~11 min |
+
+**Speed on the 4 GB laptop GPU** (MedGemma + 4 adapters do not fit: ~600 MB spills into shared memory):
+- One patient took 4 to 17 minutes (T02 3.7 min, T01 6.7 min with a follow-up note, impossible-numbers note 10 min,
+  P01 with a picture 17 min: reading the picture 5.5 min, writing the case file 7.5 min; T05 8 min).
+- Numbers overall: 37 of 37 right across the 5 ordinary notes (plus the 4 impossible values dropped in the stress
+  note); the rules and MedGemma agreed on every one,
+  and the arrival-value rule worked (T05).
+- Level and numbers appear after about 2 to 2.5 minutes; the case file and questions come later.
+- **One lock for a whole patient run:** a nurse's "Save and re-score" waited 21 minutes and a chat question 34
+  minutes behind other patients, with no "waiting" sign on Save.
+
+**Problems found, most important first, and the fix plan:**
+| # | Problem | Seen in | Fix | Effort |
+|---|---|---|---|---|
+| 1 | Case file drops history, past history, medicines, allergies: the arrival card's fixed "PAST HISTORY: not recorded" lines (`cards.py:77-80`) are in the record MedGemma reads, and it copies them over the note | real AI | leave the placeholder lines out of the record for the case file; afterwards file any note sentence still missing (word rules, `file_notes`) so nothing typed is lost | 1 h + re-run |
+| 2 | Later notes filed under wrong headings (trop -> Presenting complaint, ECG -> History, aspirin -> Impression) | real AI | word rules first (`SORT_RULES`), MedGemma only for pieces the rules can't place | 1 h |
+| 3 | Pathway flagger over-fires on very sick patients: 6 pathways (stroke, seizure, sepsis ...) for chest pain -> 10 to-dos, one duplicate | real AI | show at most the 2 strongest pathways; cut-offs for 95% specificity; merge to-dos with the same meaning | 2 h + re-test |
+| 4 | Whole-run lock: Fix numbers / chat wait behind other patients; no waiting sign on Save | real AI | lock per AI step; re-score (one embedding, ~1 s) and chat jump the queue; "waiting for the AI (n ahead)" on Save | 2 h |
+| 5 | Too slow on a 4 GB GPU | real AI | demo on a bigger GPU (vanda A40 or a Space with >= 16 GB); quick steps (numbers + level) for every queued patient first, writing afterwards | plan |
+| 6 | Questions ask for what the note has; stroke question generic ("When did it start?") | real AI | mostly fixed by #1; keep the fixed pathway questions in real mode too | 30 min |
+| 7 | Chat missed "since 0830" (note + nurse's edit) and gave a generic order | real AI | add arrival time and the notes as typed to the chat context | 30 min |
+| 8 | BP 300/20 accepted; warnings shown twice | both | SBP 50-280, pulse-pressure check; de-duplicate warnings | 20 min |
+| 9 | Whiteboard accepts edits with no name, and they are NOT on the timeline | both | same name check as Submit | 15 min |
+| 10 | "Open a text file" accepts a JPG and fills the note with binary junk | both | accept .txt only; refuse if it isn't text | 10 min |
+| 11 | Small: PDF on the picture box ignored silently; old red/green messages stay; "?, ?" before numbers; every Submit opens a new tab (6 tabs); BP tile still quotes "bp 90/60" after the fix to 82; board's learning line updates only on reload; board crowded by many to-dos; case-file edit is raw markdown | both | messages + one reused case-file tab + "fixed by" on tiles | 1-2 h |
+
+**What this means for the group test:** the group runs test mode (no GPU), where #1-#7 don't appear because
+MedGemma's writing is replaced; #8-#11 they can meet. **For the report and demo:** the decision support (numbers,
+level, urgency, image models) is right in every real-AI case so far; the weak part is MedGemma's writing around it
+(#1-#3, #6-#7), which is fixable without retraining.
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.
