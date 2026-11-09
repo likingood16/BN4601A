@@ -59,15 +59,15 @@ patient. MedGemma is never retrained for this step.
 - The alarm threshold catches 80% of urgent patients on validation (Caleb's rule).
 - Then Caleb's floor is added.
 
-**5. LoRA training (`src/lora_train.py`).** It teaches MedGemma to write like the examples, in stages of
+**5. LoRA training (`training/lora_train.py`).** It teaches MedGemma to write like the examples, in stages of
 30,000 examples. After every stage it saves and measures progress. The three arms answer one question:
 *is it better to train on everything, on emergency cases only, or general first and emergency second?*
 
-**6. Comparison (`src/evaluate.py`).** Plain MedGemma vs each adapter, on the **same** held-out examples:
+**6. Comparison (`training/evaluate.py`).** Plain MedGemma vs each adapter, on the **same** held-out examples:
 - val loss, split by source and by emergency vs general;
 - MedQA exam accuracy on 200 held-out questions.
 
-**7. Extra checks (`src/fusion.py`).** Does adding raw vitals to the head help? It also checks calibration,
+**7. Extra checks (`training/fusion.py`).** Does adding raw vitals to the head help? It also checks calibration,
 decision curves, and how the score does for older vs younger patients and men vs women.
 
 ---

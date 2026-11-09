@@ -1,0 +1,7 @@
+# made when the app runs or is packed: not code
+case_files/
+gradio/case_files/
+build/
+frontend/node_modules/
+tools/test_pack_pictures/
+__pycache__/

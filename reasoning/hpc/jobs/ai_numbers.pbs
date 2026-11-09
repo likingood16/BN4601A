@@ -8,7 +8,7 @@ cd "$PBS_O_WORKDIR"
 source reasoning/hpc/hpc.conf
 export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TQDM_DISABLE=1 \
        BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it
-cd reasoning/src
+cd reasoning/checks
 "$VENV/bin/python" -u charting_check.py --ai --split train --limit 150
 "$VENV/bin/python" -u charting_check.py --ai --split test
 "$VENV/bin/python" -u charting_check.py --ai --split test --messy

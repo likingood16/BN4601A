@@ -3,7 +3,7 @@
 # 1. uploads the app (back end + built screens) and the FracAtlas train/val pictures the image upgrade jobs need
 # 2. installs the web libraries if missing (FastAPI, Uvicorn, multipart), pinned by the constraints file
 # 3. holds the long queued jobs so the app gets a GPU now (release later: ssh nus-vanda "qrls 1526195 1526342 1526343")
-# 4. queues the app job, and copies one example picture of each kind to web/test_images for testing
+# 4. queues the app job, and copies one example picture of each kind to app/tests/test_images for testing
 # Then run reasoning\hpc\connect_app.ps1 to open it in Chrome.
 $ErrorActionPreference = "Stop"
 $repo   = Resolve-Path "$PSScriptRoot\..\.."
@@ -12,8 +12,8 @@ $remote = "/scratch/e0959158/bn4601a/BN4601A"
 $pack   = Join-Path $env:TEMP "app_pack.tar"
 
 Write-Host "Packing ..."
-tar -cf $pack -C $repo --exclude=reasoning/web/frontend/node_modules --exclude=reasoning/web/case_files `
-    --exclude=reasoning/web/frontend/src reasoning/src reasoning/web reasoning/hpc `
+tar -cf $pack -C $repo --exclude=app/frontend/node_modules --exclude=app/case_files --exclude=app/build `
+    --exclude=app/frontend/src reasoning/src reasoning/checks reasoning/hpc app `
     vision/detector/train_detector.py vision/detector/choose_threshold.py vision/detector/finetune_medsam.py `
     vision/detector/data/yolo/images/train vision/detector/data/yolo/images/val `
     vision/detector/data/yolo/labels/train vision/detector/data/yolo/labels/val
@@ -34,8 +34,8 @@ $cmd = @(
 ) -join " && "
 ssh $hostName $cmd
 
-Write-Host "Copying one example picture of each kind to reasoning\web\test_images ..."
-New-Item -ItemType Directory -Force "$repo\reasoning\web\test_images" | Out-Null
-scp -q "${hostName}:$remote/reasoning/data/image_tests/demo/*" "$repo\reasoning\web\test_images\"
-Get-ChildItem "$repo\reasoning\web\test_images" | Select-Object Name, Length
+Write-Host "Copying one example picture of each kind to app\tests\test_images ..."
+New-Item -ItemType Directory -Force "$repo\app\tests\test_images" | Out-Null
+scp -q "${hostName}:$remote/reasoning/data/image_tests/demo/*" "$repo\app\tests\test_images\"
+Get-ChildItem "$repo\app\tests\test_images" | Select-Object Name, Length
 Write-Host "Done. When the app job is running (R in qstat), run reasoning\hpc\connect_app.ps1" -ForegroundColor Green

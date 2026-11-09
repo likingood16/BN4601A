@@ -329,7 +329,7 @@ urgency line):
   explanation) was fixed, but the re-run was stopped before that patient finished, so the fix isn't confirmed.
   Cato's model has not yet read an image in the pipeline. The full HPC checks have not run (vanda under maintenance).
 
-## 5f. App design: a triage desk, checked against real practice (`reasoning/app/`, 2 Nov 2026)
+## 5f. App design: a triage desk, checked against real practice (`old/first_mockup/`, 2 Nov 2026)
 - **First version** was four tabs built around the pipeline. Compared with published triage practice it was missing
   nurse override, a patient queue, time targets, a critical-look shortcut and repeat vitals, so it was rebuilt as one screen.
 - **What the screen does, and why:**
@@ -377,8 +377,8 @@ Same 490 test patients (KTAS 190 + NHAMCS 300) as `answer_quality.json`.
   0.20 for `hpc_run_750`, keeps the format; chosen over `hpc_run_5epochs` (F1 0.26) for fewer invented details on
   image-only questions (25% vs 34%). Not yet run inside our pipeline.
 
-## 5h. Rubric: every model graded on its own held-out test (`src/rubric.py`, 6 Nov 2026)
-Reads saved results only; re-run `python src/rubric.py` after new results. Grades Poor / Acceptable / Good / Excellent;
+## 5h. Rubric: every model graded on its own held-out test (`training/rubric.py`, 6 Nov 2026)
+Reads saved results only; re-run `python training/rubric.py` after new results. Grades Poor / Acceptable / Good / Excellent;
 published scales are named, "own" cut-offs must be called ours in the report. Hosmer & Lemeshow call 0.8-0.9
 "excellent" and >= 0.9 "outstanding"; our grade names sit one step lower.
 
@@ -1174,7 +1174,7 @@ took a median of about 30 s per patient (5l).
 **Tests after the fixes:** test_app 68/68 (4 new checks), test pack 40 cases all checks pass, guide walkthrough 18/18,
 number reader 100% / 0 wrong.
 
-**Gradio version** (`reasoning/gradio_app/`, for a Hugging Face ZeroGPU Space, which only takes Gradio apps): Gradio
+**Gradio version** (`app/gradio/`, for a Hugging Face ZeroGPU Space, which only takes Gradio apps): Gradio
 screens over the same `server.Store`; one patient's AI run = one `@spaces.GPU` call (patient copied in and back),
 re-score and chat are calls of their own. Tested by hand in test mode, plain and with `BN4601A_FAKE_ZERO=1`
 (copy-in/copy-out): submit, text file, name checks, case file, questions, to-dos, fix numbers, chat, board, clear,

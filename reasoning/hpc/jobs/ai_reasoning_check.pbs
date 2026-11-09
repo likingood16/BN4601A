@@ -12,7 +12,7 @@ source reasoning/hpc/hpc.conf
 export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 YOLO_OFFLINE=true TQDM_DISABLE=1 \
        BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it
 nvidia-smi --query-gpu=name,memory.total --format=csv
-cd reasoning/src
+cd reasoning/checks
 if [ -z "$SKIP_NUMBERS" ]; then                      # qsub -v SKIP_NUMBERS=1: numbers already tested
 echo "== 1. numbers by AI $(date)"
 "$VENV/bin/python" -u charting_check.py --ai --split test
@@ -21,11 +21,11 @@ fi
 echo "== 2. pathway flags on reworded notes $(date)"
 "$VENV/bin/python" -u pathway_reworded_check.py
 echo "== 3. full app, real AI $(date)"
-cd ../web
+cd ../../app
 PORT=8011
 "$VENV/bin/python" -u server.py --port $PORT --case-files "" &
 SERVER=$!
 for i in $(seq 1 120); do curl -s "http://127.0.0.1:$PORT/api/meta" >/dev/null && break; sleep 5; done
-"$VENV/bin/python" -u real_ai_check.py --url "http://127.0.0.1:$PORT" && cp ../outputs/real_ai_check.md ../outputs/real_ai_check_ai.md
+"$VENV/bin/python" -u tests/real_ai_check.py --url "http://127.0.0.1:$PORT" && cp ../reasoning/outputs/real_ai_check.md ../reasoning/outputs/real_ai_check_ai.md
 kill $SERVER; wait $SERVER 2>/dev/null
 echo "== done $(date)"

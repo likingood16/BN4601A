@@ -12,4 +12,4 @@ for a in $ADAPTERS; do
   [ -f "reasoning/models/lora/$a/adapter/adapter_model.safetensors" ] || { echo "missing $a - is that arm finished?"; exit 1; }
 done
 cd reasoning/src
-"$VENV/bin/python" evaluate.py --mode full --per-source 100 --medqa $ADAPTERS
+"$VENV/bin/python" ../training/evaluate.py --mode full --per-source 100 --medqa $ADAPTERS

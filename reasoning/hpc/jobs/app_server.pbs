@@ -17,7 +17,7 @@ rm -f "$LOGS/app_restart" "$LOGS/app_stop"
 hostname > "$LOGS/app_server_host.txt"                      # connect_app.ps1 reads this to build the tunnel
 nvidia-smi --query-gpu=name,memory.total --format=csv
 mkdir -p "$ROOT/app_cases"
-cd reasoning/web
+cd app
 run=0
 while true; do
   run=$((run + 1))
@@ -28,8 +28,8 @@ while true; do
   echo "app up (run $run) $(date)"
   # the real-AI check runs by itself (test notes + one patient per kind of picture), so results exist even if nobody
   # connects; its patients stay on the board, marked "Real-AI check"
-  "$VENV/bin/python" -u real_ai_check.py --url "http://127.0.0.1:$PORT" > "$LOGS/real_ai_check_live.log" 2>&1 \
-    && cp ../outputs/real_ai_check.md "../outputs/real_ai_check_run$run.md"
+  "$VENV/bin/python" -u tests/real_ai_check.py --url "http://127.0.0.1:$PORT" > "$LOGS/real_ai_check_live.log" 2>&1 \
+    && cp ../reasoning/outputs/real_ai_check.md "../reasoning/outputs/real_ai_check_run$run.md"
   while kill -0 $SERVER 2>/dev/null && [ ! -f "$LOGS/app_restart" ] && [ ! -f "$LOGS/app_stop" ]; do sleep 10; done
   kill $SERVER 2>/dev/null; wait $SERVER 2>/dev/null
   rm -f "$LOGS/app_restart"

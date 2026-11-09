@@ -14,9 +14,9 @@ At the top right of every screen, type your **name** and pick your **role**:
 - **Doctor**, **Nurse** or **Ward / other**: can only look at the whiteboard.
 
 ## Test inputs
-- **Text notes:** `reasoning/web/test_notes/`. There are 10 notes from held-out test patients, and `answer_key.csv` has the
+- **Text notes:** `app/test_notes/`. There are 10 notes from held-out test patients, and `answer_key.csv` has the
   true triage level for each.
-- **Images:** `reasoning/web/test_images/`. There is one of each kind: bone X-ray with a fracture, chest X-ray (normal and
+- **Images:** `app/test_images/`. There is one of each kind: bone X-ray with a fracture, chest X-ray (normal and
   pneumonia), CT, MRI, ultrasound, ECG and other. They are copied from vanda by `app_on_vanda.ps1`.
 - **Video:** any .mp4. It should be **refused** with a reason (videos aren't read).
 
@@ -60,6 +60,6 @@ At the top right of every screen, type your **name** and pick your **role**:
 - [ ] Note: tasks finished without help, time to chart one patient, clicks, anything confusing.
 
 ## Automatic checks (run any time)
-- `python reasoning/web/test_app.py`: every button's function, 56 checks (test mode).
-- `python reasoning/web/stress_test.py --url http://127.0.0.1:8001`: 450 test patients at once, checked against the board.
-- `python reasoning/src/charting_check.py --split test`: numbers pulled from messy notes, 190 KTAS patients.
+- `python app/test_app.py`: every button's function, 56 checks (test mode).
+- `python app/stress_test.py --url http://127.0.0.1:8001`: 450 test patients at once, checked against the board.
+- `python reasoning/checks/charting_check.py --split test`: numbers pulled from messy notes, 190 KTAS patients.

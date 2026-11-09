@@ -7,7 +7,7 @@ Notebooks are for learning and checking step by step. The finished code lives in
 | `00_playground.ipynb` | practice cells | practice only |
 | `01_load_model.ipynb` | load MedGemma (4-bit on the laptop) and ask it a question | done (Task 1) |
 | `02_datasets.ipynb` | download, clean and split all datasets into Pool 1 + Pool 2 | done; makes `data/processed/` |
-| `05_lora.ipynb` | LoRA training on Google Colab | **old**: replaced by `src/lora_train.py` on the NUS HPC |
+| `05_lora.ipynb` | LoRA training on Google Colab | **old**: replaced by `training/lora_train.py` on the NUS HPC |
 | `05_lora_kaggle_emergency.ipynb` | LoRA emergency arm on Kaggle | **old**: never run; replaced by the HPC |
 
 There are no notebooks 03 and 04. Cards, vectors and heads were written straight into `src/`

@@ -8,4 +8,4 @@ source reasoning/hpc/hpc.conf
 export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it
 cd reasoning/src
 "$VENV/bin/python" -u answers.py --mode full --batch 16 --tag task --skip-base task/stage1 2>&1 | tee ../outputs/logs/test_task_live.log
-"$VENV/bin/python" -u evaluate.py --mode full --split test --per-source 200 --medqa mixed/stage12 task/stage1 2>&1 | tee -a ../outputs/logs/test_task_live.log
+"$VENV/bin/python" -u ../training/evaluate.py --mode full --split test --per-source 200 --medqa mixed/stage12 task/stage1 2>&1 | tee -a ../outputs/logs/test_task_live.log

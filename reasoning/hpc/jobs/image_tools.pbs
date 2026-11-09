@@ -7,7 +7,7 @@ set -eo pipefail
 cd "$PBS_O_WORKDIR"
 source reasoning/hpc/hpc.conf
 export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it TQDM_DISABLE=1
-cd reasoning/src
+cd reasoning/checks
 for part in ${PARTS:-outline chest sorter}; do          # qsub -v PARTS="chest sorter" to run only some
   "$VENV/bin/python" -u image_tools_check.py --part $part 2>&1 | tee ../outputs/logs/image_tools_${part}_live.log
 done

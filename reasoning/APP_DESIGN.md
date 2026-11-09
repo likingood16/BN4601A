@@ -129,8 +129,8 @@ they're downloaded, the real app says "outline not available" and test mode shad
 
 **Run it**
 ```
-cd reasoning/web/frontend && npm run build        # only after changing the screens (Node path above)
-cd reasoning/web && python server.py --test         # fake AI; add --lan for a second laptop on the same Wi-Fi
+cd app/frontend && npm run build        # only after changing the screens (Node path above)
+cd app && python server.py --test         # fake AI; add --lan for a second laptop on the same Wi-Fi
 ```
 Open http://127.0.0.1:8000 (charting) and http://127.0.0.1:8000/#/board (whiteboard).
 Without `--test` it loads MedGemma (needs the GPU).
@@ -162,7 +162,7 @@ It gives no SUS score and doesn't stand in for the 5 human testers.
 Also found in test mode: the note sorter cut "37.9" at the dot; "tightness" matched "htn"; "brought by ambulance" was taken
 as the complaint; the tab title stayed "P1 · case file". **All fixed the same day.** Viewer role correctly can't edit.
 
-**Number extraction** (`src/charting_check.py`): KTAS patients written as messy notes in varied styles (BIBA, PR/pulse,
+**Number extraction** (`checks/charting_check.py`): KTAS patients written as messy notes in varied styles (BIBA, PR/pulse,
 °F, GCS instead of AVPU, ...).
 - **Dev run on train** found three problems: "BIBA" was not recognised; "97.0F" was read as age 0, female; and
   "no injury word" was being recorded as "no injury". All three were fixed.
