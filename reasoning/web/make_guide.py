@@ -98,7 +98,7 @@ tr {{ page-break-inside: avoid; }}
 </style></head><body>
 
 <h1>ED triage app</h1>
-<div style="font-size:13pt;color:#455a64">User guide and group test plan · BN4601A, Model 3 · version of 8 Nov 2026</div>
+<div style="font-size:13pt;color:#455a64">User guide and group test plan · BN4601A, Model 3 · version of 9 Nov 2026</div>
 <div class="warn"><b>Student research prototype.</b> Not a medical device. Never use it with real patients' details.
 All test notes and pictures in this pack are from public datasets or written for testing.</div>
 
@@ -114,29 +114,29 @@ When they press <b>Submit</b>, the app:</p>
 </ol>
 <p>Everything the AI adds is marked as AI (✦), and a person always makes the decision.</p>
 
-<h2>1. Start the app and sign in</h2>
-<div class="two"><div>
-<h3>If someone is hosting it (easiest)</h3>
-<p>The host runs it on their laptop with <code>--lan</code> and sends you a link like
-<code>http://192.168.x.x:8000</code>. Open it in Chrome or Edge on the <b>same Wi-Fi</b>.</p>
-<p>Host only:</p>
-<pre>conda activate bn4601a
-cd reasoning/web
-python server.py --test --lan</pre>
-<p class="muted">The host's IPv4 address is shown by <code>ipconfig</code>. Allow Python through the Windows firewall
-when asked.</p>
-</div><div>
-<h3>Running your own copy</h3>
-<p>Python 3.11 and about 2 GB of disk; no GPU. <code>ED_app_models.zip</code> (108 MB) is in the group chat.</p>
-<pre>git clone -b ed-app-group-test https://github.com/likingood16/BN4601A.git
+<h2>1. Install it on your computer and start it (about 15 minutes, no GPU)</h2>
+<ol class="steps">
+<li><b>Download</b> all the files from the group chat into <b>one folder</b> (e.g. <code>Downloads\\EDapp</code>; Telegram
+Desktop's own <code>Downloads\\Telegram Desktop</code> also works): <code>ED_app_code.zip</code>, the 12 parts
+<code>ED_app_models.zip.001</code> ... <code>.012</code> (the image models: keep them in the group), and
+<code>ED_app_test_pack.zip</code> (test cases, pictures, answer key, feedback form).</li>
+<li><b>Python 3.11:</b> if you don't have Anaconda or Miniconda, install Miniconda (docs.conda.io/en/latest/miniconda.html).
+Open <b>Anaconda Prompt</b> (Windows) or <b>Terminal</b> (Mac).</li>
+<li><b>Unzip</b> <code>ED_app_code.zip</code> (right-click → Extract All) and <code>ED_app_test_pack.zip</code>.</li>
+<li><b>Set up and start</b>, one line at a time (change the first line to where your <code>BN4601A</code> folder is; tip: type
+<code>cd </code> and drag the <code>web</code> folder into the window):</li>
+</ol>
+<pre>cd Downloads\\EDapp\\ED_app_code\\BN4601A\\reasoning\\web
 conda create -n edapp python=3.11 -y
 conda activate edapp
-cd BN4601A/reasoning/web
-pip install -r requirements_app.txt
-python install_models.py path/to/ED_app_models.zip
+pip install -r requirements_app.txt          (5-10 minutes, only the first time)
+python install_models.py                     (finds the 12 parts, should end with "all there")
 python server.py --test</pre>
-<p>Open <code>http://127.0.0.1:8000</code>. The whiteboard is at <code>http://127.0.0.1:8000/#/board</code>.</p>
-</div></div>
+<p>Open <b>http://127.0.0.1:8000</b> in Chrome or Edge. The whiteboard is at <code>http://127.0.0.1:8000/#/board</code>.
+<b>Next time:</b> <code>conda activate edapp</code>, the <code>cd</code> line, then <code>python server.py --test</code>.
+<b>Problems:</b> "port 8000 in use" → <code>python server.py --test --port 8001</code>; "parts are missing" → download that
+part again; "python is not recognised" → use Anaconda Prompt. <b>The Gradio version</b> of the app uses the same install:
+see its own guide, <code>ED_app_gradio_guide.pdf</code>.</p>
 <div class="box"><b>First thing every time:</b> type <b>your name</b> top right and pick your <b>role</b>. Without a name,
 Submit is refused ("Type your name next to Submit"). Only the <b>Triage nurse</b> and <b>Organising doctor</b> can
 change the whiteboard and tick to-dos; other roles can look.</div>

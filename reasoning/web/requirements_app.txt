@@ -17,3 +17,4 @@ scipy
 pillow
 transformers>=5.17      # imported by the pipeline code; the model itself is only loaded with the real AI
 peft>=0.21              # imported by the picture step (answers.py)
+gradio==6.27.0          # only for the Gradio version (reasoning/gradio_app/app.py)

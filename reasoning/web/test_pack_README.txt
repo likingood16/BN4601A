@@ -4,7 +4,8 @@ ED TRIAGE APP - GROUP TEST PACK (BN4601A, Model 3)
 Please read ED_app_user_guide.pdf first (about 10 minutes). It shows every screen and button.
 
 What is in here
-  ED_app_user_guide.pdf   how to use the app, step by step, with pictures
+  ED_app_user_guide.pdf   how to install the app on your computer (section 1) and use it, step by step, with pictures
+  ED_app_gradio_guide.pdf the Gradio version of the same app (same install), for the Hugging Face demo
   cases/                  one note per test patient (.txt). Open one with "Open a text file" or copy-paste it.
                             T01-T10  written to test triage and number reading (T10a/b/c = same patient 3 ways)
                             P01-P18  a note + a picture (pictures/ folder) to test the image models

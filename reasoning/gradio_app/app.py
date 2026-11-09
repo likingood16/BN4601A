@@ -322,11 +322,14 @@ def _case_file_path(p):
     return str(path)
 
 
-def tick(pid, seen):
-    """Polling: refresh only when something changed (store.version); the patient list too (its levels and names)."""
+def tick(pid, seen, labels):
+    """Polling: the case file only when something changed (store.version); the patient list whenever its labels
+    changed (a fast AI run finished before the first refresh, so the list kept saying "reading the note…", 9 Nov)."""
+    choices = _choices(new=False, everyone=True)
+    new_list = (gr.update(choices=choices), choices) if choices != labels else (gr.skip(), gr.skip())
     if store.version == seen:
-        return [gr.skip()] * 15
-    return (*case_view(pid), gr.update(choices=_choices(new=False, everyone=True)))
+        return [gr.skip()] * 14 + list(new_list)
+    return (*case_view(pid), *new_list)
 
 
 def _save_pictures(pid, paths):
@@ -574,6 +577,7 @@ with gr.Blocks(title="ED triage app") as demo:
                                 "AI adds is marked; a person always decides.")
         with gr.Tab("Case file", id="case"):
             seen = gr.State(-1)
+            labels = gr.State([])                           # the patient list last sent to this screen
             case_pick = gr.Dropdown(_choices(new=False, everyone=True), label="Patient", filterable=True)
             header = gr.Markdown("Pick a patient.")
             numbers = gr.Dataframe(headers=["Number", "Value", "Read from the note's words", "Read by"],
@@ -653,7 +657,7 @@ with gr.Blocks(title="ED triage app") as demo:
     case_out = [header, numbers, warn, report, notes_md, gallery, pics_md, timeline, questions, todos, todo_pick, chat,
                 dl, seen]
     timer = gr.Timer(2)
-    timer.tick(tick, [case_pick, seen], [*case_out, case_pick])
+    timer.tick(tick, [case_pick, seen, labels], [*case_out, case_pick, labels])
     case_pick.change(case_view, case_pick, case_out)
     on(txt.upload, load_text_file, txt, note)
     on(send.click, submit, [name, pick, note, pics], [note, pics, pick, sent, case_pick, tabs])

@@ -240,10 +240,11 @@ def main():
         w.writerows(rows)
     with open(OUT / "feedback_form.csv", "w", newline="", encoding="utf-8-sig") as fh:
         w = csv.writer(fh)
-        w.writerow(["your_name", "case_or_step", "what_you_did", "what_the_guide_says", "what_happened", "same_as_guide (yes/no)",
-                    "how_bad (1 cosmetic - 5 unsafe)", "screenshot_file", "time_taken_s", "comments"])
+        w.writerow(["your_name", "app (main / Gradio)", "case_or_step", "what_you_did", "what_the_guide_says", "what_happened",
+                    "same_as_guide (yes/no)", "how_bad (1 cosmetic - 5 unsafe)", "screenshot_file", "time_taken_s",
+                    "comments"])
         for r in rows:
-            w.writerow(["", r["case"], "", r["what_the_guide_says"], "", "", "", "", "", ""])
+            w.writerow(["", "", r["case"], "", r["what_the_guide_says"], "", "", "", "", "", ""])
     (OUT / "ATTRIBUTION.txt").write_text(
         "Pictures (all CC BY 4.0; used for testing only, not for diagnosis):\n"
         + "\n".join(f"  {n}: {next(v for k, v in SOURCES.items() if n.startswith(k))}" for n in PICTURES)
