@@ -20,7 +20,21 @@ OUTPUTS = Path(os.environ.get("BN4601A_OUTPUTS", REASONING / "outputs"))   # emb
 
 # Used for inference and embeddings. The HPC sets BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it: the same
 # weights (identical files) but not gated, so no Hugging Face login is needed there.
-BASE_MODEL = os.environ.get("BN4601A_BASE_MODEL", "google/medgemma-1.5-4b-it")
+def _base_model():
+    """google/... if it is already downloaded here (the laptop), else the ungated copy, so a group member's computer
+    or the Hugging Face Space needs no MedGemma licence click or login (9 Nov)."""
+    if os.environ.get("BN4601A_BASE_MODEL"):
+        return os.environ["BN4601A_BASE_MODEL"]
+    try:
+        from huggingface_hub import try_to_load_from_cache
+        if isinstance(try_to_load_from_cache("google/medgemma-1.5-4b-it", "config.json"), str):
+            return "google/medgemma-1.5-4b-it"
+    except Exception:
+        pass
+    return "unsloth/medgemma-1.5-4b-it"
+
+
+BASE_MODEL = _base_model()
 LORA_BASE_MODEL = "unsloth/medgemma-1.5-4b-it-unsloth-bnb-4bit"   # same weights, used by Unsloth for training
 SEED = 42
 URGENT_MAX_LEVEL = 2                                       # triage 1-2 = urgent (same as Caleb)

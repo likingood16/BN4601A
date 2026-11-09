@@ -22,6 +22,10 @@ What we would like you to do (about 30-45 minutes)
   5. Fill in feedback_form.csv: what you did, what happened, whether it matched, how bad (1 cosmetic - 5 unsafe).
      Screenshots help: name them by case, e.g. P06_1.png.
 
+Full AI (the final product)
+  - On your own computer with an NVIDIA GPU: ED_app_full_ai_models.zip from the chat + section 1b of the user guide.
+  - Online on a Hugging Face GPU (Gradio screens, nothing to install): the link comes in the chat.
+
 Important
   - Test mode: the urgency score, numbers, pathway rules, image models and whiteboard are real. MedGemma's writing
     (case-file wording, chat answers, image descriptions) is replaced by text marked [TEST MODE].

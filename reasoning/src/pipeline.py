@@ -20,6 +20,7 @@ One MedGemma 1.5 sits in memory, with adapters switched per step (6 Nov 2026):
 No thinking block and capped answers (CAPS): an answer takes seconds on a big GPU instead of minutes.
 Urgency cut-off: catches 90% of urgent KTAS validation patients (was 80%); more false alarms, fewer misses.
 """
+import os
 import threading
 import time
 from contextlib import contextmanager
@@ -58,7 +59,9 @@ class EDPipeline:
             from vitals_model import VitalsModel
             vitals_model = VitalsModel()
         self.vm = vitals_model
-        base, self.processor = load(mode="4bit")
+        # 4-bit: the heads were trained on the 4-bit model's vectors. BN4601A_LOAD_MODE=full is a fallback for a GPU
+        # where bitsandbytes doesn't load (scores then come from slightly different vectors)
+        base, self.processor = load(mode=os.environ.get("BN4601A_LOAD_MODE", "4bit"))
         self.model = PeftModel.from_pretrained(base, str(IMAGE_ADAPTER), adapter_name="image").eval()
         self.text_adapter = None
         if explainer:

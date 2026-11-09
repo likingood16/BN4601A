@@ -85,7 +85,24 @@ def _import_now():
             print(f"(not loaded at start: {name}: {type(e).__name__})", flush=True)
 
 
+def _files_from_hub():
+    """On the Space the trained files are not in the Space (anyone can see a public Space's files): they come from the
+    group's private model repo, with the Space's HF_TOKEN secret. Returns "" when all are in place, else what failed."""
+    import install_models
+    if all(f.exists() for f in install_models.ai_targets().values()):
+        return ""
+    try:
+        install_models.from_hub(token=os.environ.get("HF_TOKEN") or None)
+    except SystemExit as e:
+        return str(e).splitlines()[0]
+    return ""
+
+
 _model_files_in_place()
+NO_FILES = _files_from_hub() if os.environ.get("SPACE_ID") else ""
+if NO_FILES and not TEST:                                    # without its files the real AI can't start: say why
+    print("model files missing, starting in test mode:", NO_FILES, flush=True)
+    TEST = True
 _import_now()
 if TEST:
     from test_backend import TestPipeline
@@ -102,7 +119,14 @@ AI_FIELDS = ("notes", "fields", "found", "visit", "report", "report_by", "questi
              "error", "pending", "report_seen_by_chat")
 
 
-@GPU(duration=240)
+def _work_seconds(p):
+    """GPU time to ask for: ZeroGPU refuses a call that asks for more than the viewer has left today (2 min logged
+    out, 5 min with a free account), so ask for what a patient needs: about 30 s on an A40 + more per picture."""
+    pictures = sum(len(p.notes[i]["images"]) for i in p.pending if i < len(p.notes))
+    return min(90 + 40 * pictures, 240)
+
+
+@GPU(duration=_work_seconds)
 def _gpu_work(p):
     """One patient's whole AI run (numbers, urgency, pictures, case file, questions), as Store._job does it."""
     store.ai = AI
@@ -119,12 +143,12 @@ def _gpu_work(p):
             return p
 
 
-@GPU(duration=60)
+@GPU(duration=30)
 def _gpu_triage(fields):
     return AI.triage(fields, explain=False)
 
 
-@GPU(duration=120)
+@GPU(duration=60)
 def _gpu_chat(visit, text):
     return AI.chat(visit, text), visit
 
@@ -546,7 +570,11 @@ def board_switch(show_left):
 
 # ---------------------------------------------------------------- screens
 MODE = ("**Test mode:** MedGemma's writing is made up; numbers, urgency, rules, image models and whiteboard are real."
-        if TEST else "Real AI" + (" on ZeroGPU" if ZERO and not FAKE_ZERO else ""))
+        if TEST else "**Full AI** (MedGemma + the trained models)" + (
+            " on a Hugging Face GPU: each patient takes about a minute, and each visitor gets a few minutes of GPU a "
+            "day (log in to Hugging Face for more)" if ZERO and not FAKE_ZERO else ""))
+if NO_FILES:
+    MODE += f"\n\n⚠ The full AI couldn't start: {NO_FILES} (the Space owner needs to set its HF_TOKEN secret)."
 BOARD_HEAD = ["Level", "Bed", "Patient", "Complaint", "Stage", "Doctor", "Waiting", "To do", "AI"]
 
 with gr.Blocks(title="ED triage app") as demo:

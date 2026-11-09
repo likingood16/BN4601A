@@ -1,68 +1,71 @@
-"""Everything the Gradio app needs, in one zip that unpacks into a Hugging Face Space (9 Nov 2026).
+"""The Gradio app as a Hugging Face Space (9 Nov 2026): code only; the trained files stay in the group's private model
+repo (install_models.HUB) and the Space downloads them when it starts, with its HF_TOKEN secret.
 
-    python make_space_bundle.py     # -> reasoning/web/test_pack/ED_app_gradio_space.zip (gitignored)
+    python make_space_bundle.py                      # -> reasoning/web/test_pack/space/  (the Space's files)
+    python make_space_bundle.py --push               # also creates / updates the Space (ZeroGPU) and uploads them
 
-In the zip (Space layout: app.py at the top):
+In the Space (app.py at the top):
     app.py, README.md (the Space settings), requirements.txt
-    reasoning/src, reasoning/web/server.py, reasoning/app/test_backend.py      the code (as committed)
-    vitals/src, vitals/models                                                  Caleb's vitals model
-    vision/results, vision/*.py ...                                            image-model code and cut-offs
-    reasoning/models/heads/*.joblib, reasoning/models/lora/<task, questions, numbers>, vision/cato/...  trained parts
-    vision/.../*.pt and home/.torchxrayvision/...                              image models (app.py puts CheXpert in place)
-Not in it: MedGemma itself (the Space downloads it with its HF_TOKEN), data, notebooks, outputs.
-Keep the zip and the Space private: some models were trained on VinDr-CXR and RSNA data.
+    reasoning/src, reasoning/web/server.py + install_models.py, reasoning/app/test_backend.py, vitals/src + models,
+    vision/*.py and cut-offs                                            the code, as committed in git
+Not in it: MedGemma (the Space downloads the ungated copy unsloth/medgemma-1.5-4b-it), the heads, adapters and image
+models (private model repo), data, notebooks, outputs.
 """
+import argparse
+import shutil
 import subprocess
-import sys
-import zipfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-OUT = REPO / "reasoning" / "web" / "test_pack" / "ED_app_gradio_space.zip"
-sys.path.insert(0, str(REPO / "reasoning" / "src"))
-import image_models as im                                      # noqa: E402  (the image-model paths)
-from config import HEADS_DIR, LORA_DIR                         # noqa: E402
-from image_reader import IMAGE_ADAPTER                         # noqa: E402
-from pipeline import EXPLAINER, NUMBER_READER, QUESTIONER         # noqa: E402
+OUT = REPO / "reasoning" / "web" / "test_pack" / "space"
+SPACE = "likingood/bn4601a-ed-triage"
 
-EMB = "base4bit"                                               # the vectors the heads were trained on (EDPipeline default)
-
-CODE = ["reasoning/src", "reasoning/web/server.py", "reasoning/app/test_backend.py", "vitals/src", "vitals/models",
-        "vision"]
-SKIP = ("/notebooks/", "/data/", "/outputs/", "/__pycache__/", ".ipynb")
+CODE = ["reasoning/src", "reasoning/web/server.py", "reasoning/web/install_models.py", "reasoning/app/test_backend.py",
+        "vitals/src", "vitals/models", "vision"]
+SKIP = ("/notebooks/", "/data/", "/outputs/", "/__pycache__/", ".ipynb", "/test_images/")
 
 
 def tracked(prefixes):
     """Files as committed in git under these paths (so the Space runs what is on GitHub)."""
     out = subprocess.run(["git", "ls-files", *prefixes], cwd=REPO, capture_output=True, text=True, check=True).stdout
-    return [f for f in out.splitlines() if not any(s in f"/{f}" for s in SKIP)]
+    return [f for f in out.splitlines() if not any(s in f"/{f}" for s in SKIP) and not f.endswith(".pt")]
 
 
-def model_files():
-    heads = [HEADS_DIR / f"urgent__{EMB}__ktas_nhamcs.joblib", HEADS_DIR / f"level__{EMB}.joblib",
-             HEADS_DIR / f"pathways__{EMB}.joblib"]
-    adapters = [p for name in (EXPLAINER, QUESTIONER, NUMBER_READER) for p in (LORA_DIR / name / "adapter").glob("*")]
-    image = [im.SORTER, im.FRACTURE, im.CHEST, im.ICH, im.ICH_GREY] + list(Path(IMAGE_ADAPTER).glob("*"))
-    return heads + adapters + image
+def build():
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    OUT.mkdir(parents=True)
+    shutil.copy(HERE / "app.py", OUT / "app.py")
+    shutil.copy(HERE / "README_SPACE.md", OUT / "README.md")
+    shutil.copy(HERE / "requirements.txt", OUT / "requirements.txt")
+    for f in tracked(CODE):
+        (OUT / f).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(REPO / f, OUT / f)
+    files = [f for f in OUT.rglob("*") if f.is_file()]
+    print(f"wrote {OUT}: {len(files)} files, {sum(f.stat().st_size for f in files) / 1e6:.1f} MB")
 
 
-def main():
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    total = 0
-    with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as z:
-        z.write(HERE / "app.py", "app.py")
-        z.write(HERE / "README_SPACE.md", "README.md")
-        z.write(HERE / "requirements.txt", "requirements.txt")
-        for f in tracked(CODE):
-            z.write(REPO / f, f)
-        for f in model_files():
-            if f.is_file():
-                z.write(f, f.relative_to(REPO).as_posix())
-                total += f.stat().st_size
-        z.write(im.CHEX_FILE, "home/" + im.CHEX_FILE.relative_to(Path.home()).as_posix())
-    print(f"wrote {OUT} ({OUT.stat().st_size / 1e6:.0f} MB; model files {total / 1e6:.0f} MB)")
+def push(space=SPACE, private=True):
+    from huggingface_hub import HfApi
+    api = HfApi()
+    # a Gradio Space on the free CPU needs PRO (Nov 2026); on ZeroGPU it is free
+    api.create_repo(space, repo_type="space", space_sdk="gradio", private=private, space_hardware="zero-a10g",
+                    exist_ok=True)
+    api.upload_folder(repo_id=space, repo_type="space", folder_path=str(OUT), delete_patterns=["*"],
+                      commit_message="ED triage app (Gradio), code from git")
+    try:
+        api.request_space_hardware(space, "zero-a10g")             # ZeroGPU (its hardware name on the hub)
+    except Exception as e:
+        print("couldn't switch to ZeroGPU:", e)
+    print(f"https://huggingface.co/spaces/{space}")
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--push", action="store_true")
+    ap.add_argument("--public", action="store_true", help="with --push: make the Space public")
+    a = ap.parse_args()
+    build()
+    if a.push:
+        push(private=not a.public)

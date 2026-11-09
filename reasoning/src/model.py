@@ -21,7 +21,10 @@ def pick_mode():
 
 def compute_dtype():
     """bfloat16 where the GPU supports it natively (RTX 30xx, A100, H100), else float16 (T4, V100)."""
-    major, _ = torch.cuda.get_device_capability(0)
+    try:
+        major, _ = torch.cuda.get_device_capability(0)
+    except Exception:                                    # Hugging Face ZeroGPU outside a GPU call: Blackwell, bf16 ok
+        major = 9
     return torch.bfloat16 if major >= 8 else torch.float16
 
 

@@ -46,21 +46,35 @@ li {{ margin-bottom: 3px; }}
 
 <h2>What it is</h2>
 <p>The <b>same app</b> as the main version (same back end, same trained models, same answers), with simpler
-<b>Gradio</b> screens in one browser tab: <b>Charting</b>, <b>Case file</b> and <b>Whiteboard</b>. We built it because a
-Hugging Face Space with a free GPU (ZeroGPU) only takes Gradio apps: on such a Space the full AI, including MedGemma,
-can run online for the presentation, with nothing to install. On your laptop it runs in <b>test mode</b>, like the main
-app: the number reading, urgency and level scoring, image models and whiteboard are real; MedGemma's writing (case-file
-wording, chat answers, picture descriptions) is replaced by text marked [TEST MODE] because it needs a big GPU.</p>
+<b>Gradio</b> screens in one browser tab: <b>Charting</b>, <b>Case file</b> and <b>Whiteboard</b>. It runs the
+<b>full AI</b> (MedGemma + every trained model) on your own computer's NVIDIA GPU, or online on a free Hugging Face
+GPU (the link comes in the chat); on any other computer it runs in test mode.</p>
 
-<h2>1. Start it (after installing the main app)</h2>
-<p>It uses the same files and the same install as the main app (section 1 of <code>ED_app_user_guide.pdf</code>; the
-install already includes Gradio). Then, in Anaconda Prompt / Terminal:</p>
+<h2>1. Start it</h2>
+<h3>On your own computer</h3>
+<p>Same files and install as the main app (section 1 of <code>ED_app_user_guide.pdf</code>), then in Anaconda Prompt /
+Terminal:</p>
 <pre>conda activate edapp
 cd Downloads\\EDapp\\ED_app_code\\BN4601A\\reasoning\\gradio_app
-python app.py --test</pre>
-<p>Wait for <b>Running on local URL: http://127.0.0.1:7860</b>, then open <b>http://127.0.0.1:7860</b> in Chrome or Edge.
-The main app (port 8000) can run at the same time. <b>First thing every time:</b> type <b>your name</b> top right and pick
+python app.py --test          (test mode, any computer)
+python app.py                 (full AI: NVIDIA GPU, after section 1b of the main guide)</pre>
+<p>Then open <b>http://127.0.0.1:7860</b>. <b>First thing every time:</b> type <b>your name</b> top right and pick
 your <b>role</b>; without a name, Submit and whiteboard changes are refused with a warning.</p>
+<h3>Online, full AI (the link comes in the chat)</h3>
+<p>The same app on a free Hugging Face GPU, nothing to install: open the link in Chrome or Edge. If it says "Sleeping" or
+"Building", wait 2-5 minutes (it starts when someone opens it). The line under the title says <b>Full AI</b>.</p>
+<ul>
+<li>Each patient takes <b>about a minute</b> after Submit (the Submit button spins while the GPU works), then the Case
+file tab opens. Chat answers and re-scoring take 10-30 s.</li>
+<li>Hugging Face lends the GPU per call, with a <b>daily allowance per visitor</b>: about 2 minutes if you are not logged
+in, 5 minutes with a free Hugging Face account (log in at huggingface.co first, in the same browser). That is 2-4
+patients a day each, so pick your cases (section 5). If it says the GPU allowance is used up, try again tomorrow or
+from another account.</li>
+<li>Everyone who opens the link shares <b>one whiteboard</b>: you will see the others' test patients. Put your initials
+in the note (e.g. "AL test: 67M chest pain ...") so you can find yours.</li>
+</ul>
+<p>The screenshots below were taken in test mode, so the case-file wording is marked [TEST MODE]; with the full AI it is
+MedGemma's own writing, and the questions, to-dos and chat answers are its own too.</p>
 
 <h2>2. One patient from start to finish (case T01)</h2>
 <h3>Charting tab: write the note and press Submit</h3>
@@ -111,7 +125,8 @@ lists them; <b>Put back on the board</b> undoes it. Their case files stay readab
 <h2>5. What we would like you to test (15-20 minutes)</h2>
 <ul>
 <li>Cases <b>T01</b> (chest pain), <b>T02</b> (stroke: it should ask when she was last known to be well) and <b>P01</b>
-(picture). The answers should match <code>expected_results.csv</code> in the test pack, as the back end is the same.</li>
+(picture). The level and numbers should match <code>expected_results.csv</code> in the test pack; with the full AI
+the case-file wording, questions and to-dos are MedGemma's own, so check they are right and useful.</li>
 <li>Every button once: Open a text file, Submit, a question → answer → Add, tick and add a to-do, Fix numbers, Edit and
 Save, Download, Chat, the whiteboard stage, doctor, Clear and Put back.</li>
 <li>Try to break it: Submit without a name, open a picture with "Open a text file", the app open in two browser tabs at
@@ -124,8 +139,9 @@ once, a long or messy note.</li>
 <li>One browser tab with three tabs, instead of a charting page, a case-file window and a whiteboard page.</li>
 <li>Fix numbers is a table: double-click a value to change it.</li>
 <li>In test mode the chat answer is a placeholder, and the questions and to-dos come from fixed lists.</li>
-<li>On a Hugging Face ZeroGPU Space (not tried yet), each patient's AI run is one GPU call, and each viewer has a daily
-GPU allowance (about 5 minutes free, 40 with PRO): about 5-10 patients a day per free viewer.</li>
+<li>Online, the GPU is lent per call: a patient's run asks for 90 s plus 40 s per picture, and stops with "The AI step
+failed; the notes are saved" if it runs over. Tell us if you see that.</li>
+<li>The online whiteboard is shared by everyone, and it is emptied when the Space restarts.</li>
 </ul>
 </body></html>"""
 

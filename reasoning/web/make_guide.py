@@ -145,6 +145,22 @@ level, pathway rules, image models, whiteboard and learning log are all real. On
 wording, chat answers, picture descriptions) is replaced by text marked <span class="mono">[TEST MODE]</span>, and the
 "(test rule)" to-dos stand in for the AI's own suggestions, so some overlap with the pathway to-dos.</p>
 
+<h2>1b. The full AI (the final product)</h2>
+<p><b>On your own computer, with an NVIDIA GPU</b> (6 GB or more; 8 GB+ is comfortable; Windows or Linux, not Mac;
+about 15 GB of free disk). Also download <code>ED_app_full_ai_models.zip</code> (715 MB: MedGemma's trained add-ons and
+the image models; keep it in the group) from the chat into the same folder. After the install above, one line at a
+time:</p>
+<pre>pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
+pip install accelerate bitsandbytes
+python install_models.py                     (finds ED_app_full_ai_models.zip, should end with "all there. Full AI")
+python server.py                             (no --test: the full AI)</pre>
+<p><b>No NVIDIA GPU?</b> Use test mode (above), or the online version with the full AI on a Hugging Face GPU (the Gradio
+screens; the link comes in the chat).</p>
+<p>The first start downloads MedGemma (8.6 GB, the ungated copy, no licence click) and takes 5-15 minutes; after that it
+starts in about a minute. The orange "Test mode" label is gone. How long a patient takes depends
+on the GPU: about 30 s on a 48 GB GPU, a few minutes on an 8 GB one; on a 4 GB laptop GPU it works but takes 5-15
+minutes a patient. The Gradio screens work the same way: <code>python app.py</code> in <code>reasoning\\gradio_app</code>.</p>
+
 <div class="page"></div>
 <h2>Part A. One patient from start to finish (case T01)</h2>
 <h3>A1. Write the note</h3>
