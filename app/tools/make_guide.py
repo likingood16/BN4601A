@@ -149,10 +149,11 @@ change the whiteboard and tick to-dos; other roles can look.</div>
 <table>
 <tr><th>Your computer</th><th>Where MedGemma runs</th><th>Speed (measured 10 Nov unless marked)</th></tr>
 <tr><td>NVIDIA GPU, 8 GB or more</td><td>the GPU (4-bit)</td><td>about 1-3 minutes a patient (30 s on a 48 GB GPU)</td></tr>
-<tr><td>NVIDIA GPU, 4-6 GB</td><td>the GPU (4-bit)</td><td>5-15 minutes a patient</td></tr>
-<tr><td>Mac with an M1-M4 chip</td><td>the Mac's GPU</td><td>not measured yet: expect a few minutes a patient</td></tr>
-<tr><td>Any other laptop (Intel / AMD, no NVIDIA)</td><td>the processor</td><td>starts in about 1 minute; the urgency and level in
-about 1.5 minutes; each written AI answer (chat, case file) about 3 minutes, so a whole patient takes 15-30 minutes</td></tr>
+<tr><td>NVIDIA GPU, 4-6 GB</td><td>the GPU (4-bit)</td><td>about 5 minutes a patient (case T01: 5.4 min on a 4 GB RTX 3050)</td></tr>
+<tr><td>Mac with an M1-M4 chip</td><td>the Mac's GPU</td><td>not measured yet: expect 5-15 minutes a patient</td></tr>
+<tr><td>Any other laptop (Intel / AMD, no NVIDIA)</td><td>the processor (the same 4-bit model, unpacked)</td><td>starts in
+about 2 minutes; case T01 took 18 minutes (urgency and level after 6 min, the case file after 14); a chat answer about
+3 minutes. Same scores and wording as on a GPU</td></tr>
 </table>
 <p>The screens keep working while the AI writes: the numbers, urgency and level appear first, then the case file,
 questions and to-dos. On a slow computer, try two or three patients and the chat rather than every test case.</p>

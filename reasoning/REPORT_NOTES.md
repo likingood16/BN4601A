@@ -1181,6 +1181,32 @@ re-score and chat are calls of their own. Tested by hand in test mode, plain and
 left the ED, put back. Found and fixed on the way: an import race between two threads ("partially initialized module
 polars"), a patient list that dropped patients who left the ED, a download button that saved nothing (it now always holds the current case file). The Space zip (`make_space_bundle.py`, 669 MB) was unzipped into an empty folder and run: picture, marks, MedSAM outline, edit and save all work. Not tried: a real ZeroGPU Space (4-bit loading there).
 
+### 5s. The full AI without an NVIDIA GPU (10 Nov 2026, branch tidy-layout)
+
+Testers without an NVIDIA GPU could only run test mode, because bitsandbytes' 4-bit loading was GPU-only.
+`model.py` now picks the device itself (NVIDIA GPU -> Mac GPU -> processor). Tried on the laptop's processor
+(Windows, 16 GB), same patient (67M chest pain, HR 112, BP 90/60), compared with the laptop's RTX 3050 (4-bit):
+
+| MedGemma on the processor as | p(urgent) | level | one chat answer | case file of T01 |
+|---|---|---|---|---|
+| reference: GPU, 4-bit | 0.934 | 2 | 24 s | history, PMH (DM, HTN, metformin), NKDA, BIBA filed; 5.4 min a patient |
+| bfloat16 (full precision) | 0.395 (other complaint wording) | model 3, final 2 | 197 s | history and PMH left "not recorded"; 28 min |
+| 4-bit (bitsandbytes 0.50 runs on CPU) | 0.931 | 2 | 866 s | (too slow to run: ~2 h a patient) |
+| **4-bit, unpacked to bfloat16 at load (`dequantize()`)** | **0.932** | **2** | **196 s** | **same as the GPU: history, PMH, NKDA, BIBA; 18 min** |
+
+Lesson: the heads and adapters were trained on the 4-bit model's vectors, so a full-precision MedGemma shifts the
+urgency score and the filing. Unpacking the 4-bit weights keeps exactly the values the heads saw (the chat answer was
+word for word the GPU's) at full-precision speed. The questions for T01 were the same five on GPU and processor
+(asthma/COPD, chest pain, witnessed collapse, fall injury, AVPU): some don't fit this note; the pathway flagger raises
+breathing, collapse and head-injury pathways here, to look at after the group's feedback.
+
+Layout change the same day (no behaviour change): the app moved to `app/` (server, frontend, Gradio, tests, tools,
+build), Model 3's runtime stays in `reasoning/src`, training scripts in `reasoning/training`, step checks in
+`reasoning/checks`. Checked after the move: 68/68 app checks (also from a fresh unzip), a 40-patient stress test
+(0 errors, all on the board in order, 196 numbers read, 0 wrong), number reading 100% / 0 wrong on clean and messy
+test notes, Caleb's 8 vitals tests, the React build (identical files), every Python file compiles, all vanda job
+scripts parse.
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.

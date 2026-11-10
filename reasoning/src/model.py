@@ -26,12 +26,25 @@ def device():
 
 
 def pick_mode():
-    """'4bit' on an NVIDIA GPU with < 12 GB (laptop RTX 3050), else 'full' (bigger GPUs, Macs and CPUs: bitsandbytes'
-    4-bit only works on NVIDIA)."""
-    if device() != "cuda":
+    """'4bit' on an NVIDIA GPU with < 12 GB (laptop RTX 3050) and on the processor (bitsandbytes >= 0.49 runs 4-bit
+    there), else 'full' (bigger GPUs, Macs)."""
+    where = device()
+    if where == "cpu":
+        return "4bit"
+    if where != "cuda":
         return "full"
     gb = torch.cuda.get_device_properties(0).total_memory / 1e9
     return "4bit" if gb < 12 else "full"
+
+
+def _bnb_on_cpu():
+    """bitsandbytes' 4-bit on the processor (0.49+): the same 4-bit MedGemma the heads and adapters were trained on."""
+    try:
+        from bitsandbytes.functional import quantize_4bit
+        quantize_4bit(torch.zeros(64, 64, dtype=torch.bfloat16), quant_type="nf4")
+        return True
+    except Exception:
+        return False
 
 
 def compute_dtype():
@@ -50,16 +63,26 @@ def load(mode=None, lora=None, model_id=BASE_MODEL):
     """Return (model, processor). lora: path under models/lora/ (e.g. 'mixed/latest') or None."""
     mode = mode or pick_mode()
     where = device()
-    if mode == "4bit" and where != "cuda":
-        print(f"No NVIDIA GPU: MedGemma runs at full size (bfloat16) on the {where} instead of 4-bit. Slower; needs "
-              "about 9 GB of free memory.", flush=True)
+    if mode == "4bit" and where != "cuda" and not (where == "cpu" and _bnb_on_cpu()):
+        print(f"MedGemma runs at full size (bfloat16) on the {where}: 4-bit isn't available there. The scores come from "
+              "slightly different vectors than the trained heads saw; needs about 9 GB of free memory.", flush=True)
         mode = "full"
+    elif mode == "4bit" and where == "cpu":
+        print("No NVIDIA GPU: MedGemma runs on the processor (the 4-bit model, unpacked once so it writes faster; "
+              "needs about 9 GB of free memory).", flush=True)
     processor = AutoProcessor.from_pretrained(model_id)
     if mode == "4bit":
         bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True,
                                  bnb_4bit_compute_dtype=compute_dtype())
         # everything on GPU 0: device_map="auto" wrongly offloads part of it to the CPU on a 4 GB GPU
-        model = AutoModelForMultimodalLM.from_pretrained(model_id, quantization_config=bnb, device_map={"": 0})
+        model = AutoModelForMultimodalLM.from_pretrained(model_id, quantization_config=bnb,
+                                                         device_map={"": 0 if where == "cuda" else where})
+        if where == "cpu":
+            # 4-bit maths on a processor is ~4x slower than bfloat16 (one answer 866 s vs 197 s, 10 Nov). Unpacking the
+            # 4-bit weights to bfloat16 keeps exactly the 4-bit model's values, so the vectors the heads read (and the
+            # adapters' base) match the GPU, at bfloat16 speed
+            model = model.dequantize()
+            model = model.to(torch.bfloat16)
     else:
         # Gemma 3 overflows in float16, so full-size runs use bfloat16 if available, otherwise float32
         dtype = torch.bfloat16 if compute_dtype() == torch.bfloat16 else torch.float32
