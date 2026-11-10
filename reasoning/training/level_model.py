@@ -106,7 +106,7 @@ def run(emb, alpha):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--emb", default="base4bit")
-    ap.add_argument("--alpha", type=float, default=0.10, help="0.10 = 90% guaranteed coverage")
+    ap.add_argument("--alpha", type=float, default=0.10, help="0.10 = 90%% guaranteed coverage")
     a = ap.parse_args()
     res, path = run(a.emb, a.alpha)
     print("chosen:", res["chosen"], "| conformal cut-off:", round(res["conformal_cutoff"], 3))

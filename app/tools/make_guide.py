@@ -98,7 +98,7 @@ tr {{ page-break-inside: avoid; }}
 </style></head><body>
 
 <h1>ED triage app</h1>
-<div style="font-size:13pt;color:#455a64">User guide and group test plan · BN4601A, Model 3 · version of 9 Nov 2026</div>
+<div style="font-size:13pt;color:#455a64">User guide and group test plan · BN4601A, Model 3 · version of 10 Nov 2026</div>
 <div class="warn"><b>Student research prototype.</b> Not a medical device. Never use it with real patients' details.
 All test notes and pictures in this pack are from public datasets or written for testing.</div>
 
@@ -114,11 +114,11 @@ When they press <b>Submit</b>, the app:</p>
 </ol>
 <p>Everything the AI adds is marked as AI (✦), and a person always makes the decision.</p>
 
-<h2>1. Install it on your computer and start it (about 15 minutes, no GPU)</h2>
+<h2>1. Install it and start the full AI (about 20 minutes, plus an 8.6 GB download the first time)</h2>
 <ol class="steps">
-<li><b>Download</b> all the files from the group chat into <b>one folder</b> (e.g. <code>Downloads\\EDapp</code>; Telegram
-Desktop's own <code>Downloads\\Telegram Desktop</code> also works): <code>ED_app_code.zip</code>, the 12 parts
-<code>ED_app_models.zip.001</code> ... <code>.012</code> (the image models: keep them in the group), and
+<li><b>Download</b> these files from the group chat into <b>one folder</b> (e.g. <code>Downloads\\EDapp</code>; Telegram
+Desktop's own <code>Downloads\\Telegram Desktop</code> also works): <code>ED_app_code.zip</code>,
+<code>ED_app_full_ai_models.zip</code> (715 MB: the trained models; keep it in the group) and
 <code>ED_app_test_pack.zip</code> (test cases, pictures, answer key, feedback form).</li>
 <li><b>Python 3.11:</b> if you don't have Anaconda or Miniconda, install Miniconda (docs.conda.io/en/latest/miniconda.html).
 Open <b>Anaconda Prompt</b> (Windows) or <b>Terminal</b> (Mac).</li>
@@ -130,36 +130,36 @@ Open <b>Anaconda Prompt</b> (Windows) or <b>Terminal</b> (Mac).</li>
 conda create -n edapp python=3.11 -y
 conda activate edapp
 pip install -r requirements.txt              (5-10 minutes, only the first time)
-python install_models.py                     (finds the 12 parts, should end with "all there")
-python server.py --test</pre>
-<p>Open <b>http://127.0.0.1:8000</b> in Chrome or Edge. The whiteboard is at <code>http://127.0.0.1:8000/#/board</code>.
-<b>Next time:</b> <code>conda activate edapp</code>, the <code>cd</code> line, then <code>python server.py --test</code>.
-<b>Problems:</b> "port 8000 in use" → <code>python server.py --test --port 8001</code>; "parts are missing" → download that
-part again; "python is not recognised" → use Anaconda Prompt. <b>The Gradio version</b> of the app uses the same install:
-see its own guide, <code>ED_app_gradio_guide.pdf</code>.</p>
+python install_models.py                     (finds ED_app_full_ai_models.zip, should end with "all there. Full AI")
+python server.py                             (the full AI; the first start downloads MedGemma, 8.6 GB)</pre>
+<p><b>NVIDIA GPU (much faster):</b> before <code>python server.py</code>, also run<br>
+<code>pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128 --force-reinstall</code> and
+<code>pip install bitsandbytes</code>.</p>
+<p>Open <b>http://127.0.0.1:8000</b> in Chrome or Edge when it says <b>Uvicorn running</b>. The whiteboard is at
+<code>http://127.0.0.1:8000/#/board</code>. <b>Next time:</b> <code>conda activate edapp</code>, the <code>cd</code> line, then
+<code>python server.py</code>. <b>Problems:</b> "port 8000 in use" → <code>python server.py --port 8001</code>;
+"python is not recognised" → use Anaconda Prompt; it closes while loading → not enough free memory (close other apps).
+<b>The Gradio version</b> of the app uses the same install: see its own guide, <code>ED_app_gradio_guide.pdf</code>.</p>
 <div class="box"><b>First thing every time:</b> type <b>your name</b> top right and pick your <b>role</b>. Without a name,
 Submit is refused ("Type your name next to Submit"). Only the <b>Triage nurse</b> and <b>Organising doctor</b> can
 change the whiteboard and tick to-dos; other roles can look.</div>
-<p><b>Test mode</b> (the orange "Test mode: AI answers are made up" label): the number reading, urgency score, triage
-level, pathway rules, image models, whiteboard and learning log are all real. Only MedGemma's <i>writing</i> (case-file
-wording, chat answers, picture descriptions) is replaced by text marked <span class="mono">[TEST MODE]</span>, and the
-"(test rule)" to-dos stand in for the AI's own suggestions, so some overlap with the pathway to-dos.</p>
 
-<h2>1b. The full AI (the final product)</h2>
-<p><b>On your own computer, with an NVIDIA GPU</b> (6 GB or more; 8 GB+ is comfortable; Windows or Linux, not Mac;
-about 15 GB of free disk). Also download <code>ED_app_full_ai_models.zip</code> (715 MB: MedGemma's trained add-ons and
-the image models; keep it in the group) from the chat into the same folder. After the install above, one line at a
-time:</p>
-<pre>pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
-pip install accelerate bitsandbytes
-python install_models.py                     (finds ED_app_full_ai_models.zip, should end with "all there. Full AI")
-python server.py                             (no --test: the full AI)</pre>
-<p><b>No NVIDIA GPU?</b> Use test mode (above), or the online version with the full AI on a Hugging Face GPU (the Gradio
-screens; the link comes in the chat).</p>
-<p>The first start downloads MedGemma (8.6 GB, the ungated copy, no licence click) and takes 5-15 minutes; after that it
-starts in about a minute. The orange "Test mode" label is gone. How long a patient takes depends
-on the GPU: about 30 s on a 48 GB GPU, a few minutes on an 8 GB one; on a 4 GB laptop GPU it works but takes 5-15
-minutes a patient. The Gradio screens work the same way: <code>python app.py</code> in <code>app\\gradio</code>.</p>
+<h2>1b. How fast it is on your computer</h2>
+<p>The full AI runs on any computer with <b>16 GB of memory</b>; it picks the fastest place by itself.</p>
+<table>
+<tr><th>Your computer</th><th>Where MedGemma runs</th><th>Speed (measured 10 Nov unless marked)</th></tr>
+<tr><td>NVIDIA GPU, 8 GB or more</td><td>the GPU (4-bit)</td><td>about 1-3 minutes a patient (30 s on a 48 GB GPU)</td></tr>
+<tr><td>NVIDIA GPU, 4-6 GB</td><td>the GPU (4-bit)</td><td>5-15 minutes a patient</td></tr>
+<tr><td>Mac with an M1-M4 chip</td><td>the Mac's GPU</td><td>not measured yet: expect a few minutes a patient</td></tr>
+<tr><td>Any other laptop (Intel / AMD, no NVIDIA)</td><td>the processor</td><td>starts in about 1 minute; the urgency and level in
+about 1.5 minutes; each written AI answer (chat, case file) about 3 minutes, so a whole patient takes 15-30 minutes</td></tr>
+</table>
+<p>The screens keep working while the AI writes: the numbers, urgency and level appear first, then the case file,
+questions and to-dos. On a slow computer, try two or three patients and the chat rather than every test case.</p>
+<p><b>Test mode</b> (<code>python server.py --test</code>, the orange "Test mode" label): the same app, starts in seconds,
+for checking buttons and screens quickly. The number reading, urgency score, triage level, pathway rules, image models,
+whiteboard and learning log are real; only MedGemma's <i>writing</i> (case-file wording, chat answers, picture
+descriptions) is replaced by text marked <span class="mono">[TEST MODE]</span>.</p>
 
 <div class="page"></div>
 <h2>Part A. One patient from start to finish (case T01)</h2>

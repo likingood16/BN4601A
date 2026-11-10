@@ -34,7 +34,7 @@ import numpy as np
 import requests
 
 HERE = Path(__file__).resolve().parent
-sys.path[:0] = [str(HERE.parents[1] / "reasoning" / "src"), str(HERE.parent), str(HERE)]
+sys.path[:0] = [str(HERE.parents[1] / "reasoning" / d) for d in ("src", "checks")] + [str(HERE.parent), str(HERE)]
 
 from charting_check import note_for, same                                 # noqa: E402
 from config import OUTPUTS                                                 # noqa: E402

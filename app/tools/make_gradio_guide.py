@@ -41,14 +41,14 @@ li {{ margin-bottom: 3px; }}
 .page {{ page-break-before: always; }}
 </style></head><body>
 <h1>ED triage app: the Gradio version</h1>
-<div style="font-size:12pt;color:#455a64">User guide and test plan · BN4601A, Model 3 · version of 9 Nov 2026</div>
+<div style="font-size:12pt;color:#455a64">User guide and test plan · BN4601A, Model 3 · version of 10 Nov 2026</div>
 <div class="warn"><b>Student research prototype.</b> Not a medical device. Never use it with real patients' details.</div>
 
 <h2>What it is</h2>
 <p>The <b>same app</b> as the main version (same back end, same trained models, same answers), with simpler
 <b>Gradio</b> screens in one browser tab: <b>Charting</b>, <b>Case file</b> and <b>Whiteboard</b>. It runs the
-<b>full AI</b> (MedGemma + every trained model) on your own computer's NVIDIA GPU, or online on a free Hugging Face
-GPU (the link comes in the chat); on any other computer it runs in test mode.</p>
+<b>full AI</b> (MedGemma + every trained model) on your own computer (fastest with an NVIDIA GPU), or online on a
+free Hugging Face GPU (the link comes in the chat).</p>
 
 <h2>1. Start it</h2>
 <h3>On your own computer</h3>
@@ -56,8 +56,8 @@ GPU (the link comes in the chat); on any other computer it runs in test mode.</p
 Terminal:</p>
 <pre>conda activate edapp
 cd Downloads\\EDapp\\ED_app_code\\BN4601A\\app\\gradio
-python app.py --test          (test mode, any computer)
-python app.py                 (full AI: NVIDIA GPU, after section 1b of the main guide)</pre>
+python app.py                 (the full AI, any computer: see section 1b of the main guide for speed)
+python app.py --test          (test mode: starts in seconds, MedGemma's writing faked)</pre>
 <p>Then open <b>http://127.0.0.1:7860</b>. <b>First thing every time:</b> type <b>your name</b> top right and pick
 your <b>role</b>; without a name, Submit and whiteboard changes are refused with a warning.</p>
 <h3>Online, full AI (the link comes in the chat)</h3>

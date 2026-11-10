@@ -22,11 +22,14 @@ What we would like you to do (about 30-45 minutes)
   5. Fill in feedback_form.csv: what you did, what happened, whether it matched, how bad (1 cosmetic - 5 unsafe).
      Screenshots help: name them by case, e.g. P06_1.png.
 
-Full AI (the final product)
-  - On your own computer with an NVIDIA GPU: ED_app_full_ai_models.zip from the chat + section 1b of the user guide.
+Full AI (the final product): please test with it
+  - python server.py (no --test) runs MedGemma and every trained model on your own computer: fastest with an NVIDIA
+    GPU, but it also works on a Mac or any laptop with 16 GB of memory (slower: see section 1b of the user guide).
+    It needs ED_app_full_ai_models.zip from the chat.
   - Online on a Hugging Face GPU (Gradio screens, nothing to install): the link comes in the chat.
 
 Important
-  - Test mode: the urgency score, numbers, pathway rules, image models and whiteboard are real. MedGemma's writing
-    (case-file wording, chat answers, image descriptions) is replaced by text marked [TEST MODE].
+  - expected_results.csv was made in test mode: with the full AI the level and numbers should match, but the case-file
+    wording, questions, to-dos and chat are MedGemma's own, so judge whether they are right and useful.
+  - Test mode (python server.py --test) is the same app with MedGemma's writing replaced by [TEST MODE] text.
   - This is a student research prototype. It is not a medical device and must not be used on real patients.

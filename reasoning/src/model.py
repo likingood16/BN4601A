@@ -5,22 +5,40 @@
     model, processor = load(lora="mixed/latest")      # with a trained LoRA adapter from models/lora/
     print(ask(model, processor, "You are an ED triage assistant.", card_text))
 """
+import os
+
 import torch
 from transformers import AutoProcessor, AutoModelForMultimodalLM, BitsAndBytesConfig
 
 from config import BASE_MODEL, LORA_DIR
 
 
+def device():
+    """Where MedGemma runs: an NVIDIA GPU ("cuda"), a Mac's GPU ("mps"), or the processor ("cpu"), in that order.
+    BN4601A_DEVICE=cpu (or mps / cuda) picks one by hand."""
+    if os.environ.get("BN4601A_DEVICE"):
+        return os.environ["BN4601A_DEVICE"]
+    if torch.cuda.is_available():
+        return "cuda"
+    if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 def pick_mode():
-    """'4bit' if the GPU has < 12 GB (laptop RTX 3050), else 'full'."""
-    if not torch.cuda.is_available():
-        raise RuntimeError("No GPU found")
+    """'4bit' on an NVIDIA GPU with < 12 GB (laptop RTX 3050), else 'full' (bigger GPUs, Macs and CPUs: bitsandbytes'
+    4-bit only works on NVIDIA)."""
+    if device() != "cuda":
+        return "full"
     gb = torch.cuda.get_device_properties(0).total_memory / 1e9
     return "4bit" if gb < 12 else "full"
 
 
 def compute_dtype():
-    """bfloat16 where the GPU supports it natively (RTX 30xx, A100, H100), else float16 (T4, V100)."""
+    """bfloat16 where the GPU supports it natively (RTX 30xx, A100, H100), else float16 (T4, V100). Macs and CPUs:
+    bfloat16 (Gemma overflows in float16; float32 would need ~17 GB of memory)."""
+    if device() != "cuda":
+        return torch.bfloat16
     try:
         major, _ = torch.cuda.get_device_capability(0)
     except Exception:                                    # Hugging Face ZeroGPU outside a GPU call: Blackwell, bf16 ok
@@ -31,6 +49,11 @@ def compute_dtype():
 def load(mode=None, lora=None, model_id=BASE_MODEL):
     """Return (model, processor). lora: path under models/lora/ (e.g. 'mixed/latest') or None."""
     mode = mode or pick_mode()
+    where = device()
+    if mode == "4bit" and where != "cuda":
+        print(f"No NVIDIA GPU: MedGemma runs at full size (bfloat16) on the {where} instead of 4-bit. Slower; needs "
+              "about 9 GB of free memory.", flush=True)
+        mode = "full"
     processor = AutoProcessor.from_pretrained(model_id)
     if mode == "4bit":
         bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True,
@@ -40,7 +63,8 @@ def load(mode=None, lora=None, model_id=BASE_MODEL):
     else:
         # Gemma 3 overflows in float16, so full-size runs use bfloat16 if available, otherwise float32
         dtype = torch.bfloat16 if compute_dtype() == torch.bfloat16 else torch.float32
-        model = AutoModelForMultimodalLM.from_pretrained(model_id, dtype=dtype, device_map={"": 0})
+        model = AutoModelForMultimodalLM.from_pretrained(model_id, dtype=dtype,
+                                                         device_map={"": 0 if where == "cuda" else where})
     if lora:
         from peft import PeftModel
         model = PeftModel.from_pretrained(model, str(LORA_DIR / lora / "adapter"))

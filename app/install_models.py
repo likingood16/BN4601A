@@ -177,7 +177,7 @@ def install(src):
     if not all(ok.values()):
         print("some models are missing (see above)")
     elif full:
-        print("all there. Full AI (NVIDIA GPU):  python server.py      Test mode (any computer):  python server.py --test")
+        print("all there. Full AI:  python server.py   (any computer; fastest with an NVIDIA GPU)      Quick test mode:  python server.py --test")
     else:
         print("all there for test mode, now run:  python server.py --test   (full AI: python install_models.py " + FULL + ")")
 
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         upload(a.src or HUB)
     elif a.hub:
         if from_hub(a.src or HUB) == len(ai_targets()):
-            print("all there. Full AI (NVIDIA GPU):  python server.py      Test mode (any computer):  python server.py --test")
+            print("all there. Full AI:  python server.py   (any computer; fastest with an NVIDIA GPU)      Quick test mode:  python server.py --test")
     elif a.make:
         make(Path(a.src) if a.src else Path(__file__).resolve().parent / "build" / (FULL if a.full else NAME), a.split,
              a.full)
