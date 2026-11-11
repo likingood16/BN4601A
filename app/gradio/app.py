@@ -552,9 +552,13 @@ def board_view(show_left=False):
                     + "".join(f'<td style="padding:8px 10px;border-bottom:1px solid #dde3e9;vertical-align:top">{c}</td>'
                               for c in cells) + "</tr>")
     head = "".join(f'<th style="text-align:left;padding:8px 10px;background:#1b2733;color:#ffffff">{h}</th>' for h in BOARD_HEAD)
-    table = (f'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px">'
+    # Gradio's ".prose *" gives every element the theme's text colour, so in dark mode the names on the light rows
+    # were near-white (checked on screen 11 Nov); setting the variable on the table makes them dark in both themes
+    table = (f'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px;'
+             f'--body-text-color:#1b2733">'
              f'<tr>{head}</tr>{"".join(rows)}</table></div>'
-             + ("" if rows else "<p>No patients here yet. They appear when a note is submitted on the Charting tab.</p>"))
+             + ("" if rows else "<p>No patients have left the ED yet.</p>" if show_left else
+                "<p>No patients here yet. They appear when a note is submitted on the Charting tab.</p>"))
     n_rows, rows = len(rows), table
     learn = S.learning_status()
     line = (f"{n_rows} patients {'who left the ED' if show_left else 'in the ED'} · most urgent first · "
@@ -607,6 +611,7 @@ def board_put_back(name, role, pid):
 def board_switch(show_left):
     rows, line = board_view(show_left)
     return (rows, line, gr.update(choices=_choices(new=False, cleared=show_left), value=None),
+            gr.update(visible=not show_left), gr.update(visible=show_left),
             gr.update(visible=not show_left), gr.update(visible=show_left))
 
 
@@ -730,7 +735,7 @@ with gr.Blocks(title="ED triage app") as demo:
                         b_back = gr.Button("Put back on the board")
             with gr.Row():
                 b_show_left = gr.Button("Show patients who left the ED")
-                b_show_board = gr.Button("← Back to the board")
+                b_show_board = gr.Button("← Back to the board", visible=False)
 
     case_out = [header, numbers, warn, report, notes_md, gallery, pics_md, timeline, questions, todos, todo_pick, chat,
                 dl, seen]
@@ -759,9 +764,9 @@ with gr.Blocks(title="ED triage app") as demo:
     on(b_clear.click, board_clear, [name, role, b_pick, b_dx, b_level, show_left], [b_table, b_line, b_pick, b_leave])
     on(b_back.click, board_put_back, [name, role, b_pick], [b_table, b_line, b_pick])
     b_show_left.click(lambda: True, None, show_left).then(board_switch, show_left,
-                                                          [b_table, b_line, b_pick, b_edit, b_left_box])
+                                                          [b_table, b_line, b_pick, b_edit, b_left_box, b_show_left, b_show_board])
     b_show_board.click(lambda: False, None, show_left).then(board_switch, show_left,
-                                                            [b_table, b_line, b_pick, b_edit, b_left_box])
+                                                            [b_table, b_line, b_pick, b_edit, b_left_box, b_show_left, b_show_board])
     demo.load(lambda: board_view(False), None, [b_table, b_line])
 
 if __name__ == "__main__":
