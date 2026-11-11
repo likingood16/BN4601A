@@ -83,16 +83,19 @@ def checklist(model, processor, path, kind):
     from image_reader import IMAGE_TYPES
     label = IMAGE_TYPES.get(kind, ("medical image",))[0]
     items = CHECKLIST.get(kind, CHECKLIST["other"])
-    questions = [f"Look at this {label}. Is there {item.lower()}? Answer with one word, yes, no or unclear, then, if "
-                 "yes, a dash and where it is in a few words." for item in items]
+    # the old wording ended "then, if yes, a dash and where it is in a few words": MedGemma copied the words
+    # ("Joint effusion (a dash and in the ankle)", group test 10 Nov, C4)
+    questions = [f"Look at this {label}. Is there {item.lower()}? Answer with one word: yes, no or unclear. If yes, "
+                 "add where it is, in a few words." for item in items]
     answers = _ask_all(model, processor, path, questions, 24)
     out = {}
     for item, raw in zip(items, answers):
         raw = raw.strip().lower()
         word = re.match(r"\W*(yes|not sure|no|unclear|cannot|can't)\b", raw)     # "not sure" before "no"
         seen = {"not sure": "unclear", "cannot": "unclear", "can't": "unclear"}.get(word.group(1), word.group(1)) if word else "unclear"
-        parts = re.split(r"\s*[-–—:,]\s*", raw, maxsplit=1)
+        parts = re.split(r"\s*[-–—:,.;]\s*", raw, maxsplit=1)
         where = parts[1].strip(" .") if seen == "yes" and len(parts) > 1 else ""
+        where = re.sub(r"^(?:a dash and\s*)?(?:where it is\s*:?\s*)?(?:it is |it's |located |seen )?", "", where).strip(" .")
         out[item] = {"seen": seen, "where": where[:60]}
     return out
 
@@ -155,8 +158,42 @@ def overlay_on(picture, mask, colour):
     return (picture * (1 - a) + np.array(colour, np.float32) * a).astype(np.uint8)
 
 
-def checklist_line(kind, found, ctr=None):
-    """The text for the record: positives first, then what was checked and not seen."""
+# detector finding -> (words in MedGemma's description that say "not there", its checklist item)
+SAME_FINDING = {
+    "Fracture": (r"no (?:\w+ ){0,3}fracture|without (?:\w+ ){0,2}fracture", "Fracture"),
+    "Pneumothorax": (r"no (?:\w+ ){0,3}pneumothorax", "Pneumothorax"),
+    "Pleural effusion": (r"no (?:\w+ ){0,3}effusion", "Pleural effusion"),
+    "Cardiomegaly": (r"(?:normal|unremarkable) (?:heart|cardiac)|heart (?:size )?(?:is |appears )?(?:normal|not enlarged)|"
+                     r"cardiac silhouette (?:is |appears )?(?:normal|within normal)|no cardiomegaly", "Enlarged heart"),
+    "Pneumonia-type shadowing": (r"lungs? (?:are |is |appear )?clear|no (?:\w+ ){0,3}(?:consolidation|infiltrate|opacit)",
+                                 "Consolidation or pneumonia"),
+    "Bleeding inside the skull": (r"no (?:\w+ ){0,4}(?:bleed|ha?emorrhage)", "Bleeding inside the skull"),
+}
+
+
+def disagreements(findings, description="", found=None):
+    """Where the trained detector and MedGemma say opposite things about the SAME finding (group test 10 Nov, C5:
+    "normal heart size" next to a red Cardiomegaly). -> one sentence for the record, or ''. They are two separate
+    models; the app does not pick a winner, it tells the clinician to look."""
+    found, text, out = found or {}, (description or "").lower(), []
+    for f in findings or []:
+        rule = SAME_FINDING.get(f.get("name"))
+        if not rule:
+            continue
+        item = found.get(rule[1], {}).get("seen")
+        if f.get("flag") and (re.search(rule[0], text) or item == "no"):
+            out.append(f"{f['name'].lower()} (the detector marked it, MedGemma did not see it)")
+        elif not f.get("flag") and not f.get("possible") and item == "yes":
+            out.append(f"{f['name'].lower()} (MedGemma's checklist says possible, the detector did not mark it)")
+    if not out:
+        return ""
+    return " The two AI readers disagree on: " + "; ".join(out) + ". Neither is a radiologist: look at the picture yourself."
+
+
+def checklist_line(kind, found, ctr=None, age=None):
+    """The text for the record: positives first, then what was checked and not seen. age under 16: the heart-size
+    ratio is shown without the adult 0.5 rule (a young child's heart is normally wider)."""
+    child = age is not None and age == age and float(age) < 16
     yes = [f"{k}{' (' + v['where'] + ')' if v['where'] else ''}" for k, v in found.items() if v["seen"] == "yes"]
     unclear = [k for k, v in found.items() if v["seen"] == "unclear"]
     no = [k for k, v in found.items() if v["seen"] == "no"]
@@ -166,5 +203,6 @@ def checklist_line(kind, found, ctr=None):
     if no:
         parts.append(f"not seen: {', '.join(no)}")
     if ctr:
-        parts.append(f"cardiothoracic ratio {ctr:.2f}{' (above 0.5: heart may be enlarged)' if ctr > 0.5 else ''}")
+        parts.append(f"cardiothoracic ratio {ctr:.2f}" + (" (adult 0.5 rule not applied under 16)" if child else
+                                                           " (above 0.5: heart may be enlarged)" if ctr > 0.5 else ""))
     return f" ED checklist ({NOTE}): " + "; ".join(parts) + "."

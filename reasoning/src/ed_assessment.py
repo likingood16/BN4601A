@@ -26,7 +26,7 @@ PATHWAYS = [   # (words in the presenting complaint, flag)
     (r"dyspn|short(ness)? of breath|breath|respirat|wheez", "breathing complaint -> oxygen saturation and work of breathing"),
     (r"syncop|faint|collapse|loss of consciousness", "collapse/syncope -> ECG, glucose, check for injury"),
     (r"seiz|convuls|epilep", "seizure -> glucose, airway protection, time of seizure"),
-    (r"overdose|poison|intoxic|ingest", "possible poisoning -> substance, amount and time not recorded"),
+    (r"overdose|poison|intoxic|ingest", "possible poisoning -> find out the substance, amount and time"),
     (r"fever|infect|sepsis|chills", "possible infection -> sepsis screen (qSOFA)"),
 ]
 
@@ -84,7 +84,9 @@ def ed_assessment(row, flags=None):
         flags = [flag for pattern, flag in PATHWAYS if re.search(pattern, complaint)]
     flags = list(flags)
     if injured:
-        flags.append("trauma -> mechanism of injury not recorded; primary survey")
+        # "not recorded" was printed even when the note said "fell off ladder" (10 Nov, B3): this file sees only
+        # the numbers, so it no longer claims that; charting.pathway_todos checks the note's own words
+        flags.append("trauma -> mechanism of injury; primary survey")
     if str(mental).lower() == "unresponsive":
         flags.insert(0, "UNRESPONSIVE -> immediate resuscitation assessment")
 

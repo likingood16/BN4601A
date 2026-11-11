@@ -170,7 +170,7 @@ export default function Chart({ me, setMe }) {
           </div>
         </div>
         <div className="card">
-          <h3>AI questions {p && <>for {p.bed} · {whoLine(p.who)} · <a href={`#/case/${p.id}`} target="ed_case_file">open case file</a></>}</h3>
+          <h3>Questions for you to answer {p && <>for {p.bed} · {whoLine(p.who)} · <a href={`#/case/${p.id}`} target="ed_case_file">open case file</a></>}</h3>
           {/* the answer box sits ABOVE the questions so it doesn't jump down when they arrive (7 Nov stress test) */}
           {p && (
             <div className="row" style={{ marginBottom: 12 }}>

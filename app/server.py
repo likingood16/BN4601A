@@ -30,6 +30,7 @@ from fastapi.staticfiles import StaticFiles                                 # no
 from pydantic import BaseModel                                              # noqa: E402
 
 import charting                                                             # noqa: E402
+from image_io import save_8bit                                              # noqa: E402
 import learning                                                             # noqa: E402
 
 # The client's actions (6 Nov 2026): where the patient is going. The last four mean the patient leaves the ED; the
@@ -95,6 +96,8 @@ class Patient:
                 "status": self.status, "progress": self.progress,
                 "level": d.level if d else None, "flagged": d.flagged if d else None,
                 "raised_by": d.raised_by() if d else "",
+                "needs_obs": bool(d and d.needs_obs), "reason": d.reason() if d else "",
+                "child": is_child(self.fields),
                 "who": _who_line(self.fields), "complaint": self.complaint(),
                 "todos": self.todos, "open_questions": len(self.questions)}
 
@@ -107,7 +110,24 @@ class Patient:
                 "decision": None if d is None else {
                     "p_urgent": d.p_urgent, "flagged": d.flagged, "head_flag": d.head_flag, "floor_flag": d.floor_flag,
                     "level": d.level, "level_set": list(d.level_set), "news2": d.news2,
-                    "floor_priority": d.floor_priority}}
+                    "floor_priority": d.floor_priority, "needs_obs": d.needs_obs, "missing": list(d.missing),
+                    "abnormal": list(d.abnormal)}}
+
+
+CHILD_AGE = 16
+CHILD_NOTE = ("Patient under 16: NEWS2, the urgency score and the triage level come from models built on adults "
+              "(NEWS2 is for 16+, the triage data for 15+). Use a paediatric scale and your own judgement.")
+
+
+def is_child(fields):
+    age = fields.get("age")
+    return age is not None and age == age and float(age) < CHILD_AGE
+
+
+def triage_lines(p):
+    """The case file's triage section: the trained models' decision, word for word, plus the children's warning
+    (group test 10 Nov, A2: a normal 7-year-old scored NEWS2 5 with no word that the score is an adult one)."""
+    return p.visit.decision.lines() + ([CHILD_NOTE] if is_child(p.fields) else [])
 
 
 def _who_line(f):
@@ -258,7 +278,7 @@ class Store:
                     from image_checklist import checklist_line
                     img["checklist"] = out["checklist"]
                     anatomy = out.get("anatomy") or {}
-                    img["text"] += checklist_line(out["kind"], out["checklist"], anatomy.get("ctr"))
+                    img["text"] += checklist_line(out["kind"], out["checklist"], anatomy.get("ctr"), p.fields.get("age"))
                     img["extra"] = []
                     for i, loc in enumerate(out.get("located") or []):
                         img["extra"].append({"label": f"AI outline: {loc['finding']}"
@@ -268,6 +288,9 @@ class Store:
                         img["extra"].append({"label": "Heart (red) and lungs (blue)"
                                              + (f", cardiothoracic ratio {anatomy['ctr']:.2f}" if anatomy.get("ctr") else ""),
                                              "file": self._save_picture(img, anatomy["overlay"], "anatomy")})
+                if out.get("disagree"):                 # detector and MedGemma say opposite things (10 Nov, C5)
+                    img["text"] += out["disagree"]
+                    img["disagree"] = out["disagree"].strip()
                 hint = charting.body_parts(n["text"])
                 if hint:
                     img["text"] += f" The note mentions: {', '.join(hint)}."
@@ -284,7 +307,7 @@ class Store:
             if first and image_lines and all(charting._empty(l) for l in imaging):   # the AI left the readings out
                 p.report = charting.merge_into(p.report, charting.file_notes([], image_lines))
             # the triage section always shows the trained models' decision, word for word
-            p.report = charting.set_section(p.report, charting.TRIAGE, p.visit.decision.lines())
+            p.report = charting.set_section(p.report, charting.TRIAGE, triage_lines(p))
             if first or not p.report_by:
                 p.report_by = "AI"                  # a person's name stays once they've edited it
             p.visit.log("Case file", "Written by the AI from the notes" if first else
@@ -296,20 +319,26 @@ class Store:
                    + "\n".join(l.strip() for l in (p.visit.ed or "").splitlines() if "Pathway flags" in l))
         questions, todo = charting.ask_questions(ai, p.report, context)
         typed = "\n".join(n["text"] for n in p.notes)
-        if not self.test:                           # the small model sometimes asks for what's already recorded
-            questions, todo = charting.drop_known(questions, f, typed), charting.drop_known(todo, f, typed)
+        kinds = [i.get("kind") for n in p.notes for i in n["images"]]
+        # every question and to-do, fixed or MedGemma's, must fit THIS patient: nothing the notes already answer,
+        # nothing for the wrong age, no X-ray request when the X-ray is attached (10 Nov, B3-B4)
+        fit = lambda items: charting.fit_patient(items, f, typed, kinds)
+        questions, todo = fit(questions), fit(todo)
         # The flagged pathways' own questions come first (a stroke always asks for the time last known well), then
         # MedGemma's, steered by the same flags in `context`. With the real AI MedGemma alone asked "When did it
         # start?" for a stroke (9 Nov, 5q #6). At most 5, no two asking the same thing.
-        fixed = charting.drop_known(charting.pathway_questions(p.visit.ed), f, typed)
+        fixed = fit(charting.pathway_questions(p.visit.ed))
+        obs = charting.missing_obs_question(f)      # 3+ observations missing: ask for them first (10 Nov, B5)
+        if obs:                                     # ... and not again one by one
+            questions = [q for q in questions if not any(re.search(rule, q.lower()) for rule in charting.ASKS_FOR.values())]
         merged = []
-        for q in fixed + questions:
+        for q in ([obs] if obs else []) + fixed + questions:
             if not any(charting.same_meaning(q, m) for m in merged):
                 merged.append(q)
         p.questions = merged[:5]
         have = [t["text"] for t in p.todos]
         flags_by = "ED rules (test mode)" if self.test else "AI pathway model"
-        for text, by in [(t, flags_by) for t in charting.pathway_todos(p.visit.ed)] + [(t, "AI") for t in todo]:
+        for text, by in [(t, flags_by) for t in fit(charting.pathway_todos(p.visit.ed, typed))] + [(t, "AI") for t in todo]:
             if not any(charting.same_meaning(text, h) for h in have):    # "ECG within 10 minutes" twice (5q #3)
                 have.append(text)
                 p.todos.append({"text": text, "done": False, "ai": True, "by": by})
@@ -353,6 +382,7 @@ def _save_images(pid, files):
         name = f"{pid}_{uuid.uuid4().hex[:8]}{suffix}"
         with open(store.images / name, "wb") as fh:
             shutil.copyfileobj(f.file, fh)
+        save_8bit(store.images / name)              # 16-bit X-rays turned white for the AI (10 Nov, C1)
         out.append({"file": name, "name": f.filename, "kind": None, "text": ""})
     return out
 
@@ -449,7 +479,7 @@ def fix_numbers(pid: str, body: FieldsIn):
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
         p.visit.log("Triage", f"Numbers corrected; level {old} -> {p.visit.decision.level}", body.who)
         if p.report:
-            p.report = charting.set_section(p.report, charting.TRIAGE, p.visit.decision.lines())
+            p.report = charting.set_section(p.report, charting.TRIAGE, triage_lines(p))
     store.changed()
     return {"ok": True}
 

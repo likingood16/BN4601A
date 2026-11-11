@@ -57,6 +57,15 @@ CHEST_ED = ["Pneumothorax", "Pleural effusion", "Pneumonia-type shadowing", "Car
             "Nodule/mass", "Atelectasis"]
 CHEX_FILE = Path.home() / ".torchxrayvision" / "models_data" / "chex-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt"
 PNEUMONIA = ("Consolidation", "Lung opacity", "Infiltration")
+# The chest detector was trained on adults only (VinDr-CXR). A child's heart and thymus look big to it: it marked
+# cardiomegaly on a 4-year-old (group test 10 Nov, C2). Under CHILD_AGE these two are not scored at all, and the
+# line says so. No children's cut-offs are invented.
+ADULT_ONLY = ("Cardiomegaly", "Aortic enlargement")
+CHILD_AGE = 16
+
+
+def is_child(age):
+    return age is not None and age == age and float(age) < CHILD_AGE
 CHEX_PNEUMOTHORAX_CUT = 0.0683                                     # CheXpert, catch 80% on VinDr val (external_tests.json)
 ICH_CUT = 0.5358                                                   # catch 90% of validation bleed slices
 ICH_TYPES = ["epidural", "intraparenchymal", "intraventricular", "subarachnoid", "subdural"]
@@ -174,13 +183,14 @@ def _chexpert_pneumothorax(path):
     return float(out[list(net.pathologies).index("Pneumothorax")])
 
 
-def chest(path):
+def chest(path, age=None):
     best, _ = _top_boxes(_yolo(CHEST), path, 1024, CHEST_NAMES)
+    child = is_child(age)
     cuts = dict(CHEST_CUT)
     chex_cut = _cutoffs().get("pneumothorax", {}).get("chexpert_cut", CHEX_PNEUMOTHORAX_CUT)
     findings, boxes = [], []
     for n in CHEST_NAMES:
-        if n in PNEUMONIA:
+        if n in PNEUMONIA or (child and n in ADULT_ONLY):
             continue
         s, b = best.get(n, (0.0, None))
         above = s >= cuts[n] and s > 0
@@ -217,6 +227,9 @@ def chest(path):
             + " (each finding misses about 1 in 5 or more; pneumothorax "
             + ("also checked by a second model)." if "second_opinion" in second else
                "checked by the detector only: the second model is not on this computer)."))
+    if child:
+        line += (" Patient under 16: heart size and aorta are not marked, because the detector was trained on adult "
+                 "X-rays; the other findings are also from the adult model, so check them yourself.")
     boxes.sort(key=lambda b: (order.get(b["name"], order["Pneumonia-type shadowing"] if b["name"] in PNEUMONIA else 99)))
     main = boxes[0] if boxes else None
     return {"model": "VinDr chest detector", "findings": findings, "boxes": boxes,
@@ -305,7 +318,7 @@ def read_picture(path, kind=None, age=None, note=""):
     if kind == "bone_xray" and FRACTURE.exists():
         out.update(fracture(path, age))
     elif kind == "chest_xray" and CHEST.exists():
-        out.update(chest(path))
+        out.update(chest(path, age))
     elif kind == "ct_slice" and ICH.exists():
         out.update(head_ct(path, note))
     return out

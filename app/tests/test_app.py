@@ -141,6 +141,52 @@ def run():
     c = new("81 yo woman confused since morning, GCS 13, temp 38.6, BP 150/90 pulse 96, brought by family").json()["id"]
     wait(c)
 
+    # ---------------- fixes from the group test (reasoning/FEEDBACK_10NOV.md, 10 Nov)
+    import io
+    import numpy as np
+    from PIL import Image
+
+    def white(name):                                          # share of pure-white pixels in a stored picture
+        pic = np.asarray(Image.open(io.BytesIO(get(f"/api/images/{name}").content)).convert("RGB"))
+        return float((pic == 255).all(-1).mean())
+    deep = io.BytesIO()                                       # the fracture X-ray as a 16-bit PNG (mode I;16), like real X-rays
+    Image.fromarray(np.asarray(Image.open(IMAGE).convert("L")).astype(np.uint16) * 257).save(deep, "PNG")
+    k = wait(new("45M fell off ladder, L ankle swollen. pain 7/10. HR 96 BP 130/80 RR 16 sats 99. walk-in",
+                 files=[("files", ("ankle16.png", deep.getvalue(), "image/png"))]).json()["id"])
+    ki = k["notes"][0]["images"][0]
+    check("C1: a 16-bit X-ray is stored as a normal picture, not a white one", white(ki["file"]) < 0.2, white(ki["file"]))
+    check("C1: the AI marks are drawn on the X-ray, not on white", ki.get("overlay") and white(ki["overlay"]) < 0.2)
+    texts = [t["text"].lower() for t in k["todos"]]
+    check("B3: no 'mechanism of injury not recorded' when the note says how (fell off ladder)",
+          not any("mechanism" in t for t in texts) and not any("mechanism" in q.lower() for q in k["questions"]), texts)
+    check("B4: no 'X-ray of the injured area' to-do when the X-ray is attached", not any("x-ray" in t for t in texts), texts)
+    check("a sick patient stays red: flagged, with the reason, not 'needs vitals'",
+          p["decision"]["flagged"] and not p["decision"]["needs_obs"] and "abnormal" in p["reason"].lower(), p["reason"])
+    kid_id = new("7yo girl fell from scooter, L wrist sore, moving it. pain 3/10. HR 96. brought by dad").json()["id"]
+    kid = wait(kid_id)
+    d = kid["decision"]
+    check("A1: missing BP and RR -> 'needs vitals' (still level 1-2), naming what to measure",
+          d["flagged"] and d["needs_obs"] and d["missing"] == ["BP", "RR"] and kid["level"] <= 2
+          and kid["reason"] == "Needs vitals: BP and RR not recorded", (d, kid["reason"]))
+    check("A1: the case file's triage section says why", "BP and RR not recorded" in kid["report"]
+          and "until BP and RR are measured" in kid["report"])
+    row = next(x for x in get("/api/board").json()["patients"] if x["id"] == kid_id)
+    check("A1: the whiteboard row carries the reason", row["needs_obs"] and "BP and RR" in row["reason"])
+    r = requests.post(f"{URL}/api/patients/{kid_id}/chat", json={"text": "Why is she urgent?", "who": "Dr Lim"})
+    check("A1: the text the chat reads says why", "BP and RR not recorded" in r.json().get("answer", ""))
+    check("A2: under 16 is labelled 'models built on adults'", kid["child"] and "under 16" in kid["report"].lower()
+          and not p["child"])
+    check("B4: no blood-thinner question for a child", not any("blood thinner" in q.lower() for q in kid["questions"]),
+          kid["questions"])
+    check("B5: 3+ observations missing -> the first question asks for them",
+          kid["questions"] and kid["questions"][0].startswith("Observations not recorded yet")
+          and "blood pressure" in kid["questions"][0] and not k["questions"][0].startswith("Observations"), kid["questions"])
+    r = requests.put(f"{URL}/api/patients/{kid_id}/fields", json={"fields": {**kid["fields"], "sbp": 100, "dbp": 60, "rr": 22},
+                                                                   "who": "Nurse Tan"})
+    kid2 = get(f"/api/patients/{kid_id}").json()
+    check("A1: once BP and RR are entered the 'needs vitals' flag goes", r.status_code == 200
+          and not kid2["decision"]["needs_obs"] and "not recorded, so" not in kid2["report"], kid2["reason"])
+
     # ---------------- add information / answer a question
     r = note(a, "ECG sinus tachycardia, no ST changes. gave aspirin 300mg")
     check("Add (add-information bar) is accepted", r.status_code == 200)
@@ -156,13 +202,14 @@ def run():
     check("Rebuilt case file keeps the earlier notes", "aspirin 300" in p["report"])
 
     # ---------------- case file window
+    fixes_before = get("/api/learning").json()["number_corrections"]
     r = requests.put(f"{URL}/api/patients/{a}/fields", json={"fields": {**p["fields"], "hr": 150, "spo2": 85}, "who": "Nurse Tan"})
     p2 = get(f"/api/patients/{a}").json()
     check("Fix numbers: saved and re-scored", r.status_code == 200 and p2["fields"]["hr"] == 150 and p2["found"]["checked_by"] == "Nurse Tan")
     check("Fix numbers: earlier notes and timeline kept", len(p2["notes"]) == len(p["notes"]) and any("corrected" in e["text"] for e in p2["timeline"]))
     learn = get("/api/learning").json()
     check("learning: the number fix is logged (what the AI read vs the correction)", learn["enabled"]
-          and learn["number_corrections"] == 1 and {"hr", "spo2"} <= set(learn["numbers_corrected_by_field"]))
+          and learn["number_corrections"] == fixes_before + 1 and {"hr", "spo2"} <= set(learn["numbers_corrected_by_field"]))
     edited = p2["report"].replace("## Presenting complaint\n", "## Presenting complaint\n- Crushing central chest pain\n", 1)
     r = requests.put(f"{URL}/api/patients/{a}/report", json={"text": edited, "who": "Dr Lim"})
     p3 = get(f"/api/patients/{a}").json()

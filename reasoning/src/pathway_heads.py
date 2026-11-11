@@ -35,6 +35,7 @@ EMB = "base4bit"
 C_GRID = [0.0003, 0.001, 0.003, 0.01, 0.03, 0.1]
 TARGET_SENS = 0.90
 GATE_SENS = 0.90          # the gate lets through 90% of patients who needed some pathway (val)
+LEAD = 0.5                # shown only if score/cut-off >= LEAD x the strongest pathway's, or named in the complaint
 
 # pathway: (what the app tells the clinician, ICD-10 prefixes, words in a KTAS diagnosis, words in the complaint)
 PATHWAYS = {
@@ -56,7 +57,7 @@ PATHWAYS = {
                          r"syncop|faint|collapse|loss of consciousness|passed out"),
     "seizure": ("seizure -> glucose, airway protection, time of seizure",
                 ("R56", "G40", "G41"), r"seizure|convuls|epilep|status epilepticus", r"seiz|convuls|epilep|fit\b"),
-    "possible poisoning": ("possible poisoning -> substance, amount and time not recorded",
+    "possible poisoning": ("possible poisoning -> find out the substance, amount and time",
                            tuple(f"T{n}" for n in range(36, 66)) + ("F100", "F110", "F120", "F130", "F140", "F150", "F160", "F190"),
                            r"poison|intoxic|overdose|toxic effect|drug ingestion",
                            r"overdose|poison|intoxic|ingest"),
@@ -134,18 +135,26 @@ class PathwayFlagger:
         g, P = self.scores(vectors, complaints)
         return (P >= np.array([h["cut_off"] for h in self.heads.values()])) & (g >= self.gate_cut)[:, None]
 
-    def flags(self, vector, complaint, most=3):
+    def flags(self, vector, complaint, most=3, lead=LEAD):
         """One patient -> the flag texts the app shows, strongest first (score over its cut-off), at most `most`;
         a pathway named in the complaint words is always kept. A very sick chest-pain patient got 6 flags (stroke,
         seizure, sepsis ...) in the real-AI test (9 Nov, REPORT_NOTES 5q #3). On the 1,452 test patients, at most 3:
-        caught 82.6% -> 80.6% of pathways, false flags per patient 0.76 -> 0.68, patients with 4+ flags 6.7% -> 0%."""
+        caught 82.6% -> 80.6% of pathways, false flags per patient 0.76 -> 0.68, patients with 4+ flags 6.7% -> 0%.
+        lead (group test 10 Nov, B1): a pathway is shown only when it clearly leads: its score over its cut-off is
+        at least `lead` x the strongest pathway's, or the complaint names it. A chest-pain patient (chest 5.4x)
+        also got breathing 2.3x, collapse 1.6x and stroke 1.3x as equals. lead = 0.5 chosen on validation
+        (caught 84.3% -> 82.2%, false flags per patient 0.70 -> 0.55); on the test patients caught 80.6% -> 77.5%,
+        false flags per patient 0.68 -> 0.55, patients with 2+ flags 34.2% -> 26.2% (REPORT_NOTES 5t)."""
         g, P = self.scores(np.asarray(vector).reshape(1, -1), [complaint])
         cut = np.array([h["cut_off"] for h in self.heads.values()])
         on = (P[0] >= cut) & (g[0] >= self.gate_cut)
+        ratio = P[0] / cut
         named = [bool(re.search(PATHWAYS[n][3], (complaint or "").lower())) for n in self.heads]
-        order = [j for j in np.argsort(-(P[0] / cut)) if on[j]]
-        keep = order[:most] + [j for j in order[most:] if named[j]]
-        texts = [h["flag"] for h in self.heads.values()]
+        order = [j for j in np.argsort(-ratio) if on[j]]
+        top = ratio[order[0]] if order else 0.0
+        leading = [j for j in order if ratio[j] >= lead * top][:most]
+        keep = leading + [j for j in order if named[j] and j not in leading]
+        texts = [PATHWAYS[n][0] for n in self.heads]      # the wording in this file, not the copy saved with the heads
         return [texts[j] for j in keep]
 
 

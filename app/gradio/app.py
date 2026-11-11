@@ -14,6 +14,7 @@ background thread exactly like the React app. BN4601A_FAKE_ZERO=1 imitates the c
 """
 import argparse
 import copy
+import html
 import os
 import shutil
 import sys
@@ -261,13 +262,20 @@ def _header(p):
     if d is None:
         line = f"### {p.bed} · {who}\n\n⏳ {p.progress}…"
         return line + (f"\n\n⚠️ {p.error}" if p.status == "error" else "")
-    flag = (f"🔴 **Urgent: flagged** · {d.p_urgent:.0%} chance of level 1–2" if d.flagged
-            else f"Not flagged · {d.p_urgent:.0%} chance of level 1–2")
+    if d.needs_obs:                              # urgent only because vital signs are missing (10 Nov, A1)
+        flag = (f"🟠 **Urgent: needs vitals** · {' and '.join(d.missing)} not recorded, measure "
+                f"{'them' if len(d.missing) > 1 else 'it'} to score this patient · {d.p_urgent:.0%} chance of level 1–2 "
+                "from what is recorded")
+    else:
+        flag = (f"🔴 **Urgent: flagged** · {d.p_urgent:.0%} chance of level 1–2 · {d.reason()}" if d.flagged
+                else f"Not flagged · {d.p_urgent:.0%} chance of level 1–2")
     parts = [f"## Level {d.level} · {p.bed} · {who} · {p.complaint()}",
              f"{flag} · levels it can't rule out: {', '.join(map(str, d.level_set))} · NEWS2 {d.news2} · "
              f"{p.stage} · {p.doctor}"]
     if d.raised_by():
         parts.append(f"⬆ {d.raised_by()}")
+    if S.is_child(p.fields):
+        parts.append(f"🟠 {S.CHILD_NOTE}")
     if p.status == "working":
         parts.append(f"⏳ {p.progress}…")
     elif p.status == "error":
@@ -289,7 +297,17 @@ def _numbers(p):
                   "AI": "AI only", "nurse": f"fixed by {p.found.get('checked_by', 'a nurse')}"}.get(by.get(key), "")
         rows.append([label, value, quotes.get(key, ""), reader])
     warnings = list(dict.fromkeys(p.found.get("warnings", [])))        # each warning once
-    return rows, "\n".join(f"- {w}" for w in warnings)
+    return rows, _warning_box(warnings)
+
+
+def _warning_box(warnings):
+    """A red box above nothing else can be missed in: the warnings used to be a plain bullet under the table, and a
+    tester reported "HR 400 warning not shown" (group test 10 Nov, D5)."""
+    if not warnings:
+        return ""
+    items = "".join(f"<li>{html.escape(w)}</li>" for w in warnings)
+    return ('<div style="background:#fdecea;color:#b71c1c;border:2px solid #e57373;border-radius:8px;padding:8px 14px;'
+            f'font-weight:600">⚠ Check these numbers<ul style="margin:4px 0 0 18px;font-weight:500">{items}</ul></div>')
 
 
 def _pictures(p):
@@ -306,7 +324,8 @@ def _pictures(p):
             chips = " · ".join(("⚠ " if f.get("flag") else "? " if f.get("possible") else "• " if f.get("also_seen")
                                 else "✓ ") + f["name"] for f in img.get("findings", []))
             kind = (img.get("kind") or "not read yet").replace("_", " ")
-            texts.append(f"**{img['name']}** ({kind}){': ' + chips if chips else ''}\n\n{img.get('text', '')}")
+            clash = f"\n\n⚠ **{img['disagree']}**" if img.get("disagree") else ""
+            texts.append(f"**{img['name']}** ({kind}){': ' + chips if chips else ''}{clash}\n\n{img.get('text', '')}")
     return items, "\n\n---\n\n".join(texts) or "No pictures yet."
 
 
@@ -364,6 +383,7 @@ def _save_pictures(pid, paths):
             raise gr.Error(f"{path.name}: only pictures can be added (JPG, PNG ...), not videos or other files")
         name = f"{pid}_{uuid.uuid4().hex[:8]}{path.suffix.lower()}"
         shutil.copy(path, store.images / name)
+        S.save_8bit(store.images / name)                     # 16-bit X-rays turned white for the AI (10 Nov, C1)
         out.append({"file": name, "name": path.name, "kind": None, "text": ""})
     return out
 
@@ -506,17 +526,39 @@ def remove_todo(name, role, pid, i):
 
 
 # ---------------------------------------------------------------- whiteboard
+LEVEL_COLOUR = {1: "#d32f2f", 2: "#f57c00", 3: "#fbc02d", 4: "#388e3c", 5: "#1976d2"}     # same as the React board
+
+
 def board_view(show_left=False):
-    rows = []
+    """The whiteboard as a coloured table (group test 10 Nov, D3: in a plain grid the urgent patients didn't stand
+    out). Level badge in the level's colour; flagged rows tinted red, "needs vitals" rows amber, with the reason."""
+    esc, rows = html.escape, []
     for r in S.board(cleared=show_left)["patients"]:
-        todo = " · ".join(("✓ " if t["done"] else "") + ("✦ " if t.get("ai") else "") + t["text"] for t in r["todos"])
-        ai = "" if r["status"] == "ready" else f"⏳ {r['progress']}" if r["status"] == "working" else "⚠ AI step failed"
+        todo = "".join(f'<span style="display:inline-block;margin:1px 4px 1px 0;padding:1px 8px;border-radius:10px;'
+                       f'background:#e3f0fc;color:#0d3c61;{"text-decoration:line-through;opacity:.55;" if t["done"] else ""}">'
+                       f'{"✦ " if t.get("ai") else ""}{esc(t["text"])}</span>' for t in r["todos"])
+        ai = "" if r["status"] == "ready" else f"⏳ {esc(r['progress'])}" if r["status"] == "working" else "⚠ AI step failed"
         waited = int((time.time() - r["created"]) // 60)
-        rows.append([r["level"] or "…", r["bed"], r["who"], r["complaint"], r["stage"], r["doctor"],
-                     f"{waited // 60}h {waited % 60:02d}m", todo, ai])
+        tint = "" if not r["flagged"] or r["leaving"] else "#fff3e0" if r["needs_obs"] else "#fdecea"
+        why = (f'<div style="font-weight:700;color:{"#a15c00" if r["needs_obs"] else "#b71c1c"}">'
+               f'{"🟠" if r["needs_obs"] else "🔴"} {esc(r["reason"])}</div>') if r["reason"] else ""
+        badge = (f'<span style="display:inline-block;min-width:38px;padding:6px 0;border-radius:8px;text-align:center;'
+                 f'font-weight:800;font-size:20px;color:#111;background:{LEVEL_COLOUR.get(r["level"], "#b0bec5")}">'
+                 f'{r["level"] or "…"}</span>')
+        who = "reading the note…" if r["who"] == "?, ?" else r["who"]
+        cells = [badge, esc(r["bed"]), f"<b>{esc(who)}</b><div>{esc(r['complaint'] or '')}</div>{why}", esc(r["stage"]),
+                 esc(r["doctor"]), f"{waited // 60}h {waited % 60:02d}m", todo, ai]
+        rows.append(f'<tr style="background:{tint or "#ffffff"};color:#1b2733;{"opacity:.6;" if r["leaving"] else ""}">'
+                    + "".join(f'<td style="padding:8px 10px;border-bottom:1px solid #dde3e9;vertical-align:top">{c}</td>'
+                              for c in cells) + "</tr>")
+    head = "".join(f'<th style="text-align:left;padding:8px 10px;background:#1b2733;color:#ffffff">{h}</th>' for h in BOARD_HEAD)
+    table = (f'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px">'
+             f'<tr>{head}</tr>{"".join(rows)}</table></div>'
+             + ("" if rows else "<p>No patients here yet. They appear when a note is submitted on the Charting tab.</p>"))
+    n_rows, rows = len(rows), table
     learn = S.learning_status()
-    line = (f"{len(rows)} patients {'who left the ED' if show_left else 'in the ED'} · most urgent first · "
-            f"✦ = suggested by the AI, a person ticks it off")
+    line = (f"{n_rows} patients {'who left the ED' if show_left else 'in the ED'} · most urgent first · "
+            f"🔴 flagged urgent · 🟠 urgent only because vital signs are missing · ✦ = suggested by the AI")
     if learn.get("enabled"):
         line += (f"  \nLearning from use: {learn['usable_for_learning']} of {learn['needed_before_update']} patients with "
                  f"an outcome needed for the next update · {learn['number_corrections']} number fixes · "
@@ -575,7 +617,7 @@ MODE = ("**Test mode:** MedGemma's writing is made up; numbers, urgency, rules, 
             "day (log in to Hugging Face for more)" if ZERO and not FAKE_ZERO else ""))
 if NO_FILES:
     MODE += f"\n\n⚠ The full AI couldn't start: {NO_FILES} (the Space owner needs to set its HF_TOKEN secret)."
-BOARD_HEAD = ["Level", "Bed", "Patient", "Complaint", "Stage", "Doctor", "Waiting", "To do", "AI"]
+BOARD_HEAD = ["Level", "Bed", "Patient", "Stage", "Doctor", "Waiting", "To do", "AI"]
 
 with gr.Blocks(title="ED triage app") as demo:
     with gr.Row():
@@ -610,7 +652,7 @@ with gr.Blocks(title="ED triage app") as demo:
             header = gr.Markdown("Pick a patient.")
             numbers = gr.Dataframe(headers=["Number", "Value", "Read from the note's words", "Read by"],
                                    interactive=False, wrap=True)
-            warn = gr.Markdown()
+            warn = gr.HTML()
             with gr.Row():
                 fix_btn = gr.Button("Fix numbers", size="sm")
                 dl = gr.DownloadButton("⬇ Download the whole case file", size="sm")
@@ -627,8 +669,9 @@ with gr.Blocks(title="ED triage app") as demo:
                 with gr.Column(scale=3):
                     with gr.Tabs():
                         with gr.Tab("Case file"):
+                            edit_btn = gr.Button("✎ Edit the case file (fix or add anything, then Save)", size="sm",
+                                                 variant="secondary")
                             report = gr.Markdown()
-                            edit_btn = gr.Button("✎ Edit", size="sm")
                             edit_box = gr.Textbox(lines=18, visible=False, label="Edit the case file")
                             edit_save = gr.Button("Save", variant="primary", visible=False)
                         with gr.Tab("Notes as typed"):
@@ -642,10 +685,14 @@ with gr.Blocks(title="ED triage app") as demo:
                 with gr.Column(scale=2):
                     with gr.Tabs():
                         with gr.Tab("Questions and to-dos"):
-                            questions = gr.Radio([], label="AI questions (click one to answer it)")
-                            answer = gr.Textbox(label="Answer or add information")
-                            answer_btn = gr.Button("Add", size="sm")
-                            todos = gr.CheckboxGroup([], label="To do (also on the whiteboard) · tick when done")
+                            gr.Markdown("**Questions for you to answer.** The AI is asking *you* about what is "
+                                        "missing: 1. click a question, 2. type the answer in the box, 3. press "
+                                        "**Add my answer**. (To ask the AI something, use the **Chat** tab.)")
+                            questions = gr.Radio([], label="Questions the AI wants answered")
+                            answer = gr.Textbox(label="Your answer (it is added to the patient's notes)")
+                            answer_btn = gr.Button("Add my answer", size="sm", variant="primary")
+                            todos = gr.CheckboxGroup([], label="Suggested to-dos (also on the whiteboard): tick one when "
+                                                               "it has been done; ✦ = suggested by the AI")
                             with gr.Row():
                                 todo_new = gr.Textbox(placeholder="Add a to-do", show_label=False, scale=3)
                                 todo_add = gr.Button("Add", size="sm", scale=1)
@@ -661,26 +708,29 @@ with gr.Blocks(title="ED triage app") as demo:
             b_seen = gr.State(-1)
             show_left = gr.State(False)
             b_line = gr.Markdown()
-            b_table = gr.Dataframe(headers=BOARD_HEAD, interactive=False, wrap=True)
+            b_table = gr.HTML()
+            with gr.Group():
+                gr.Markdown("### Change this patient\nThese boxes **change** a patient, they don't filter the list: "
+                            "1. pick the patient, 2. set the stage and the doctor, 3. press **Save the change**. Only "
+                            "the **Triage nurse** and **Organising doctor** can change the board (set your name and "
+                            "role at the top right); everyone else can look.")
+                with gr.Row():
+                    b_pick = gr.Dropdown(_choices(new=False), label="1. Which patient", scale=2)
+                    with gr.Column(scale=3, visible=True) as b_edit:
+                        with gr.Row():
+                            b_stage = gr.Dropdown(S.STAGES, label="2. Stage (where the patient is now)")
+                            b_doctor = gr.Textbox(label="Doctor looking after them")
+                            b_update = gr.Button("3. Save the change", variant="primary")
+                        with gr.Row(visible=False) as b_leave:
+                            b_dx = gr.Textbox(label="Final diagnosis (optional)")
+                            b_level = gr.Dropdown(["Right level?", "1", "2", "3", "4", "5"], value="Right level?",
+                                                  label="Right level? (optional)")
+                            b_clear = gr.Button("✓ Clear from board", variant="primary")
+                    with gr.Column(scale=3, visible=False) as b_left_box:
+                        b_back = gr.Button("Put back on the board")
             with gr.Row():
-                b_pick = gr.Dropdown(_choices(new=False), label="Patient", scale=2)
-                with gr.Column(scale=3, visible=True) as b_edit:
-                    with gr.Row():
-                        b_stage = gr.Dropdown(S.STAGES, label="Stage")
-                        b_doctor = gr.Textbox(label="Doctor")
-                        b_update = gr.Button("Update board", variant="primary")
-                    with gr.Row(visible=False) as b_leave:
-                        b_dx = gr.Textbox(label="Final diagnosis (optional)")
-                        b_level = gr.Dropdown(["Right level?", "1", "2", "3", "4", "5"], value="Right level?",
-                                              label="Right level? (optional)")
-                        b_clear = gr.Button("✓ Clear from board", variant="primary")
-                with gr.Column(scale=3, visible=False) as b_left_box:
-                    b_back = gr.Button("Put back on the board")
-            with gr.Row():
-                b_show_left = gr.Button("Left the ED")
+                b_show_left = gr.Button("Show patients who left the ED")
                 b_show_board = gr.Button("← Back to the board")
-            gr.Markdown("Only the **Triage nurse** and **Organising doctor** can change the board; others can look. "
-                        "Type your name first.")
 
     case_out = [header, numbers, warn, report, notes_md, gallery, pics_md, timeline, questions, todos, todo_pick, chat,
                 dl, seen]

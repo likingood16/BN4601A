@@ -14,13 +14,14 @@ function Row({ p, can, me, now, reload, stages }) {
   const mins = (now - p.created) / 60;
   const late = mins > 60 && ["Waiting for doctor", "Results pending"].includes(p.stage);
   return (
-    <tr className={p.leaving || p.cleared ? "gone" : ""}>
+    <tr className={`${p.leaving || p.cleared ? "gone" : ""} ${p.flagged && !p.leaving && !p.cleared ? (p.needs_obs ? "needs-row" : "urgent-row") : ""}`}>
       <td><span className="lvl" style={{ background: p.level ? LEVEL_COLOUR[p.level] : "#607d8b" }}>{p.level ?? "…"}</span>
         {p.raised_by && <span className="raised" title={p.raised_by}>⬆</span>}</td>
       <td>{p.bed}</td>
       <td>
         <a href={`#/case/${p.id}`} target="ed_case_file"><b>{whoLine(p.who)}</b></a>
         <div className="sub">{p.complaint || (p.status === "working" ? "AI working…" : "")}</div>
+        {p.reason && <div className={`why ${p.needs_obs ? "needs" : ""}`}>{p.reason}</div>}
         {p.status === "working" && <div className="sub">⏳ {p.progress}</div>}
       </td>
       <td>

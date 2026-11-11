@@ -60,6 +60,14 @@ a { color: var(--accent); }
 .pill { padding: 4px 10px; border-radius: 12px; font-size: 13px; background: var(--bg); }
 .pill.red { background: var(--red-bg); color: var(--red); font-weight: 600; }
 .pill.amber { background: var(--amber-bg); color: var(--amber); }
+/* urgent only because vital signs are missing: amber, not the red of a sick patient (10 Nov, A1) */
+.pill.needs { background: var(--amber-bg); color: var(--amber); font-weight: 700; border: 1px solid #ffb74d; }
+.edit-btn { padding: 5px 12px; font-size: 14px; font-weight: 600; color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
+.disagree-note { font-size: 14px; background: var(--amber-bg); color: var(--amber); padding: 6px 10px; border-radius: 8px; margin: 4px 0; }
+.board .why { font-size: 16px; color: #ff8a80; font-weight: 600; }
+.board .why.needs { color: #ffb74d; }
+.board tr.urgent-row td:first-child { box-shadow: inset 5px 0 0 #ef5350; }
+.board tr.needs-row td:first-child { box-shadow: inset 5px 0 0 #ffb74d; }
 .raised { font-size: 14px; color: #ffcc80; margin-left: 4px; cursor: help; }
 
 .vitals { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; margin-bottom: 14px; }

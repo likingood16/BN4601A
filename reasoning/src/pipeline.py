@@ -36,11 +36,11 @@ from ed_assessment import ed_assessment
 from embed import embed_one
 import image_models
 from image_reader import IMAGE_ADAPTER, IMAGE_TYPES, describe_image, imaging_line
-from image_checklist import LOCATABLE, chest_anatomy, checklist, checklist_line, locate
+from image_checklist import LOCATABLE, chest_anatomy, checklist, checklist_line, disagreements, locate
 from image_tools import outline, sort_image
 from model import _messages, ask_messages, compute_dtype, load
 from prompts import TRIAGE_SYSTEM, TURNS, VISIT_CHAT_SYSTEM, card_with_urgency
-from visit import Decision, Visit
+from visit import Decision, Visit, floor_facts
 
 NO_ANSWER = "[No answer: the model ran out of room. Please ask again, more briefly.]"
 EXPLAINER = "task/stage1"
@@ -129,7 +129,8 @@ class EDPipeline:
         return Decision(p_urgent=p, head_flag=bool(head_flag), floor_flag=bool(floor_flag), flagged=flagged,
                         level=min(level, 2) if flagged else level,
                         level_set=tuple(int(i) + 1 for i in np.flatnonzero(probs >= 1 - self.cutoff)),
-                        floor_priority=vitals_out["floor_priority"], news2=vitals_out["news2"], model_level=level)
+                        floor_priority=vitals_out["floor_priority"], news2=vitals_out["news2"], model_level=level,
+                        **floor_facts(vitals_out))
 
     def triage(self, patient, explain=True):
         """Stage 1, the front door: Caleb's vitals -> arrival card -> vector -> urgency + level -> explanation."""
@@ -187,15 +188,16 @@ class EDPipeline:
         for loc in located:
             seg = outline(path, loc["box"], fracture=False)
             loc.update({"area_pct": seg["area_pct"], "overlay": seg["overlay"]})
+        disagree = disagreements(models.get("findings"), text, found_list)
         line = (imaging_line(image_type, text) + (" " + models["line"] if models["line"] else "")
-                + checklist_line(image_type, found_list, anatomy and anatomy["ctr"]))
+                + checklist_line(image_type, found_list, anatomy and anatomy["ctr"], age) + disagree)
         if located:
             line += " Outlined: " + ", ".join(f"{l['finding']} (experimental)" for l in located) + "."
         if sorted_as is not None:
             line = f"(image type sorted by {sorted_as if sorted_as == 'image sorter' else 'AI'}: {IMAGE_TYPES[image_type][0]}) " + line
         visit.add(IMAGE_TYPES[image_type][1], line, who)
         return {"kind": image_type, "sorted_by_ai": sorted_as is not None, "text": text, "models": models,
-                "checklist": found_list, "located": located, "anatomy": anatomy, "line": line}
+                "checklist": found_list, "located": located, "anatomy": anatomy, "line": line, "disagree": disagree}
 
     def outline(self, visit, path, box, who="not recorded", fracture=True):
         """MedSAM outline inside a box (the clinician's or a detector's). fracture=True: the MedSAM tuned on fracture

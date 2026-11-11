@@ -567,6 +567,11 @@ ASKS_FOR = {"sbp": r"blood pressure|\bbp\b", "hr": r"heart rate|pulse|\bhr\b", "
             "chief_complaint": r"presenting complaint|chief complaint"}
 
 
+# how the injury happened, as nurses write it ("fell off ladder", "fell from scooter", "cut finger on kitchen knife")
+MECHANISM = (r"\bfell\b|\bfall\b|\bmv[ac]\b|\brta\b|\bhit\b|struck|assault|kicked|tripped|slipped|twisted|ladder|stairs|"
+             r"bars\b|scooter|bicycle|\bbike\b|knife|glass|knock|punch|crush|collision|\bbite\b|bitten|burn")
+CHEST_PAIN = r"chest (?:pain|tight\w*|discomfort|pressure)|\bcp\b|angina"
+
 # Questions the notes' own words already answer: (what the question asks about, what in the notes answers it).
 # 7 Nov stress test: "Is the patient on blood thinners?" asked with "on warfarin" in the note.
 ANSWERED_BY_NOTE = [
@@ -581,7 +586,7 @@ ANSWERED_BY_NOTE = [
      r"\bsince\b|\bstarted\b|\bonset\b|\d+\s*(?:h|hrs?|hours?|mins?|minutes?|days?|wks?|weeks?)\b(?:\s*ago)?|\bx\s*\d+\s*(?:h|days?)"),
     (r"spread to the arm|radiat", r"radiat"),
     (r"risk factors|known heart disease", r"\bhx\b|\bpmh\b|\bdm\b|diabet|\bhtn\b|hypertens|smok|\bihd\b|\bcad\b|\bmi\b"),
-    (r"mechanism of injury", r"\bfell\b|\bfall\b|\bmv[ac]\b|\brta\b|\bhit\b|struck|assault|kicked|tripped|ladder|stairs|bars\b"),
+    (r"mechanism of injury", MECHANISM),
     (r"collapse witnessed|was the collapse witnessed", r"witnessed"),
 ]
 
@@ -600,6 +605,46 @@ def drop_known(items, fields, notes=""):
             continue
         keep.append(item)
     return keep
+
+
+def fit_patient(items, fields, notes="", image_kinds=()):
+    """Questions / to-dos that fit THIS patient (group test 10 Nov, B3-B4). After drop_known:
+      - under 16: no blood-thinner question (asked for a 7- and a 9-year-old);
+      - chest pain is the complaint: "Any chest pain, fever or leg swelling?" loses its chest-pain part;
+      - an X-ray is already attached: no "X-ray of the injured area" (bone X-ray) or "chest X-ray" (chest X-ray)."""
+    age = fields.get("age")
+    child = age is not None and age == age and float(age) < 16
+    said = f"{fields.get('chief_complaint') or ''} {notes}".lower()
+    chest_pain = bool(re.search(CHEST_PAIN, said))
+    kinds = set(image_kinds or ())
+    out = []
+    for item in drop_known(items, fields, notes):
+        low = item.lower()
+        if child and re.search(r"blood thinner|anticoagul", low):
+            continue
+        if chest_pain and re.search(r"\bany chest pain\b", low):
+            item = re.sub(r"(?i)\bany chest pain(?:,| or| and)\s+", "Any ", item)
+            if re.search(r"(?i)\bany chest pain\b", item):       # that was all it asked
+                continue
+        if re.search(r"x-?ray|\bxr\b|\bcxr\b|radiograph", low) and not re.search(r"repeat|after|review|check the", low):
+            of_chest = bool(re.search(r"chest|\bcxr\b", low))
+            if ("chest_xray" in kinds and of_chest) or ("bone_xray" in kinds and not of_chest):
+                continue
+        out.append(item)
+    return out
+
+
+CORE_OBS = [("sbp", "blood pressure"), ("hr", "heart rate"), ("rr", "breathing rate"), ("spo2", "oxygen saturation"),
+            ("temp_c", "temperature"), ("mental", "level of consciousness (ACVPU)")]
+
+
+def missing_obs_question(fields, at_least=3):
+    """One question asking for the observations when 3 or more of the six are not recorded (10 Nov, B5: a patient
+    with no observations at all was only asked "level of consciousness?"). '' when fewer are missing."""
+    missing = [name for key, name in CORE_OBS if fields.get(key) in (None, "")]
+    if len(missing) < at_least:
+        return ""
+    return f"Observations not recorded yet: what are the {', '.join(missing[:-1])} and {missing[-1]}?"
 
 
 # The questions an ED clinician asks first on each pathway the ED rules flag (ed_assessment.PATHWAYS). Fixed, so
@@ -622,26 +667,35 @@ PATHWAY_QUESTIONS = {
 }
 
 
-def pathway_questions(ed_text):
-    """Questions for every pathway flagged in the ED assessment, in the order the flags appear."""
+def pathway_questions(ed_text, most=3):
+    """Fixed questions for the flagged pathways, at most `most` (10 Nov, B2: two off-topic flags filled all five
+    places and pushed out MedGemma's own questions). The first flag is the strongest (pathway_heads.flags), so it
+    gives all its questions first; the other flags then give their first question each while there is room."""
     m = re.search(r"Pathway flags: (.*)", ed_text or "")
     if not m:
         return []
-    out = []
-    for flag in m.group(1).split("; "):
-        name = flag.split("->")[0].strip().lower()
-        out += PATHWAY_QUESTIONS.get(name, [])
-    return out
+    lists = [PATHWAY_QUESTIONS.get(flag.split("->")[0].strip().lower(), []) for flag in m.group(1).split("; ")]
+    lists = [l for l in lists if l]
+    out = list(lists[0]) if lists else []
+    out += [l[0] for l in lists[1:]]
+    return out[:most]
 
 
-def pathway_todos(ed_text):
+def pathway_todos(ed_text, notes=""):
     """The ED rules' pathway flags (ed_assessment.py) as to-dos, e.g. 'Possible stroke: record time last known well,
-    glucose, urgent brain imaging'. Fixed rules, so every flagged pathway gets its to-do even if MedGemma gives none."""
+    glucose, urgent brain imaging'. Fixed rules, so every flagged pathway gets its to-do even if MedGemma gives none.
+    notes: what was typed. The trauma to-do asks for the mechanism of injury only when the notes don't give one
+    (10 Nov, B3: "mechanism of injury not recorded" on "fell off ladder")."""
     m = re.search(r"Pathway flags: (.*)", ed_text or "")
     if not m or m.group(1).startswith("none"):
         return []
-    return [f"{name.strip().capitalize()}: {todo.strip().rstrip('.')}"
-            for name, todo in (f.split("->", 1) for f in m.group(1).split("; ") if "->" in f)]
+    out = []
+    for name, todo in (f.split("->", 1) for f in m.group(1).split("; ") if "->" in f):
+        todo = todo.strip().rstrip(".")
+        if name.strip().lower() == "trauma":
+            todo = "primary survey" if re.search(MECHANISM, notes.lower()) else "record the mechanism of injury; primary survey"
+        out.append(f"{name.strip().capitalize()}: {todo}")
+    return out
 
 
 def ask_questions(ai, report, context=""):

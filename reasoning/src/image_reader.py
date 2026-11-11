@@ -18,6 +18,7 @@ hpc_run_5epochs (F1 0.26) because it invents fewer details on image-only questio
 The pipeline puts it on the SAME loaded MedGemma as the text adapter (one model in memory, adapters switched).
 """
 import os
+import re
 from pathlib import Path
 
 from PIL import Image
@@ -60,7 +61,18 @@ def describe_image(model, processor, path, image_type, max_new_tokens=128, think
     """128 tokens = the budget Cato trained and tested findings with (run_config.json)."""
     question = PROMPT.format(label=IMAGE_TYPES[image_type][0])
     raw = ask_messages(model, processor, image_messages(path, question), max_new_tokens, think)
-    return " ".join(final_answer(raw).split())
+    return whole_sentences(" ".join(final_answer(raw).split()))
+
+
+def whole_sentences(text):
+    """The description stops at 128 tokens, often mid-sentence, and ran into the next text ("It's important to note
+    that this is just a Head-CT bleed check:", group test 10 Nov, C3). Keep it up to its last full sentence; if it
+    has none, mark the cut with "..."."""
+    text = text.strip()
+    if not text or text[-1] in ".!?":
+        return text
+    ends = [m.end() for m in re.finditer(r"[.!?](?=\s)", text) if not re.search(r"\b(?:e\.g|i\.e|vs|approx|Dr|No|\d)\.$", text[:m.end()])]
+    return text[:ends[-1]] if ends and ends[-1] > 40 else text.rstrip(" ,;:-") + " ..."
 
 
 def detect_fracture(path):

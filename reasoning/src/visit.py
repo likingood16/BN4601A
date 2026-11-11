@@ -26,6 +26,30 @@ NOTE_SECTIONS = {"history", "past_history", "medications", "allergies"}     # us
 SEE_NOTES = "not filled in separately: read the CONSULTATION NOTES"
 
 
+CORE_NAMES = {"rr": "RR", "sbp": "BP", "hr": "HR"}        # Caleb's rule (vitals/src/news2.py CORE)
+VITAL_NAMES = {"rr": "RR", "spo2": "SpO2", "sbp": "BP", "hr": "HR", "temp_c": "temperature", "consciousness": "consciousness"}
+
+
+def _and(words):
+    words = list(words)
+    return " and ".join([", ".join(words[:-1]), words[-1]] if len(words) > 1 else words)
+
+
+def floor_facts(vitals_out):
+    """What set Caleb's safety floor, read from his model's own output (his files are not changed):
+    missing = the core vital signs (BP, RR, HR) not recorded, when that alone is why the floor is 1-2;
+    abnormal = the vital signs scoring 2 or 3 NEWS2 points, when the floor is 1-2."""
+    if vitals_out.get("floor_priority", 5) > 2:
+        return {"missing": (), "abnormal": ()}
+    reason = vitals_out.get("escalation_reason") or ""
+    only_missing = bool(vitals_out.get("escalated")) and "could not be recorded" in reason and "unresponsive" not in reason
+    missing = tuple(CORE_NAMES[k] for k in ("sbp", "rr", "hr") if k in vitals_out.get("missing", ())) if only_missing else ()
+    abnormal = tuple(VITAL_NAMES[k] for k, pts in (vitals_out.get("subscores") or {}).items() if pts >= 2 and k in VITAL_NAMES)
+    if "unresponsive" in reason:
+        abnormal = ("unresponsive",) + tuple(a for a in abnormal if a != "consciousness")
+    return {"missing": missing, "abnormal": abnormal}
+
+
 @dataclass(frozen=True)
 class Decision:
     """The front-door result. Frozen: later results can't change it."""
@@ -38,6 +62,33 @@ class Decision:
     floor_priority: int
     news2: int
     model_level: int = 0           # the level model's own answer, before the urgent flag raised it (0 = not stored)
+    missing: tuple = ()            # core vital signs not recorded, when that alone set the safety floor (floor_facts)
+    abnormal: tuple = ()           # vital signs scoring 2-3 NEWS2 points, when the floor is 1-2
+
+    @property
+    def needs_obs(self):
+        """Urgent ONLY because core vital signs were not measured (Caleb's rule: 2 or more of RR / BP / HR missing
+        = "could not be measured" = treat as high risk). Not the same as a sick patient: the screens say
+        "Urgent: needs vitals" in amber and name what to measure (group test 10 Nov, A1: P05, T09)."""
+        return bool(self.floor_flag and not self.head_flag and self.missing)
+
+    def floor_why(self):
+        """What set the safety floor, for the record the chat and the case file read."""
+        if self.missing:
+            return f"{_and(self.missing)} not recorded, so the patient could not be scored: measure them"
+        return f"abnormal {_and(self.abnormal)}, NEWS2 {self.news2}" if self.abnormal else ""
+
+    def reason(self):
+        """A few words for the whiteboard: why this patient is flagged ('' if not flagged)."""
+        if not self.flagged:
+            return ""
+        if self.needs_obs:
+            return f"Needs vitals: {_and(self.missing)} not recorded"
+        vitals = (f"{_and(self.missing)} not recorded" if self.missing else
+                  f"abnormal {_and(self.abnormal)}" if self.abnormal else "vital-signs safety rule")
+        score = f"urgency score {self.p_urgent:.0%}"
+        text = f"{score} + {vitals}" if self.head_flag and self.floor_flag else score if self.head_flag else vitals
+        return text[0].upper() + text[1:]
 
     def raised_by(self):
         """Why the level is more urgent than the level model said (7 Nov: the safety rule causes most over-triage,
@@ -45,13 +96,16 @@ class Decision:
         own = self.model_level or self.level
         if not self.flagged or own <= self.level:
             return ""
+        if self.needs_obs:
+            return (f"Level model said {own}; held at {self.level} until {_and(self.missing)} "
+                    f"{'is' if len(self.missing) == 1 else 'are'} measured (safety rule for missing vital signs).")
         why = ("the vital-signs safety floor" if self.floor_flag and not self.head_flag else
                "the urgency score" if self.head_flag and not self.floor_flag else "the urgency score and the vital-signs safety floor")
         return f"Level model said {own}; raised to {self.level} by {why} (set to catch 90% of urgent patients)."
 
     def lines(self):
         options = ", ".join(str(x) for x in self.level_set)
-        out = [urgency_line(self.p_urgent, self.flagged, self.floor_flag),
+        out = [urgency_line(self.p_urgent, self.flagged, self.floor_flag, self.floor_why()),
                f"TRIAGE LEVEL (trained model): {self.level} (levels it can't rule out: {options})."]
         return out + ([self.raised_by()] if self.raised_by() else [])
 

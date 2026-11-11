@@ -6,7 +6,7 @@ the level, and every written answer.
 """
 from cards import assess, make_card
 from ed_assessment import ed_assessment
-from visit import Decision, Visit
+from visit import Decision, Visit, floor_facts
 
 MARK = "[TEST MODE, not a real answer]"
 
@@ -19,10 +19,13 @@ class TestPipeline:
     def triage(self, patient, explain=True):
         out = assess(self.vm, patient)
         floor_flag = out["floor_priority"] <= 2
-        flagged = bool(out["urgent_flag"] or floor_flag)
-        decision = Decision(p_urgent=out["p_urgent"], head_flag=out["urgent_flag"], floor_flag=floor_flag, flagged=flagged,
+        facts = floor_facts(out)
+        # the stand-in score is Caleb's vitals score; with the core vitals missing it has nothing to go on
+        head_flag = bool(out["urgent_flag"]) and not facts["missing"]
+        flagged = bool(head_flag or floor_flag)
+        decision = Decision(p_urgent=out["p_urgent"], head_flag=head_flag, floor_flag=floor_flag, flagged=flagged,
                             level=2 if flagged else 3, level_set=(1, 2) if flagged else (3, 4),
-                            floor_priority=out["floor_priority"], news2=out["news2"], model_level=3)
+                            floor_priority=out["floor_priority"], news2=out["news2"], model_level=3, **facts)
         visit = Visit(card=make_card(patient, out), decision=decision, ed=ed_assessment(patient))
         if explain:
             self.explain(visit)

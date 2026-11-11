@@ -63,7 +63,7 @@ function Vitals({ p, me, reload, meta }) {
       </div>
       <div className="row muted" style={{ marginTop: -6, marginBottom: 12 }}>
         Numbers read by {meta?.test ? "fixed rules (test mode)" : "fixed rules and the AI, each checked against the note's words; where they disagree the tile says check"}{p.found?.checked_by ? `, checked by ${p.found.checked_by}` : ""}.
-        {(p.found?.warnings || []).filter((w) => !w.startsWith("please check")).map((w) => <span key={w} className="pill red">{w}</span>)}
+        {(p.found?.warnings || []).filter((w) => !w.startsWith("please check")).map((w) => <span key={w} className="pill red">⚠ {w}</span>)}
         <button className="small" onClick={() => setEdit({ ...p.fields })} disabled={p.status === "working"}>Fix numbers</button>
       </div>
     </>
@@ -129,6 +129,7 @@ function Files({ p }) {
               ))}
             </div>
           )}
+          {img.disagree && <p className="disagree-note">⚠ {img.disagree}</p>}
           <p style={{ fontSize: 14 }}>{img.text}</p>
         </div>
       ))}
@@ -213,10 +214,14 @@ export default function Case({ id, me, meta }) {
         <div>
           <div className="name">{p.bed} · {whoLine(p.who)} · {p.complaint || "…"}</div>
           <div className="row" style={{ marginTop: 4 }}>
-            {d && <span className={`pill ${d.flagged ? "red" : ""}`}>{d.flagged ? "Urgent: flagged" : "Not flagged"} · {Math.round(d.p_urgent * 100)}% chance of level 1–2</span>}
+            {d && (d.needs_obs
+              ? <span className="pill needs" title="Two or more of BP, RR and HR are not recorded, so the patient can't be scored. The safety rule treats that as urgent until they are measured.">Urgent: needs vitals · {d.missing.join(" and ")} not recorded, measure {d.missing.length > 1 ? "them" : "it"}</span>
+              : <span className={`pill ${d.flagged ? "red" : ""}`}>{d.flagged ? "Urgent: flagged" : "Not flagged"} · {Math.round(d.p_urgent * 100)}% chance of level 1–2{d.flagged && p.reason ? ` · ${p.reason}` : ""}</span>)}
+            {d && d.needs_obs && <span className="pill">{Math.round(d.p_urgent * 100)}% chance of level 1–2 from what is recorded</span>}
             {d && <span className="pill">Levels it can't rule out: {d.level_set.join(", ")}</span>}
             {p.raised_by && <span className="pill amber" title="The urgent flag catches 90% of urgent patients, so it also raises some who aren't. Use your judgement.">⬆ {p.raised_by}</span>}
-            {d && <span className="pill">NEWS2 {d.news2}</span>}
+            {d && <span className="pill">NEWS2 {d.news2}{p.child ? " (adult score)" : ""}</span>}
+            {d && p.child && <span className="pill amber" title="NEWS2 is for age 16 and over, and the urgency and level models were trained on patients aged 15 and over. Use a paediatric scale and your own judgement.">Under 16: scores from models trained on adults</span>}
             <span className="pill">{p.stage} · {p.doctor}</span>
             <span className="pill">Waiting {waited(p.created)}</span>
           </div>
@@ -253,7 +258,8 @@ export default function Case({ id, me, meta }) {
             <>
               <div className="row" style={{ justifyContent: "space-between" }}>
                 <span className="muted">{p.report_by === "AI" ? "Written by the AI from the notes. Check it, and edit anything." : p.report_by ? `Last edited by ${p.report_by}` : ""}</span>
-                <button className="small" onClick={() => setEdit(p.report)} disabled={!p.report || p.status === "working"}>✎ Edit</button>
+                <button className="edit-btn" onClick={() => setEdit(p.report)} disabled={!p.report || p.status === "working"}
+                  title="Change anything in the case file; your name is saved with the edit">✎ Edit the case file</button>
               </div>
               <Report text={p.report} />
             </>
@@ -274,6 +280,8 @@ export default function Case({ id, me, meta }) {
           </div>
           {side === "questions" ? (
             <>
+              <h3>Questions for you to answer</h3>
+              <p className="muted" style={{ marginTop: -6 }}>The AI is asking you. Click one, type the answer in the "Add information" bar above, press Add.</p>
               <Questions p={p} onPick={(q) => setText(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `)} />
               <h3 style={{ marginTop: 16 }}>To do (also on the whiteboard)</h3>
               <Todos p={p} me={me} reload={reload} />
