@@ -95,9 +95,23 @@ def checklist(model, processor, path, kind):
         seen = {"not sure": "unclear", "cannot": "unclear", "can't": "unclear"}.get(word.group(1), word.group(1)) if word else "unclear"
         parts = re.split(r"\s*[-–—:,.;]\s*", raw, maxsplit=1)
         where = parts[1].strip(" .") if seen == "yes" and len(parts) > 1 else ""
-        where = re.sub(r"^(?:a dash and\s*)?(?:where it is\s*:?\s*)?(?:it is |it's |located |seen )?", "", where).strip(" .")
-        out[item] = {"seen": seen, "where": where[:60]}
+        where = _place(where)
+        out[item] = {"seen": seen, "where": where}
     return out
+
+
+def _place(where, most=60):
+    """MedGemma's words after "yes" -> just the place ("in the right parietal bone"). It often answers in sentences
+    ("there is bleeding inside the skull. it appears to be located", full-AI re-run 11 Nov) or copies the prompt
+    ("a dash and in the ankle", 10 Nov, C4): keep from the first place word on, whole words only, else nothing."""
+    where = re.sub(r"^(?:a dash and\s*)?(?:where it is\s*:?\s*)?", "", where.strip(" .")).strip()
+    m = re.search(r"\b(?:in|on|at|along|around|near|under|behind|within|over|above|below|between|involving) (?:the |both |a |an )?\w.*", where)
+    if re.match(r"(?:there |it |this |the \w+ (?:is|are|appears) )", where):
+        where = m.group(0) if m else ""
+    where = re.split(r"(?<=\w)[.;]\s", where)[0].strip(" .")
+    if len(where) > most:
+        where = where[:most].rsplit(" ", 1)[0]
+    return re.sub(r"(?:[\s,]+(?:located|appears|is|in|on|at|the|of|to|be|with|and|a|an))+$", "", " " + where).strip(" ,")
 
 
 def locate(model, processor, path, finding):

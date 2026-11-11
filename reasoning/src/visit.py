@@ -70,7 +70,9 @@ class Decision:
         """Urgent ONLY because core vital signs were not measured (Caleb's rule: 2 or more of RR / BP / HR missing
         = "could not be measured" = treat as high risk). Not the same as a sick patient: the screens say
         "Urgent: needs vitals" in amber and name what to measure (group test 10 Nov, A1: P05, T09)."""
-        return bool(self.floor_flag and not self.head_flag and self.missing)
+        # the urgency score may flag as well (T09 "feeling unwell, no obs": 24%), but with the core vital signs
+        # missing it rests on the complaint words alone, so the first thing to do is still to measure them
+        return bool(self.floor_flag and self.missing)
 
     def floor_why(self):
         """What set the safety floor, for the record the chat and the case file read."""
@@ -83,9 +85,9 @@ class Decision:
         if not self.flagged:
             return ""
         if self.needs_obs:
-            return f"Needs vitals: {_and(self.missing)} not recorded"
-        vitals = (f"{_and(self.missing)} not recorded" if self.missing else
-                  f"abnormal {_and(self.abnormal)}" if self.abnormal else "vital-signs safety rule")
+            return (f"Needs vitals: {_and(self.missing)} not recorded"
+                    + (f" (urgency score {self.p_urgent:.0%} also flags)" if self.head_flag else ""))
+        vitals = f"abnormal {_and(self.abnormal)}" if self.abnormal else "vital-signs safety rule"
         score = f"urgency score {self.p_urgent:.0%}"
         text = f"{score} + {vitals}" if self.head_flag and self.floor_flag else score if self.head_flag else vitals
         return text[0].upper() + text[1:]
@@ -96,7 +98,7 @@ class Decision:
         own = self.model_level or self.level
         if not self.flagged or own <= self.level:
             return ""
-        if self.needs_obs:
+        if self.needs_obs and not self.head_flag:
             return (f"Level model said {own}; held at {self.level} until {_and(self.missing)} "
                     f"{'is' if len(self.missing) == 1 else 'are'} measured (safety rule for missing vital signs).")
         why = ("the vital-signs safety floor" if self.floor_flag and not self.head_flag else

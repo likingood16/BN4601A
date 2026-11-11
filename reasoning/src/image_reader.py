@@ -61,7 +61,8 @@ def describe_image(model, processor, path, image_type, max_new_tokens=128, think
     """128 tokens = the budget Cato trained and tested findings with (run_config.json)."""
     question = PROMPT.format(label=IMAGE_TYPES[image_type][0])
     raw = ask_messages(model, processor, image_messages(path, question), max_new_tokens, think)
-    return whole_sentences(" ".join(final_answer(raw).split()))
+    text = re.sub(r"\*\*|(?<!\S)\*(?!\S)|^#+\s*", " ", final_answer(raw))       # MedGemma's markdown bullets and bold
+    return whole_sentences(" ".join(text.split()))
 
 
 def whole_sentences(text):

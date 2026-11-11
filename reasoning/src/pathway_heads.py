@@ -35,7 +35,8 @@ EMB = "base4bit"
 C_GRID = [0.0003, 0.001, 0.003, 0.01, 0.03, 0.1]
 TARGET_SENS = 0.90
 GATE_SENS = 0.90          # the gate lets through 90% of patients who needed some pathway (val)
-LEAD = 0.5                # shown only if score/cut-off >= LEAD x the strongest pathway's, or named in the complaint
+LEAD = 0.5                # a second pathway is shown only if its score/cut-off is >= LEAD x the strongest one's ...
+SECOND = 1.5              # ... and >= SECOND itself; or the complaint names it
 
 # pathway: (what the app tells the clinician, ICD-10 prefixes, words in a KTAS diagnosis, words in the complaint)
 PATHWAYS = {
@@ -135,16 +136,18 @@ class PathwayFlagger:
         g, P = self.scores(vectors, complaints)
         return (P >= np.array([h["cut_off"] for h in self.heads.values()])) & (g >= self.gate_cut)[:, None]
 
-    def flags(self, vector, complaint, most=3, lead=LEAD):
+    def flags(self, vector, complaint, most=3, lead=LEAD, second=SECOND):
         """One patient -> the flag texts the app shows, strongest first (score over its cut-off), at most `most`;
         a pathway named in the complaint words is always kept. A very sick chest-pain patient got 6 flags (stroke,
         seizure, sepsis ...) in the real-AI test (9 Nov, REPORT_NOTES 5q #3). On the 1,452 test patients, at most 3:
         caught 82.6% -> 80.6% of pathways, false flags per patient 0.76 -> 0.68, patients with 4+ flags 6.7% -> 0%.
-        lead (group test 10 Nov, B1): a pathway is shown only when it clearly leads: its score over its cut-off is
-        at least `lead` x the strongest pathway's, or the complaint names it. A chest-pain patient (chest 5.4x)
-        also got breathing 2.3x, collapse 1.6x and stroke 1.3x as equals. lead = 0.5 chosen on validation
-        (caught 84.3% -> 82.2%, false flags per patient 0.70 -> 0.55); on the test patients caught 80.6% -> 77.5%,
-        false flags per patient 0.68 -> 0.55, patients with 2+ flags 34.2% -> 26.2% (REPORT_NOTES 5t)."""
+        lead, second (group test 10 Nov, B1): the strongest pathway is always shown; any other only when it is
+        close behind AND clearly over its own cut-off: score/cut-off >= `lead` x the strongest pathway's and
+        >= `second`; or the complaint names it. A chest-pain patient (chest 5.4x) also got breathing 2.3x,
+        collapse 1.6x and stroke 1.3x as equals, and a headache (stroke 1.5x) also got a chest-pain to-do.
+        Chosen on validation to stay near 80% caught: 84.3% -> 79.5%, false flags per patient 0.70 -> 0.40.
+        On the 1,452 test patients: caught 80.6% -> 75.5%, false flags per patient 0.68 -> 0.40, patients with
+        2+ flags 34.2% -> 17.2% (REPORT_NOTES 5t has the other rules tried)."""
         g, P = self.scores(np.asarray(vector).reshape(1, -1), [complaint])
         cut = np.array([h["cut_off"] for h in self.heads.values()])
         on = (P[0] >= cut) & (g[0] >= self.gate_cut)
@@ -152,7 +155,7 @@ class PathwayFlagger:
         named = [bool(re.search(PATHWAYS[n][3], (complaint or "").lower())) for n in self.heads]
         order = [j for j in np.argsort(-ratio) if on[j]]
         top = ratio[order[0]] if order else 0.0
-        leading = [j for j in order if ratio[j] >= lead * top][:most]
+        leading = [j for i, j in enumerate(order) if i == 0 or (ratio[j] >= lead * top and ratio[j] >= second)][:most]
         keep = leading + [j for j in order if named[j] and j not in leading]
         texts = [PATHWAYS[n][0] for n in self.heads]      # the wording in this file, not the copy saved with the heads
         return [texts[j] for j in keep]
