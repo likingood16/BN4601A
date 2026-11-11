@@ -10,6 +10,7 @@
 | rebuild the guides / test pack / Telegram files / Space | `app/tools/` (outputs land in `app/build/`) |
 | train or evaluate a model | `reasoning/training/`, `reasoning/checks/`, vanda jobs in `reasoning/hpc/jobs/` |
 | find a result for the report | `reasoning/REPORT_NOTES.md` |
+| see what the group's testers found (10 Nov) and why | `reasoning/FEEDBACK_10NOV.md` |
 | Caleb's vitals model / Cato's image model / image detectors | `vitals/`, `vision/cato/`, `vision/` |
 
 Not code: `app/build/`, `reasoning/models/`, `reasoning/data/`, `reasoning/outputs/` (all kept out of git).

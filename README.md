@@ -10,8 +10,7 @@ dataset: https://huggingface.co/datasets/OpenMed/multicare-cases
 | `main` | group | the shared base |
 | `cato` | Cato | Model 1: image model (MedGemma LoRA, ED-VLM); open pull request into `main` |
 | `caleb` | Caleb | Model 2: vitals model and the MultiCaRe A&E filter (already contained in `ed-app-group-test`) |
-| `ed-app-group-test` | Alexander | **the latest app**: Model 3 reasoning, the full pipeline, the React app, the Gradio version, image models, tests and guides |
-| `reasoning` | Alexander | an older version of the app (2 Nov), fully contained in `ed-app-group-test` |
+| `ed-app-group-test` | Alexander | **the latest app** (start here: `START_HERE.md`): the app in `app/` (React + Gradio), Model 3 reasoning, the full pipeline, image models, tests and guides |
 
 ## Run the app
 
