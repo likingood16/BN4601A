@@ -11,7 +11,7 @@ What is in here
                             P01-P18  a note + a picture (pictures/ folder) to test the image models
                             R01-R10  real held-out test patients; their true triage level is in expected_results.csv
   pictures/               X-rays, CTs and other pictures for the P cases (all CC BY 4.0, see ATTRIBUTION.txt)
-  expected_results.csv    what the app showed for every case when we ran it (test mode, 8 Nov 2026)
+  expected_results.csv    what the app showed for every case when we ran it with the full AI ({date})
   feedback_form.csv       please fill this in and send it back (one row per case or step you tried)
 
 What we would like you to do (about 30-45 minutes)
@@ -22,14 +22,14 @@ What we would like you to do (about 30-45 minutes)
   5. Fill in feedback_form.csv: what you did, what happened, whether it matched, how bad (1 cosmetic - 5 unsafe).
      Screenshots help: name them by case, e.g. P06_1.png.
 
-Full AI (the final product): please test with it
-  - python server.py (no --test) runs MedGemma and every trained model on your own computer: fastest with an NVIDIA
-    GPU, but it also works on a Mac or any laptop with 16 GB of memory (slower: see section 1b of the user guide).
+Two ways to run it
+  - On your own computer: python server.py runs MedGemma and every trained model. Fastest with an NVIDIA GPU, but it
+    also works on a Mac or any laptop with 16 GB of memory (slower: see section 1b of the user guide).
     It needs ED_app_full_ai_models.zip from the chat.
   - Online on a Hugging Face GPU (Gradio screens, nothing to install): the link comes in the chat.
 
 Important
-  - expected_results.csv was made in test mode: with the full AI the level and numbers should match, but the case-file
-    wording, questions, to-dos and chat are MedGemma's own, so judge whether they are right and useful.
-  - Test mode (python server.py --test) is the same app with MedGemma's writing replaced by [TEST MODE] text.
+  - The level, the urgent flag, the numbers and the picture marks should match expected_results.csv. The case-file
+    wording, questions, to-dos and chat are written by MedGemma and can be worded a little differently each time,
+    so judge whether they are right and useful rather than word for word.
   - This is a student research prototype. It is not a medical device and must not be used on real patients.

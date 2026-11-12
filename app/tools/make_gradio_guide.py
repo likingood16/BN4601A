@@ -2,11 +2,12 @@
 
     python make_gradio_guide.py
 
-The screenshots (app/build/guide_shots/16-23_gradio_*.png) were taken while following these steps by hand in Chrome
-on the test-mode Gradio app (app/gradio/app.py --test), so the guide shows what the app really does.
+The screenshots (app/build/guide_shots/16-23_gradio_*.png) are taken while following these steps by hand in Chrome
+on the full-AI Gradio app (app/gradio/app.py), so the guide shows what the app really does.
 """
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -41,7 +42,7 @@ li {{ margin-bottom: 3px; }}
 .page {{ page-break-before: always; }}
 </style></head><body>
 <h1>ED triage app: the Gradio version</h1>
-<div style="font-size:12pt;color:#455a64">User guide and test plan · BN4601A, Model 3 · version of 10 Nov 2026</div>
+<div style="font-size:12pt;color:#455a64">User guide and test plan · BN4601A, Model 3 · version of {time.strftime("%d %b %Y")}</div>
 <div class="warn"><b>Student research prototype.</b> Not a medical device. Never use it with real patients' details.</div>
 
 <h2>What it is</h2>
@@ -56,8 +57,7 @@ free Hugging Face GPU (the link comes in the chat).</p>
 Terminal:</p>
 <pre>conda activate edapp
 cd Downloads\\EDapp\\ED_app_code\\BN4601A\\app\\gradio
-python app.py                 (the full AI, any computer: see section 1b of the main guide for speed)
-python app.py --test          (test mode: starts in seconds, MedGemma's writing faked)</pre>
+python app.py                 (the full AI, any computer: see section 1b of the main guide for speed)</pre>
 <p>Then open <b>http://127.0.0.1:7860</b>. <b>First thing every time:</b> type <b>your name</b> top right and pick
 your <b>role</b>; without a name, Submit and whiteboard changes are refused with a warning.</p>
 <h3>Online, full AI (the link comes in the chat)</h3>
@@ -73,8 +73,6 @@ from another account.</li>
 <li>Everyone who opens the link shares <b>one whiteboard</b>: you will see the others' test patients. Put your initials
 in the note (e.g. "AL test: 67M chest pain ...") so you can find yours.</li>
 </ul>
-<p>The screenshots below were taken in test mode, so the case-file wording is marked [TEST MODE]; with the full AI it is
-MedGemma's own writing, and the questions, to-dos and chat answers are its own too.</p>
 
 <h2>2. One patient from start to finish (case T01)</h2>
 <h3>Charting tab: write the note and press Submit</h3>
@@ -88,8 +86,8 @@ rule out, NEWS2, stage and doctor. The table shows each number, the exact words 
 {fig("17_gradio_case_top", "Case T01: level 2, urgent (the vital-sign safety floor raised it), every number with its source.")}
 <p>Below: <b>Fix numbers</b>, <b>Download the whole case file</b> (one click saves a .txt), and <b>Add information</b>
 (text and pictures go into the right sections; nothing already there changes). The case file has its own tabs:
-<b>Case file</b> (✎ Edit, then Save), <b>Notes as typed</b>, <b>Files</b> (pictures) and <b>Timeline</b> (who did what,
-when). On the right: <b>AI questions</b> (click one, it goes into the answer box, type the answer and press Add),
+<b>Case file</b> (✎ Edit the case file, then Save), <b>Notes as typed</b>, <b>Files</b> (pictures) and <b>Timeline</b> (who did what,
+when). On the right: <b>Questions for you to answer</b> (pick one, type your answer and press <b>Add my answer</b>),
 <b>to-dos</b> (tick when done; ✦ = suggested by the AI; add your own; remove one) and <b>Chat</b>.</p>
 {fig("18_gradio_case_body", "The case file, filed under standard headings; the to-dos on the right.")}
 
@@ -101,8 +99,8 @@ timeline records it.</p>
 {fig("19_gradio_fix", "Fix numbers: every field can be changed; the urgency and level are scored again.")}
 <h3>Chat</h3>
 <p>Ask about the patient in the <b>Chat</b> tab and press <b>Ask</b>. The AI reads the whole case file, including your
-edits. (In test mode the answer is a placeholder that repeats the case file.)</p>
-{fig("20_gradio_chat", "Chat in test mode.", 80)}
+edits.</p>
+{fig("20_gradio_chat", "Chat: the AI answers from the whole case file.", 80)}
 
 <h2>3. Pictures</h2>
 <p>Add a picture when you submit (or later with 📎 Image under Add information). The app sorts it (bone X-ray, chest X-ray,
@@ -114,12 +112,13 @@ or seen but usually not urgent; ✓ = not found. A mark means "look here", not a
 
 <div class="page"></div>
 <h2>4. Whiteboard tab</h2>
-<p>Everyone in the ED, most urgent first; it refreshes by itself every few seconds. Only the <b>Triage nurse</b> and the
-<b>Organising doctor</b> can change it: pick the patient, set the <b>Stage</b> and <b>Doctor</b>, press <b>Update
-board</b>. When a patient leaves (going to surgery, transfer, admitted, discharged), the outcome boxes appear: type the
+<p>Everyone in the ED, most urgent first, coloured by level; it refreshes by itself every few seconds. Under the
+table, the <b>Change this patient</b> box changes one patient (it does not filter the list). Only the <b>Triage
+nurse</b> and the <b>Organising doctor</b> can use it: 1. pick the patient, 2. set the <b>Stage</b> and <b>Doctor</b>,
+3. press <b>Save the change</b>. When a patient leaves (going to surgery, transfer, admitted, discharged), the outcome boxes appear: type the
 final diagnosis and pick the level that was right (both optional), then <b>✓ Clear from board</b>. <b>Left the ED</b>
-lists them; <b>Put back on the board</b> undoes it. Their case files stay readable in the Case file tab.</p>
-{fig("22_gradio_board", "The whiteboard with two patients.")}
+(press <b>Show patients who left the ED</b>) lists them; <b>Put back on the board</b> undoes it. Their case files stay readable in the Case file tab.</p>
+{fig("22_gradio_board", "The whiteboard: one coloured row per patient, and the Change this patient box under it.")}
 {fig("23_gradio_board_leave", "P1 set to Discharged home by Dr Lim: the outcome boxes and Clear from board appear.")}
 
 <h2>5. What we would like you to test (15-20 minutes)</h2>
@@ -138,7 +137,8 @@ once, a long or messy note.</li>
 <ul>
 <li>One browser tab with three tabs, instead of a charting page, a case-file window and a whiteboard page.</li>
 <li>Fix numbers is a table: double-click a value to change it.</li>
-<li>In test mode the chat answer is a placeholder, and the questions and to-dos come from fixed lists.</li>
+<li>The case-file wording, questions, to-dos and chat are written by MedGemma and can be worded a little
+differently each time.</li>
 <li>Online, the GPU is lent per call: a patient's run asks for 90 s plus 40 s per picture, and stops with "The AI step
 failed; the notes are saved" if it runs over. Tell us if you see that.</li>
 <li>The online whiteboard is shared by everyone, and it is emptied when the Space restarts.</li>

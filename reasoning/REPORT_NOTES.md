@@ -1207,6 +1207,52 @@ build), Model 3's runtime stays in `reasoning/src`, training scripts in `reasoni
 test notes, Caleb's 8 vitals tests, the React build (identical files), every Python file compiles, all vanda job
 scripts parse.
 
+### 5t. Group-test feedback fixes (10-12 Nov 2026, branch tidy-layout)
+
+Two testers (Caleb: main app, full AI, 40 cases; Cato: Gradio, full AI, T01-P18) sent forms, comments and 58
+screenshots. Every issue was traced to its cause before fixing (`reasoning/FEEDBACK_10NOV.md`, ids A1-D5). Rules agreed
+with the group first: the users are the triage nurse (charting, case file) and the organising doctor (whiteboard); the
+app answers "how urgent, and why"; the AI suggests and a person decides.
+
+| # | Problem | Fix |
+|---|---|---|
+| C1 | Child wrist X-rays are 16-bit; opening them as RGB turned 95-98% of pixels white, so MedGemma described a white picture ("no fracture" next to a red fracture mark) | uploads with more than 8 bits a pixel are rewritten as 8-bit when saved (`image_io.save_8bit`), so the overlays, MedGemma and the checklist see the real picture |
+| A1 | Missing BP / RR / HR made the safety floor say "urgent" with no reason (P05, a 7-year-old with a sore wrist; T09) | Still level 2 (an unmeasured patient can't be called safe), but shown as amber "Urgent: needs vitals: BP and RR not recorded" on the case file and the whiteboard, and the first question asks for the observations. Also when the urgency score flags as well (T09) |
+| A2 / C2 | Children scored with adult models (NEWS2, KTAS 15+, adult chest X-rays) | Under 16: "models built on adults" label; cardiomegaly and aortic enlargement not scored (a child's heart looks big to an adult model); no blood-thinner question |
+| B1 | Off-topic pathways (collapse and breathing for chest pain, stroke for a headache, poisoning for a head injury) | The strongest pathway is always shown; another only if its score / cut-off is at least half the top one's AND at least 1.5, or the complaint names it (`pathway_heads.py`) |
+| B2-B5 | Fixed pathway questions pushed out MedGemma's; "mechanism of injury not recorded" when the note says "fell off ladder"; "X-ray of the injured area" with the X-ray attached; nothing asked for missing observations | At most 3 fixed pathway questions; questions and to-dos fitted to the patient (mechanism given, under 16, chest pain is the complaint, X-ray attached); one question first when 3+ observations are missing |
+| C3-C5 | Descriptions cut mid-sentence; "a dash and" in checklist text; description and detector disagreeing with no note | Cut at a full sentence, markdown removed, "a dash and" taken out of the prompt and the "where" text tidied; a line when the detector and MedGemma disagree |
+| D1-D5 | Chat restated the record; Gradio "AI questions" read as "the AI answers"; plain Gradio whiteboard | Chat told to answer first and briefly; "Questions for you to answer"; coloured Gradio whiteboard with a "Change this patient" box; "✎ Edit the case file"; HR 400-type warnings in a red box |
+| A4 | The answer key was made in test mode (level always 2 or 3), so correct full-AI levels looked wrong | Remade with the full AI (`make_test_pack.py --url <full-AI app>`); test mode is no longer mentioned in the pack or the guides (kept only as a developer switch for the automatic checks) |
+
+**The pathway rule, measured** (all held-out patients; "caught" = the true pathway was shown):
+| | caught (before -> after) | false flags per patient (before -> after) |
+|---|---|---|
+| validation | 84.3% -> 79.5% | 0.70 -> 0.40 |
+| test | 80.6% -> 75.5% | 0.68 -> 0.40 |
+About 5 points fewer right pathways for 40% fewer wrong ones. Accepted because each wrong pathway adds 2-3 questions and
+a to-do that push the useful ones off the screen (B2), and the strongest pathway, which is usually the right one, is
+always shown.
+
+**Before and after, the six cases the testers flagged most** (full AI on the laptop; after = 11 Nov re-runs,
+`reasoning/outputs/feedback_10nov/rerun_11Nov_*.json`):
+| Case | Before (testers, 10 Nov) | After |
+|---|---|---|
+| T01 chest pain, low BP | chest-pain to-dos plus asthma/breathing and collapse pathways; the chat brought up asthma | only the chest-pain pathway (ECG, troponin, repeat obs); chat: rule out acute coronary syndrome first |
+| T07 headache | not urgent, level 3 (right), but stroke AND chest-pain to-dos | level 3; the chest-pain to-do is gone; the stroke to-do stays (a model error: pathway retraining) |
+| T09 no observations | urgent with no reason; asked only "level of consciousness?" | "Needs vitals: BP, RR and HR not recorded (urgency score 24% also flags)"; first question asks for all observations |
+| P04 child's wrist, fracture | picture turned white; description "no fracture" next to a red mark | real picture; fracture marked with the child cut-off; "models built on adults" label; no blood-thinner question |
+| P05 child's wrist, normal | urgent at 3% with no reason; chat invented "due to HR 96" | amber "Needs vitals: BP and RR not recorded", child label, observations asked first; chat gives the right reason |
+| P11 head CT, bleed | poisoning, stroke and collapse to-dos | collapse gone; poisoning and stroke still shown, plus "X-ray of the injured area" though a CT is attached (model errors: pathway retraining) |
+
+**A3, left as it is (a decision):** three real level-3 patients (R04-R06) are flagged urgent at 15-26%. The cut-off
+stays at "catch 9 in 10 urgent patients": moving to 8 in 10 would un-flag only one of them, and the larger cause is that
+the urgency score moves 10-20 points with the AI-written complaint wording. That is for retraining (a steadier score),
+not for the cut-off. Retrained models go live only if they do at least as well on the same held-out test patients.
+
+**Checks after the fixes:** `app/tests/test_app.py` 81/81 (13 new checks); full-AI re-runs of the six cases above.
+Not done by choice: one upload box for text and pictures (D4).
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.

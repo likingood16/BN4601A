@@ -1,7 +1,11 @@
 """The group test pack (8 Nov 2026): test cases + pictures + what the app should show, checked against the app itself.
 
-    python server.py --test --port 8010 --case-files ""     # 1. a test-mode app with an empty board
-    python make_test_pack.py --url http://127.0.0.1:8010    # 2. writes app/build/ED_app_test_pack(.zip)
+    python server.py --port 8053 --case-files ""            # 1. the FULL AI app with an empty board
+    python make_test_pack.py --url http://127.0.0.1:8053    # 2. writes app/build/ED_app_test_pack(.zip)
+    python make_test_pack.py --url ... --resume             #    carry on after a crash (keeps finished cases)
+
+With the full AI a case takes about 3-12 minutes on a laptop (40 cases: a few hours), so run it in the background.
+Each finished case is saved to build/ED_app_test_pack_progress.jsonl straight away.
 
 Every case is sent to the running app the same way the screens send it, and what the app showed is written into
 expected_results.csv. So the guide and the answer key describe what the app really does (they are not hoped-for
@@ -14,6 +18,7 @@ RSNA (non-commercial, they stay on vanda). Notes are written for testing or come
 """
 import argparse
 import csv
+import json
 import shutil
 import time
 import zipfile
@@ -27,6 +32,7 @@ PICS_IN = HERE / "test_pack_pictures"          # the CC BY pictures picked on va
 OUT = HERE.parent / "build" / "ED_app_test_pack"
 FRACATLAS = REPO / "vision" / "detector" / "data" / "yolo" / "images" / "test"
 WHO = "Test nurse"
+PROGRESS = HERE.parent / "build" / "ED_app_test_pack_progress.jsonl"
 
 
 def field(name):
@@ -160,13 +166,30 @@ SOURCES = {"adult_": "FracAtlas (Abedeen et al. 2023, CC BY 4.0), test split",
            "": "MultiCaRe case-report figures (Nievas Offidani & Delrieux 2024, CC BY 4.0)"}
 
 
-def wait(url, pid, limit=180):
+def wait(url, pid, limit=1800):
     for _ in range(limit * 2):
         p = requests.get(f"{url}/api/patients/{pid}", timeout=30).json()
         if p["status"] != "working" and not p.get("pending"):
             return p
         time.sleep(0.5)
     raise SystemExit(f"patient {pid} did not finish")
+
+
+def run(url, cid, note, pictures, limit, done):
+    """Send one case to the app (unless an earlier run already finished it) and return what the app showed."""
+    if cid not in done:
+        handles = [open(OUT / "pictures" / n, "rb") for n in pictures]
+        try:
+            files = [("files", (n, h, "image/png" if n.endswith(".png") else "image/jpeg")) for n, h in zip(pictures, handles)]
+            r = requests.post(f"{url}/api/patients", data={"text": note, "who": WHO}, files=files or None, timeout=120)
+        finally:
+            for h in handles:
+                h.close()
+        r.raise_for_status()
+        done[cid] = wait(url, r.json()["id"], limit)
+        with open(PROGRESS, "a", encoding="utf8") as fh:
+            fh.write(json.dumps({"case": cid, "p": done[cid]}) + "\n")
+    return done[cid]
 
 
 def summary(p):
@@ -187,11 +210,45 @@ def summary(p):
     return out
 
 
+def pack():
+    """Copy the README and the guides into the pack and zip it (also run on its own after the guides are rebuilt)."""
+    made_on = time.strftime("%d %b %Y", time.localtime((OUT / "expected_results.csv").stat().st_mtime))
+    (OUT / "README.txt").write_text((HERE / "test_pack_README.txt").read_text(encoding="utf8")
+                                    .replace("{date}", made_on), encoding="utf8")
+    for name in ("ED_app_user_guide.pdf", "ED_app_gradio_guide.pdf"):
+        guide = HERE.parent / "build" / name
+        if guide.exists():
+            shutil.copy(guide, OUT / name)
+    zpath = HERE.parent / "build" / "ED_app_test_pack.zip"
+    with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(OUT.rglob("*")):
+            if f.is_file():
+                z.write(f, f.relative_to(OUT.parent))
+    return zpath
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default="http://127.0.0.1:8010")
     ap.add_argument("--pics", default=str(PICS_IN))
+    ap.add_argument("--wait", type=int, default=1800, help="seconds to wait for one case (full AI: minutes)")
+    ap.add_argument("--resume", action="store_true", help="keep the cases a crashed run already finished")
+    ap.add_argument("--zip-only", action="store_true", help="only re-copy the README and guides and re-zip")
     a = ap.parse_args()
+    if a.zip_only:
+        print(f"wrote {pack()}")
+        return
+    done = {}
+    if a.resume and PROGRESS.exists():
+        for line in PROGRESS.read_text(encoding="utf8").splitlines():
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:                  # the line being written when the run stopped
+                continue
+            done[d["case"]] = d["p"]
+        print(f"resuming: {len(done)} cases already done", flush=True)
+    elif PROGRESS.exists():
+        PROGRESS.unlink()
     url, pics = a.url.rstrip("/"), Path(a.pics)
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -204,11 +261,7 @@ def main():
     rows, failed = [], []
     for cid, title, note, pictures, expect, check in CASES:
         (OUT / "cases" / f"{cid}.txt").write_text(note + "\n", encoding="utf8")
-        files = [("files", (n, open(OUT / "pictures" / n, "rb"), "image/png" if n.endswith(".png") else "image/jpeg"))
-                 for n in pictures]
-        r = requests.post(f"{url}/api/patients", data={"text": note, "who": WHO}, files=files or None, timeout=120)
-        r.raise_for_status()
-        p = wait(url, r.json()["id"])
+        p = run(url, cid, note, pictures, a.wait, done)
         ok = None if check is None else bool(check(p))
         if ok is False:
             failed.append(cid)
@@ -226,8 +279,7 @@ def main():
         cid = f"R{i:02d}"
         note = (HERE.parent / "tests" / "test_notes" / k["file"]).read_text(encoding="utf8").strip()
         (OUT / "cases" / f"{cid}.txt").write_text(note + "\n", encoding="utf8")
-        r = requests.post(f"{url}/api/patients", data={"text": note, "who": WHO}, timeout=120)
-        p = wait(url, r.json()["id"])
+        p = run(url, cid, note, [], a.wait, done)
         rows.append({"case": cid, "title": f"Real held-out patient ({k['source']})", "file": f"cases/{cid}.txt", "pictures": "",
                      "what_the_guide_says": f"True triage level {k['true_triage_level']} (urgent: {k['truly_urgent_level_1_2']}); "
                                             "compare with the app's level", "check": "record", **summary(p)})
@@ -252,15 +304,7 @@ def main():
           "(Moon et al. 2019, Kaggle), NHAMCS 2022 (CDC, public domain) and MultiCaRe case reports (CC BY 4.0).\n"
           "These are not real patients of ours. This app is a student research prototype, not a medical device.\n",
         encoding="utf8")
-    shutil.copy(HERE / "test_pack_README.txt", OUT / "README.txt")
-    guide = HERE.parent / "build" / "ED_app_user_guide.pdf"
-    if guide.exists():
-        shutil.copy(guide, OUT / guide.name)
-    zpath = HERE.parent / "build" / "ED_app_test_pack.zip"
-    with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
-        for f in sorted(OUT.rglob("*")):
-            if f.is_file():
-                z.write(f, f.relative_to(OUT.parent))
+    zpath = pack()
     print(f"\n{len(rows)} cases, failed checks: {failed or 'none'}\nwrote {zpath} ({zpath.stat().st_size / 1e6:.1f} MB)")
     if failed:
         raise SystemExit(1)

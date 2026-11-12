@@ -1,5 +1,6 @@
-// Drives the test-mode app in headless Chrome through the guide's steps, checks each one, and saves screenshots.
+// Drives the full-AI app in headless Chrome through the guide's steps, checks each one, and saves screenshots.
 // node guide_walkthrough.mjs <app url> <out dir> <test pack dir>   (make_guide.py explains the order)
+// With the full AI each patient takes minutes on a laptop (the whole run: about 1-2 hours); WAIT_S = longest wait per step.
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -45,6 +46,7 @@ const js = async (expr) => {
   if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || "js error");
   return r.result.value;
 };
+const WAIT_MS = Number(process.env.WAIT_S || 1800) * 1000;
 const W = 1360;
 async function view(h = 860) { await send("Emulation.setDeviceMetricsOverride", { width: W, height: h, deviceScaleFactor: 2, mobile: false }); }
 async function go(hash) { await send("Page.navigate", { url: `${APP}/${hash}` }); await sleep(300); await send("Page.reload"); await sleep(1800); }
@@ -65,7 +67,7 @@ const clickText = (sel, text) => js(`(() => { const b = [...document.querySelect
   if (!b) return false; b.click(); return true; })()`);
 const api = async (path, opts) => (await fetch(APP + path, opts)).json();
 async function waitDone(pid) {
-  for (let i = 0; i < 240; i++) { const p = await api(`/api/patients/${pid}`); if (p.status !== "working" && !(p.pending || []).length) return p; await sleep(500); }
+  for (let t = 0; t < WAIT_MS; t += 2000) { const p = await api(`/api/patients/${pid}`); if (p.status !== "working" && !(p.pending || []).length) return p; await sleep(2000); }
   throw new Error("AI did not finish");
 }
 async function newPatient(text, pics = []) {
@@ -108,7 +110,7 @@ const pid = opened.split("#/case/")[1];
 await waitDone(pid);
 await sleep(4500);                                    // the charting screen polls every few seconds
 await shot("03_charting_questions");
-check("charting screen shows the patient, case-file link and answer box", await js(`document.body.textContent.includes("AI questions for") && !!document.querySelector('input[placeholder="Answer or add information"]')`));
+check("charting screen shows the patient, case-file link and answer box", await js(`document.body.textContent.includes("Questions for you to answer") && !!document.querySelector('input[placeholder="Answer or add information"]')`));
 
 // B. case file
 await go(`#/case/${pid}`);
@@ -131,7 +133,7 @@ const keys = await js(`[...document.querySelectorAll(".vital .k")].map((x) => x.
 const sbpIndex = keys.findIndex((k) => k.startsWith("BP sys"));
 await typeInto(".vital input", "82", sbpIndex);
 await clickText("button.primary", "Save and re-score");
-await sleep(2500);
+await sleep(1500); await waitDone(pid); await sleep(2500);
 await shot("07_after_fix", { clip: { x: 0, y: 0, width: W, height: 330 } });
 const pf = await api(`/api/patients/${pid}`);
 check("fixed number re-scored and logged", pf.fields.sbp === 82 && pf.timeline.some((e) => /Numbers corrected/.test(e.text)));
@@ -139,6 +141,7 @@ check("fixed number re-scored and logged", pf.fields.sbp === 82 && pf.timeline.s
 await clickText(".tabs button", "Chat");
 await typeInto('input[placeholder="What else should we rule out?"]', "What else should we rule out?");
 await clickText("button", "Ask");
+for (let t = 0; t < WAIT_MS && (await api(`/api/patients/${pid}`)).chat.length < 2; t += 3000) await sleep(3000);
 await sleep(2500);
 await shot("08_chat", { full: true });
 check("chat answered", (await api(`/api/patients/${pid}`)).chat.length >= 2);

@@ -1,8 +1,8 @@
 """The user guide PDF for the group test (8 Nov 2026), built from the same run as the test pack.
 
-    python make_test_pack.py            # 1. runs every case through the app -> expected_results.csv
-    node guide_walkthrough.mjs <app> test_pack/guide_shots test_pack/ED_app_test_pack
-                                        # 2. on a fresh app: clicks through it in headless Chrome -> screenshots + checks
+    python make_test_pack.py --url <full-AI app>   # 1. runs every case through the FULL AI -> expected_results.csv
+    node guide_walkthrough.mjs <fresh full-AI app> ../build/guide_shots ../build/ED_app_test_pack
+                                        # 2. clicks through it in headless Chrome -> screenshots + checks (1-2 h on a laptop)
     python make_guide.py                # 3. this: HTML from the screenshots + answer key -> ED_app_user_guide.pdf,
                                         #    copied into the pack, and the pack zipped again
 
@@ -13,6 +13,7 @@ import csv
 import html
 import shutil
 import subprocess
+import time
 import zipfile
 from pathlib import Path
 
@@ -29,7 +30,7 @@ def fig(name, caption, width=100):
 
 
 def rows_table(rows, prefix):
-    out = ['<table class="key"><tr><th>Case</th><th>What it tests</th><th>What the app showed (test mode)</th></tr>']
+    out = ['<table class="key"><tr><th>Case</th><th>What it tests</th><th>What the app showed (full AI)</th></tr>']
     for r in rows:
         if not r["case"].startswith(prefix):
             continue
@@ -98,7 +99,7 @@ tr {{ page-break-inside: avoid; }}
 </style></head><body>
 
 <h1>ED triage app</h1>
-<div style="font-size:13pt;color:#455a64">User guide and group test plan · BN4601A, Model 3 · version of 10 Nov 2026</div>
+<div style="font-size:13pt;color:#455a64">User guide and group test plan · BN4601A, Model 3 · version of {time.strftime("%d %b %Y")}</div>
 <div class="warn"><b>Student research prototype.</b> Not a medical device. Never use it with real patients' details.
 All test notes and pictures in this pack are from public datasets or written for testing.</div>
 
@@ -157,10 +158,6 @@ about 2 minutes; case T01 took 18 minutes (urgency and level after 6 min, the ca
 </table>
 <p>The screens keep working while the AI writes: the numbers, urgency and level appear first, then the case file,
 questions and to-dos. On a slow computer, try two or three patients and the chat rather than every test case.</p>
-<p><b>Test mode</b> (<code>python server.py --test</code>, the orange "Test mode" label): the same app, starts in seconds,
-for checking buttons and screens quickly. The number reading, urgency score, triage level, pathway rules, image models,
-whiteboard and learning log are real; only MedGemma's <i>writing</i> (case-file wording, chat answers, picture
-descriptions) is replaced by text marked <span class="mono">[TEST MODE]</span>.</p>
 
 <div class="page"></div>
 <h2>Part A. One patient from start to finish (case T01)</h2>
@@ -170,9 +167,9 @@ descriptions) is replaced by text marked <span class="mono">[TEST MODE]</span>.<
 {fig("02_charting_typed", "The charting screen with case T01 typed in. Shorthand such as CP, BIBA, NKDA and RA is fine.")}
 <h3>A2. Submit</h3>
 <p>Press <b>Submit</b>. A green line says it was sent; <b>the case file opens in the case-file tab</b> (the same tab for every patient) and the patient appears on
-the whiteboard. The right-hand side shows the AI's questions about anything missing. T01's note already has onset,
-history, medicines and allergies, so there are none ("No questions from the AI"). Case T02 (stroke) shows questions,
-such as when the patient was last known to be well. Click a question to answer it in the box above.</p>
+the whiteboard. The right-hand side shows <b>Questions for you to answer</b>: what the AI would like to know that the note doesn't
+say. Case T02 (stroke) asks, for example, when the patient was last known to be well. Click a question to answer it in
+the box above.</p>
 {fig("03_charting_questions", "After Submit: the patient's bed (P9 here), a link to the case file, and the answer box.", 72)}
 {fig("03b_charting_stroke_questions", "Case T02 (stroke): the AI's questions. Clicking the first one put it in the answer box, "
      "followed by the answer; Add files it in the case file.", 72)}
@@ -186,7 +183,7 @@ such as when the patient was last known to be well. Click a question to answer i
 urgency score or the vital-sign safety floor says level 1-2. The orange ⬆ line explains when a level was raised.</li>
 <li><b>Tiles</b>: red = dangerous, amber = abnormal, grey = not in the note. Under each number is the exact text it was read
 from, so you can check it. Hover a tile for details.</li>
-<li><b>Case file</b>: the note filed under standard headings. Press <b>✎ Edit</b> to change anything; your edits are kept
+<li><b>Case file</b>: the note filed under standard headings. Press <b>✎ Edit the case file</b> to change anything; your edits are kept
 when new notes arrive. <b>Triage decision support</b> at the bottom is always the trained models' result, word for word.</li>
 </ul>
 
@@ -202,15 +199,16 @@ Aspirin 300mg given, cardiology called</i>) and press <b>Add</b>. The new lines 
 and level are scored again, the timeline records who changed what, and the correction is saved for learning.</p>
 {fig("06_fix_numbers", "Fix numbers: every field can be edited.", 90)}
 {fig("07_after_fix", "After changing systolic BP to 82: re-scored straight away.", 90)}
-<p class="muted">With the real AI (not test mode) both the fixed rules and MedGemma read every note. If they disagree,
+<p class="muted">Both the fixed rules and MedGemma read every note. If they disagree,
 that tile gets a dashed amber border and a <span class="chip amber">check</span> tag, and the app uses the rules' value
 until a person presses Fix numbers.</p>
 
 <h3>A6. To-dos, chat and timeline</h3>
 <p><b>Questions and to-dos</b> (right): tick a to-do when it is done; ✦ = suggested by the AI. Add your own with
-<b>Add a to-do</b>. <b>Chat</b>: ask about the patient; the AI reads the whole case file, including your edits
-(placeholder answers in test mode). The <b>Timeline</b> tab lists every action with time and name, and
+<b>Add a to-do</b>. <b>Chat</b>: ask about the patient; the AI reads the whole case file, including your edits.
+The <b>Timeline</b> tab lists every action with time and name, and
 <b>Notes as typed</b> keeps the original words.</p>
+{fig("08_chat", "Chat: the AI answers from the whole case file.", 80)}
 {fig("09_timeline", "Timeline: who did what, and when.", 80)}
 
 <div class="page"></div>
@@ -300,14 +298,15 @@ practice.</p>
 
 <h2>Part E. Known limits (so you don't need to report these)</h2>
 <ul class="steps">
-<li>Test mode: chat answers, picture descriptions and case-file wording are placeholders. The urgency score in test mode
-comes from the vitals model, not the MedGemma head used with the real AI.</li>
+<li>The case-file wording, questions, to-dos and chat are written by MedGemma, so they can be worded a little
+differently each time you run the same note. The level, urgent flag, numbers and picture marks should not change.</li>
 <li>The urgent flag misses about 1 in 10 urgent patients (KTAS) to 1 in 6 (NHAMCS) in our tests. Catching 19 in 20 would
 mean flagging about 70% of all patients, so we kept the current cut-off.</li>
 <li>Image models miss findings and flag normal pictures (see the accuracy table). Pictures from journals (with arrows,
 labels and crops) are harder than real scans. The head-CT bleed model says "possible bleed" but not which type: its
 type guesses were unreliable.</li>
-<li>Questions and to-dos in test mode come from fixed lists and can repeat or not fit perfectly.</li>
+<li>A pathway (chest pain, stroke, sepsis ...) can be suggested that doesn't fit the complaint, with its questions
+and to-dos; the strongest one is usually right. Patients under 16 are labelled "models built on adults".</li>
 </ul>
 <p class="muted">How this guide was checked: every case in the tables was sent to the running app by
 <span class="mono">make_test_pack.py</span>, and every screenshot comes from a scripted run of the real screens,
