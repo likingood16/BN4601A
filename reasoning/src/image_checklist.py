@@ -173,15 +173,18 @@ def overlay_on(picture, mask, colour):
 
 
 # detector finding -> (words in MedGemma's description that say "not there", its checklist item)
+# the words between "no" and the finding must not turn it round: "no displacement of the fracture" still
+# describes a fracture (code review 12 Nov)
+GAP = r"(?:(?!displace|chang|progress|wors|increas|extend|further|new\b)\w+ )"
 SAME_FINDING = {
-    "Fracture": (r"no (?:\w+ ){0,3}fracture|without (?:\w+ ){0,2}fracture", "Fracture"),
-    "Pneumothorax": (r"no (?:\w+ ){0,3}pneumothorax", "Pneumothorax"),
-    "Pleural effusion": (r"no (?:\w+ ){0,3}effusion", "Pleural effusion"),
+    "Fracture": (rf"no {GAP}{{0,3}}fracture|without {GAP}{{0,2}}fracture", "Fracture"),
+    "Pneumothorax": (rf"no {GAP}{{0,3}}pneumothorax", "Pneumothorax"),
+    "Pleural effusion": (rf"no {GAP}{{0,3}}effusion", "Pleural effusion"),
     "Cardiomegaly": (r"(?:normal|unremarkable) (?:heart|cardiac)|heart (?:size )?(?:is |appears )?(?:normal|not enlarged)|"
                      r"cardiac silhouette (?:is |appears )?(?:normal|within normal)|no cardiomegaly", "Enlarged heart"),
-    "Pneumonia-type shadowing": (r"lungs? (?:are |is |appear )?clear|no (?:\w+ ){0,3}(?:consolidation|infiltrate|opacit)",
+    "Pneumonia-type shadowing": (rf"lungs? (?:are |is |appear )?clear|no {GAP}{{0,3}}(?:consolidation|infiltrate|opacit)",
                                  "Consolidation or pneumonia"),
-    "Bleeding inside the skull": (r"no (?:\w+ ){0,4}(?:bleed|ha?emorrhage)", "Bleeding inside the skull"),
+    "Bleeding inside the skull": (rf"no {GAP}{{0,4}}(?:bleed|ha?emorrhage)", "Bleeding inside the skull"),
 }
 
 

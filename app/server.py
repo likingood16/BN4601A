@@ -330,7 +330,7 @@ class Store:
         fixed = fit(charting.pathway_questions(p.visit.ed))
         obs = charting.missing_obs_question(f)      # 3+ observations missing: ask for them first (10 Nov, B5)
         if obs:                                     # ... and not again one by one
-            questions = [q for q in questions if not any(re.search(rule, q.lower()) for rule in charting.ASKS_FOR.values())]
+            questions = charting.drop_obs_questions(questions)
         merged = []
         for q in ([obs] if obs else []) + fixed + questions:
             if not any(charting.same_meaning(q, m) for m in merged):

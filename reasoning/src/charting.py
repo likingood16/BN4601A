@@ -628,7 +628,9 @@ def fit_patient(items, fields, notes="", image_kinds=()):
                 continue
         if re.search(r"x-?ray|\bxr\b|\bcxr\b|radiograph", low) and not re.search(r"repeat|after|review|check the", low):
             of_chest = bool(re.search(r"chest|\bcxr\b", low))
-            if ("chest_xray" in kinds and of_chest) or ("bone_xray" in kinds and not of_chest):
+            # a CT already images the injured part better than an X-ray (P11: head injury, CT head attached, still
+            # got "X-ray of the injured area", full-AI re-run 11 Nov)
+            if ("chest_xray" in kinds and of_chest) or (kinds & {"bone_xray", "ct_slice"} and not of_chest):
                 continue
         out.append(item)
     return out
@@ -636,6 +638,12 @@ def fit_patient(items, fields, notes="", image_kinds=()):
 
 CORE_OBS = [("sbp", "blood pressure"), ("hr", "heart rate"), ("rr", "breathing rate"), ("spo2", "oxygen saturation"),
             ("temp_c", "temperature"), ("mental", "level of consciousness (ACVPU)")]
+
+
+def drop_obs_questions(questions):
+    """Questions that ask for one of the six observations, removed once missing_obs_question asks for them all.
+    Only those six: questions about age, pain score or the complaint stay (code review 12 Nov)."""
+    return [q for q in questions if not any(re.search(ASKS_FOR[k], q.lower()) for k, _ in CORE_OBS)]
 
 
 def missing_obs_question(fields, at_least=3):

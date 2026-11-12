@@ -186,6 +186,18 @@ def run():
     kid2 = get(f"/api/patients/{kid_id}").json()
     check("A1: once BP and RR are entered the 'needs vitals' flag goes", r.status_code == 200
           and not kid2["decision"]["needs_obs"] and "not recorded, so" not in kid2["report"], kid2["reason"])
+    # code review 12 Nov
+    kept = charting.drop_obs_questions(["What is the blood pressure?", "What is the respiratory rate?",
+                                        "What is the pain score?", "What is the patient's age?"])
+    check("B5: asking for all observations drops only the observation questions, not pain or age",
+          kept == ["What is the pain score?", "What is the patient's age?"], kept)
+    ct = charting.fit_patient(["X-ray of the injured area", "Check tetanus status"], {"age": 78}, "fall, CT head", ["ct_slice"])
+    check("B4: no 'X-ray of the injured area' to-do when a CT is attached", ct == ["Check tetanus status"], ct)
+    from image_checklist import disagreements
+    frac = [{"name": "Fracture", "flag": True}]
+    check("C5: 'no displacement of the fracture' is not read as 'no fracture'",
+          disagreements(frac, "There is no displacement of the fracture.") == ""
+          and disagreements(frac, "No evidence of fracture.") != "")
 
     # ---------------- add information / answer a question
     r = note(a, "ECG sinus tachycardia, no ST changes. gave aspirin 300mg")
