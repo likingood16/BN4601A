@@ -360,7 +360,7 @@ def _test_report(record, notes, images, complaint=True):
     for note in notes:
         for piece in filter(None, (p.strip() for p in re.split(SENTENCE, note))):
             head = next((h for h, rule in SORT_RULES if re.search(rule, piece, re.I)), "History")
-            sections[head].append(piece)
+            sections[head].append(label_before_arrival(piece))
     sections["Imaging"] += images
     decision = [line for line in record.splitlines() if line.startswith(("URGENCY", "TRIAGE LEVEL"))]
     sections["Triage decision support"] += decision
@@ -399,6 +399,16 @@ def set_section(report, heading, lines):
     return f"{pre}\n\n{body}" if pre else body
 
 
+def label_before_arrival(piece):
+    """An ambulance crew's numbers, typed as a separate piece ("EMS found BP 70/40 HR 130"), filed next to the ED's
+    own observations read like a second set of current values (group test 10 Nov, T05). Label them; the tiles
+    already use the arrival values."""
+    if (re.search(AMBULANCE + r"|\bpre-?hospital\b|\ben route\b", piece, re.I) and re.search(r"\d", piece)
+            and not re.search(ARRIVAL, piece, re.I) and not piece.lower().startswith("before arrival")):
+        return f"Before arrival (ambulance crew): {piece}"
+    return piece
+
+
 def file_notes(new_notes, new_images=()):
     """Later notes, filed under the headings by fixed word rules (not by MedGemma): every word typed lands in the case
     file, nothing is reworded or invented. Image readings always go under Imaging."""
@@ -406,7 +416,7 @@ def file_notes(new_notes, new_images=()):
     for note in new_notes:
         for piece in filter(None, (p.strip() for p in re.split(SENTENCE, note))):
             head = next((h for h, rule in SORT_RULES if re.search(rule, piece, re.I)), "History")
-            sections[head].append(piece)
+            sections[head].append(label_before_arrival(piece))
     sections["Imaging"] += list(new_images)
     return "\n\n".join(f"## {h}\n" + "\n".join(f"- {x}" for x in xs) for h, xs in sections.items() if xs)
 
@@ -423,7 +433,7 @@ def file_notes_ai(ai, new_notes, new_images=()):
     so nothing is reworded, lost or invented (run 0, 7 Nov: asking it to rewrite the notes lost image readings and a
     referral). A piece whose heading can't be read goes under History. Image readings always go under Imaging."""
     from answers import final_answer
-    pieces = [p.strip() for note in new_notes for p in re.split(SENTENCE, note) if p.strip()]
+    pieces = [label_before_arrival(p.strip()) for note in new_notes for p in re.split(SENTENCE, note) if p.strip()]
     sections = {h: [] for h in HEADINGS if h != TRIAGE}
     # the word rules first: MedGemma filed "Trop 45 ng/L" under Presenting complaint, "ECG ST depression" under History
     # and "aspirin given" under Impression (real-AI test, 9 Nov, 5q #2); it now only places what the rules can't
@@ -607,12 +617,57 @@ def drop_known(items, fields, notes=""):
     return keep
 
 
+SMALL_INJURY = r"\b(?:cut|lacerat\w*|graze\w*|abrasion|splinter|nick\w*)\b"
+SMALL_PART = r"\b(?:finger|thumb|toe|hand|palm|knuckle|nail|fingertip)s?\b"
+BIG_INJURY = (r"fell from|fall from|height|\brta\b|\bmv[ac]\b|collision|stab|deformit|can'?t (?:move|weight|bend)|"
+              r"amputat|\bhead\b|numb|tendon|spurting|pulsatile")
+
+
+def minor_injury(fields, notes=""):
+    """A small cut to a finger or hand, numbers normal (or not taken): the trauma pathway's primary survey and an
+    X-ray don't fit it (T04: "23M cut finger on kitchen knife, bleeding stopped")."""
+    low = (notes or "").lower()
+    if not (re.search(SMALL_INJURY, low) and re.search(SMALL_PART, low)) or re.search(BIG_INJURY, low):
+        return False
+    hr, sbp, spo2, mental = (fields.get(k) for k in ("hr", "sbp", "spo2", "mental"))
+    return ((hr is None or hr <= 100) and (sbp is None or sbp >= 100) and (spo2 is None or spo2 >= 95)
+            and mental in (None, "", "alert"))
+
+
+# Pathways the model may raise from a word that isn't about them ("warfarin" -> poisoning, P11; "lightheaded" ->
+# collapse, T05, full AI 12 Nov). Shown only when the notes say something about them; the model's own flags are
+# still logged for learning (server._log_outcome).
+NEEDS_WORDS = {
+    "possible poisoning": r"overdose|\bod\b|poison|intoxic|ingest|swallow|took \d+|tablets|pills|alcohol|\betoh\b|drunk|"
+                          r"\bdrugs?\b|substance|chemical|bleach|paracetamol|carbon monoxide|toxic",
+    "collapse/syncope": r"collaps|syncop|faint|passed out|black(?:ed)? ?out|loss of consciousness|\bloc\b|unresponsive|"
+                        r"found (?:on the )?(?:floor|down)",
+}
+
+
+def supported_pathways(ed_text, notes=""):
+    """The ED assessment with the 'Pathway flags' line keeping only flags the notes support (NEEDS_WORDS)."""
+    m = re.search(r"Pathway flags: (.*)", ed_text or "")
+    if not m or m.group(1).startswith("none"):
+        return ed_text
+    low = (notes or "").lower()
+    keep = []
+    for flag in m.group(1).split("; "):
+        rule = NEEDS_WORDS.get(flag.split("->")[0].strip().lower())
+        if rule is None or re.search(rule, low):
+            keep.append(flag)
+    return ed_text[:m.start(1)] + ("; ".join(keep) if keep else "none") + ed_text[m.end(1):]
+
+
 def fit_patient(items, fields, notes="", image_kinds=()):
     """Questions / to-dos that fit THIS patient (group test 10 Nov, B3-B4). After drop_known:
       - under 16: no blood-thinner question (asked for a 7- and a 9-year-old);
       - chest pain is the complaint: "Any chest pain, fever or leg swelling?" loses its chest-pain part;
-      - an X-ray is already attached: no "X-ray of the injured area" (bone X-ray) or "chest X-ray" (chest X-ray)."""
+      - an X-ray is already attached: no "X-ray of the injured area" (bone X-ray) or "chest X-ray" (chest X-ray);
+      - a small cut to a finger or hand with normal numbers: no primary survey, and no X-ray unless glass or a
+        crush could have left something in it (T04, full AI 12 Nov: "Trauma: primary survey" for a cut finger)."""
     age = fields.get("age")
+    minor = minor_injury(fields, notes)
     child = age is not None and age == age and float(age) < 16
     said = f"{fields.get('chief_complaint') or ''} {notes}".lower()
     chest_pain = bool(re.search(CHEST_PAIN, said))
@@ -626,6 +681,9 @@ def fit_patient(items, fields, notes="", image_kinds=()):
             item = re.sub(r"(?i)\bany chest pain(?:,| or| and)\s+", "Any ", item)
             if re.search(r"(?i)\bany chest pain\b", item):       # that was all it asked
                 continue
+        if minor and (re.search(r"primary survey", low) or (re.search(r"x-?ray of (?:the )?injured", low)
+                                                           and not re.search(r"glass|foreign|crush", said))):
+            continue
         if re.search(r"x-?ray|\bxr\b|\bcxr\b|radiograph", low) and not re.search(r"repeat|after|review|check the", low):
             of_chest = bool(re.search(r"chest|\bcxr\b", low))
             # a CT already images the injured part better than an X-ray (P11: head injury, CT head attached, still

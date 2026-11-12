@@ -193,6 +193,22 @@ def run():
           kept == ["What is the pain score?", "What is the patient's age?"], kept)
     ct = charting.fit_patient(["X-ray of the injured area", "Check tetanus status"], {"age": 78}, "fall, CT head", ["ct_slice"])
     check("B4: no 'X-ray of the injured area' to-do when a CT is attached", ct == ["Check tetanus status"], ct)
+    ed = "  Pathway flags: possible poisoning -> find out the substance; collapse/syncope -> ECG; trauma -> primary survey"
+    shown = charting.supported_pathways(ed, "78F fall at home, hit head, on warfarin, vomited twice")
+    check("pathways: no poisoning or collapse when the notes don't mention them (P11 'warfarin')",
+          "poisoning" not in shown and "collapse" not in shown and "trauma" in shown, shown)
+    check("pathways: poisoning kept when the note says what was taken",
+          "poisoning" in charting.supported_pathways(ed, "took 20 paracetamol tablets"))
+    small = charting.fit_patient(["Trauma: primary survey", "X-ray of the injured area", "Check tetanus status"],
+                                 {"hr": 76, "sbp": 124, "spo2": 99, "mental": "alert"}, "23M cut finger on kitchen knife")
+    check("small cut finger, normal numbers: no primary survey or X-ray (T04)", small == ["Check tetanus status"], small)
+    filed = charting.file_notes(["EMS found BP 70/40 HR 130. On arrival BP 112/70 HR 92"])
+    check("ambulance numbers in the case file are labelled 'before arrival' (T05)",
+          "Before arrival (ambulance crew): EMS found BP 70/40" in filed and "- On arrival BP 112/70" in filed, filed)
+    p11 = wait(new("78F fall at home, hit head, on warfarin, vomited twice, GCS 14. HR 92 BP 168/92 sats 97%. BIBA").json()["id"])
+    check("whole app: a head injury on warfarin gets no poisoning to-do or question",
+          not any("poison" in t["text"].lower() for t in p11["todos"])
+          and not any("what was taken" in q.lower() for q in p11["questions"]), [t["text"] for t in p11["todos"]])
     from image_checklist import disagreements
     frac = [{"name": "Fracture", "flag": True}]
     check("C5: 'no displacement of the fracture' is not read as 'no fracture'",

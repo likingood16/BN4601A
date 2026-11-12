@@ -130,6 +130,16 @@ def triage_lines(p):
     return p.visit.decision.lines() + ([CHILD_NOTE] if is_child(p.fields) else [])
 
 
+def show_supported_pathways(p):
+    """Pathways the notes don't support (poisoning from "warfarin" P11, collapse from "lightheaded" T05) are not put
+    in the case file, asked about, given to-dos or read by the chat. Worked out again from the model's own flags
+    (kept in visit.ed_model, logged for learning) whenever a note is added or the numbers are re-scored."""
+    if p.visit is None:
+        return
+    p.visit.ed_model = getattr(p.visit, "ed_model", None) or p.visit.ed
+    p.visit.ed = charting.supported_pathways(p.visit.ed_model, "\n".join(n["text"] for n in p.notes))
+
+
 def _who_line(f):
     age = f"{f['age']:.0f}" if f.get("age") is not None else "?"
     sex = {"male": "M", "female": "F"}.get(f.get("sex"), "?")
@@ -295,6 +305,7 @@ class Store:
                 if hint:
                     img["text"] += f" The note mentions: {', '.join(hint)}."
                 image_lines.append(f"{img['name']} ({out['kind']}): {img['text']}")
+        show_supported_pathways(p)
         self._step(p, "Writing the case file")
         first = not p.report
         if first or new:                            # later notes are only ADDED into the case file (edits kept)
@@ -314,11 +325,11 @@ class Store:
                         f"AI added {len(new)} new note(s); nothing already there was changed")
         self._step(p, "Thinking of questions and to-dos")
         f = p.fields
+        typed = "\n".join(n["text"] for n in p.notes)
         arrival = {1.0: "ambulance", 0.0: "walk-in"}.get(f.get("ambulance"), "not recorded")
         context = (f"PATIENT: age {f.get('age', 'not recorded')}, {f.get('sex', 'sex not recorded')}, arrival {arrival}.\n"
                    + "\n".join(l.strip() for l in (p.visit.ed or "").splitlines() if "Pathway flags" in l))
         questions, todo = charting.ask_questions(ai, p.report, context)
-        typed = "\n".join(n["text"] for n in p.notes)
         kinds = [i.get("kind") for n in p.notes for i in n["images"]]
         # every question and to-do, fixed or MedGemma's, must fit THIS patient: nothing the notes already answer,
         # nothing for the wrong age, no X-ray request when the X-ray is attached (10 Nov, B3-B4)
@@ -477,6 +488,7 @@ def fix_numbers(pid: str, body: FieldsIn):
         p.visit = new_visit
         if before:                                  # keep everything learned since arrival; only the card + decision change
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
+        show_supported_pathways(p)
         p.visit.log("Triage", f"Numbers corrected; level {old} -> {p.visit.decision.level}", body.who)
         if p.report:
             p.report = charting.set_section(p.report, charting.TRIAGE, triage_lines(p))
@@ -582,7 +594,8 @@ def set_board(pid: str, body: BoardIn):
 def _log_outcome(p, body):
     """The patient left the ED: one labelled case for learning.py (what the AI said at arrival vs what happened)."""
     d = p.visit.decision if p.visit else None
-    flags = re.search(r"Pathway flags: (.*)", (p.visit.ed if p.visit else "") or "")
+    raw = (getattr(p.visit, "ed_model", None) or p.visit.ed) if p.visit else ""     # the model's flags, for learning
+    flags = re.search(r"Pathway flags: (.*)", raw or "")
     store.learn("outcome", p, stage=p.stage, diagnosis=(body.diagnosis or "").strip(), final_level=body.final_level,
                 fields={k: v for k, v in p.fields.items() if k != "chief_complaint"}, complaint=p.complaint(),
                 ai_level=d.level if d else None, p_urgent=d.p_urgent if d else None, flagged=d.flagged if d else None,
