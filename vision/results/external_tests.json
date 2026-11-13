@@ -1,0 +1,330 @@
+{
+ "imagetype": {
+  "MultiCaRe 280 held out": {
+   "accuracy": 0.911,
+   "by_type": {
+    "bone_xray": 0.825,
+    "chest_xray": 0.925,
+    "ct_slice": 0.9,
+    "mri_slice": 0.925,
+    "ultrasound": 1.0,
+    "ecg": 0.85,
+    "other": 0.95
+   },
+   "confusion": {
+    "bone_xray": {
+     "bone_xray": 33,
+     "chest_xray": 3,
+     "ct_slice": 0,
+     "ecg": 0,
+     "mri_slice": 0,
+     "other": 1,
+     "ultrasound": 0
+    },
+    "chest_xray": {
+     "bone_xray": 3,
+     "chest_xray": 37,
+     "ct_slice": 0,
+     "ecg": 0,
+     "mri_slice": 0,
+     "other": 1,
+     "ultrasound": 0
+    },
+    "ct_slice": {
+     "bone_xray": 1,
+     "chest_xray": 0,
+     "ct_slice": 36,
+     "ecg": 0,
+     "mri_slice": 2,
+     "other": 0,
+     "ultrasound": 0
+    },
+    "ecg": {
+     "bone_xray": 0,
+     "chest_xray": 0,
+     "ct_slice": 0,
+     "ecg": 34,
+     "mri_slice": 0,
+     "other": 0,
+     "ultrasound": 0
+    },
+    "mri_slice": {
+     "bone_xray": 0,
+     "chest_xray": 0,
+     "ct_slice": 2,
+     "ecg": 0,
+     "mri_slice": 37,
+     "other": 0,
+     "ultrasound": 0
+    },
+    "other": {
+     "bone_xray": 3,
+     "chest_xray": 0,
+     "ct_slice": 1,
+     "ecg": 6,
+     "mri_slice": 1,
+     "other": 38,
+     "ultrasound": 0
+    },
+    "ultrasound": {
+     "bone_xray": 0,
+     "chest_xray": 0,
+     "ct_slice": 1,
+     "ecg": 0,
+     "mri_slice": 0,
+     "other": 0,
+     "ultrasound": 40
+    }
+   }
+  },
+  "VinDr chest X-rays": {
+   "want": "chest_xray",
+   "n": 200,
+   "correct": 1.0,
+   "sorted_as": {
+    "chest_xray": 200
+   }
+  },
+  "GRAZ wrist X-rays": {
+   "want": "bone_xray",
+   "n": 200,
+   "correct": 1.0,
+   "sorted_as": {
+    "bone_xray": 200
+   }
+  },
+  "FracAtlas X-rays": {
+   "want": "bone_xray",
+   "n": 200,
+   "correct": 1.0,
+   "sorted_as": {
+    "bone_xray": 200
+   }
+  },
+  "pneumonia set chest X-rays": {
+   "want": "chest_xray",
+   "n": 200,
+   "correct": 1.0,
+   "sorted_as": {
+    "chest_xray": 200
+   }
+  },
+  "RSNA head CT slices": {
+   "want": "ct_slice",
+   "n": 200,
+   "correct": 1.0,
+   "sorted_as": {
+    "ct_slice": 200
+   }
+  }
+ },
+ "fracture": {
+  "cut_off_from_val": 0.6249,
+  "all": {
+   "auroc": 0.983,
+   "n": 3399,
+   "n_with": 1893,
+   "sensitivity": 0.82,
+   "specificity": 0.99
+  },
+  "FracAtlas (adults, many body parts)": {
+   "auroc": 0.843,
+   "n": 463,
+   "n_with": 63,
+   "sensitivity": 0.222,
+   "specificity": 0.998
+  },
+  "GRAZ (children, wrist)": {
+   "auroc": 0.986,
+   "n": 2936,
+   "n_with": 1830,
+   "sensitivity": 0.841,
+   "specificity": 0.987
+  },
+  "MultiCaRe bone X-rays (caption says fracture)": {
+   "auroc": 0.218,
+   "n": 40,
+   "n_with": 1,
+   "sensitivity": 0.0,
+   "specificity": 1.0
+  }
+ },
+ "chest": {
+  "pneumonia set (children, 624)": {
+   "auroc_highest_of_3": 0.893,
+   "n": 624,
+   "n_with": 390,
+   "sensitivity": 0.851,
+   "specificity": 0.816,
+   "auroc_Consolidation": 0.725,
+   "auroc_Lung opacity": 0.884,
+   "auroc_Infiltration": 0.66
+  },
+  "MultiCaRe chest X-rays: Pneumothorax in caption": {
+   "auroc": 0.75,
+   "n": 40,
+   "n_with": 2,
+   "sensitivity": 0.5,
+   "specificity": 1.0
+  },
+  "MultiCaRe chest X-rays: Pleural effusion in caption": {
+   "auroc": 0.802,
+   "n": 40,
+   "n_with": 3,
+   "sensitivity": 0.667,
+   "specificity": 0.973
+  },
+  "MultiCaRe chest X-rays: Cardiomegaly in caption": {
+   "auroc": 0.949,
+   "n": 40,
+   "n_with": 1,
+   "sensitivity": 0.0,
+   "specificity": 1.0
+  },
+  "MultiCaRe chest X-rays: Consolidation in caption": {
+   "auroc": 0.667,
+   "n": 40,
+   "n_with": 1,
+   "sensitivity": 0.0,
+   "specificity": 0.718
+  },
+  "cut_offs_from_val": {
+   "Consolidation": 0.0104,
+   "Lung opacity": 0.0303,
+   "Infiltration": 0.0394,
+   "Pneumothorax": 0.0768,
+   "Pleural effusion": 0.1078,
+   "Cardiomegaly": 0.5409
+  },
+  "CheXpert classifier (no boxes), same tests": {
+   "Pneumothorax": {
+    "cut_off_from_vindr_val": 0.0683,
+    "VinDr test": {
+     "auroc": 0.727,
+     "n": 2250,
+     "n_with": 15,
+     "sensitivity": 0.8,
+     "specificity": 0.501
+    },
+    "MultiCaRe": {
+     "auroc": 0.132,
+     "n": 40,
+     "n_with": 2,
+     "sensitivity": 0.5,
+     "specificity": 0.079
+    }
+   },
+   "Effusion": {
+    "cut_off_from_vindr_val": 0.1935,
+    "VinDr test": {
+     "auroc": 0.862,
+     "n": 2250,
+     "n_with": 165,
+     "sensitivity": 0.861,
+     "specificity": 0.655
+    },
+    "MultiCaRe": {
+     "auroc": 0.856,
+     "n": 40,
+     "n_with": 3,
+     "sensitivity": 1.0,
+     "specificity": 0.216
+    }
+   },
+   "Cardiomegaly": {
+    "cut_off_from_vindr_val": 0.2162,
+    "VinDr test": {
+     "auroc": 0.866,
+     "n": 2250,
+     "n_with": 367,
+     "sensitivity": 0.817,
+     "specificity": 0.762
+    },
+    "MultiCaRe": {
+     "auroc": 0.872,
+     "n": 40,
+     "n_with": 1,
+     "sensitivity": 1.0,
+     "specificity": 0.154
+    }
+   },
+   "Pneumonia": {
+    "cut_off_from_vindr_val": 0.1026,
+    "VinDr test": {
+     "auroc": 0.834,
+     "n": 2250,
+     "n_with": 238,
+     "sensitivity": 0.815,
+     "specificity": 0.631
+    },
+    "pneumonia set": {
+     "auroc": 0.903,
+     "n": 624,
+     "n_with": 390,
+     "sensitivity": 0.967,
+     "specificity": 0.513
+    },
+    "MultiCaRe": {
+     "auroc": 0.0,
+     "n": 40,
+     "n_with": 1,
+     "sensitivity": 0.0,
+     "specificity": 0.103
+    }
+   }
+  }
+ },
+ "ich": {
+  "slice_cut_off_from_val": 0.5358,
+  "per_patient": {
+   "auroc": 0.988,
+   "n": 2558,
+   "n_with": 1073,
+   "sensitivity": 0.971,
+   "specificity": 0.899
+  },
+  "per_patient_caught_by_type": {
+   "epidural": 0.976,
+   "intraparenchymal": 0.982,
+   "intraventricular": 0.998,
+   "subarachnoid": 0.992,
+   "subdural": 0.973
+  }
+ },
+ "fracture_adult_cut__fracture_v2": {
+  "cut_off_from_adult_val": 0.0011,
+  "adult_val_with": 82,
+  "FracAtlas (adults)": {
+   "auroc": 0.843,
+   "n": 463,
+   "n_with": 63,
+   "sensitivity": 0.889,
+   "specificity": 0.502
+  },
+  "GRAZ (children, wrist)": {
+   "auroc": 0.986,
+   "n": 2936,
+   "n_with": 1830,
+   "sensitivity": 0.995,
+   "specificity": 0.683
+  }
+ },
+ "fracture_adult_cut__fracture_v3": {
+  "cut_off_from_adult_val": 0.0137,
+  "adult_val_with": 82,
+  "FracAtlas (adults)": {
+   "auroc": 0.879,
+   "n": 463,
+   "n_with": 63,
+   "sensitivity": 0.825,
+   "specificity": 0.767
+  },
+  "GRAZ (children, wrist)": {
+   "auroc": 0.989,
+   "n": 2936,
+   "n_with": 1830,
+   "sensitivity": 0.996,
+   "specificity": 0.693
+  }
+ }
+}

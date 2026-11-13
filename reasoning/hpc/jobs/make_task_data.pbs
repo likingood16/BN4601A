@@ -9,4 +9,4 @@ cd "$PBS_O_WORKDIR"
 source reasoning/hpc/hpc.conf
 export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it
 cd reasoning/src
-"$VENV/bin/python" -u make_task_data.py --mode full --batch 16 --triage 2000 --chats 400 2>&1 | tee ../outputs/logs/task_data_live.log
+"$VENV/bin/python" -u ../training/make_task_data.py --mode full --batch 16 --triage 2000 --chats 400 2>&1 | tee ../outputs/logs/task_data_live.log

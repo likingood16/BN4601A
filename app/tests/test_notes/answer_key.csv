@@ -1,0 +1,11 @@
+file,source,true_triage_level,truly_urgent_level_1_2
+patient_01_multicare.txt,multicare,unknown (case report),unknown
+patient_02_nhamcs.txt,nhamcs,2,yes
+patient_03_nhamcs.txt,nhamcs,5,no
+patient_04_nhamcs.txt,nhamcs,3,no
+patient_05_ktas.txt,ktas,3,no
+patient_06_ktas.txt,ktas,3,no
+patient_07_multicare.txt,multicare,unknown (case report),unknown
+patient_08_nhamcs.txt,nhamcs,4,no
+patient_09_ktas.txt,ktas,2,yes
+patient_10_ktas.txt,ktas,4,no

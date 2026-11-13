@@ -1,0 +1,146 @@
+{
+ "test_n": 3520,
+ "test_accuracy": 0.9352,
+ "sensitivity_by_type": {
+  "bone_xray": 0.916,
+  "chest_xray": 0.955,
+  "ct_slice": 0.934,
+  "mri_slice": 0.962,
+  "ultrasound": 0.92,
+  "ecg": 0.917,
+  "other": 0.938
+ },
+ "val_best": 0.9393772389087903,
+ "history": [
+  {
+   "epoch": 1,
+   "val_accuracy": 0.9264
+  },
+  {
+   "epoch": 2,
+   "val_accuracy": 0.925
+  },
+  {
+   "epoch": 3,
+   "val_accuracy": 0.9314
+  },
+  {
+   "epoch": 4,
+   "val_accuracy": 0.9259
+  },
+  {
+   "epoch": 5,
+   "val_accuracy": 0.93
+  },
+  {
+   "epoch": 6,
+   "val_accuracy": 0.9347
+  },
+  {
+   "epoch": 7,
+   "val_accuracy": 0.9383
+  },
+  {
+   "epoch": 8,
+   "val_accuracy": 0.9352
+  },
+  {
+   "epoch": 9,
+   "val_accuracy": 0.9374
+  },
+  {
+   "epoch": 10,
+   "val_accuracy": 0.9394
+  },
+  {
+   "epoch": 11,
+   "val_accuracy": 0.9386
+  },
+  {
+   "epoch": 12,
+   "val_accuracy": 0.9372
+  }
+ ],
+ "confusion": {
+  "bone_xray": {
+   "bone_xray": 679,
+   "chest_xray": 18,
+   "ct_slice": 3,
+   "ecg": 2,
+   "mri_slice": 0,
+   "other": 11,
+   "ultrasound": 4
+  },
+  "chest_xray": {
+   "bone_xray": 21,
+   "chest_xray": 590,
+   "ct_slice": 3,
+   "ecg": 0,
+   "mri_slice": 0,
+   "other": 2,
+   "ultrasound": 7
+  },
+  "ct_slice": {
+   "bone_xray": 5,
+   "chest_xray": 3,
+   "ct_slice": 556,
+   "ecg": 0,
+   "mri_slice": 8,
+   "other": 4,
+   "ultrasound": 8
+  },
+  "ecg": {
+   "bone_xray": 0,
+   "chest_xray": 0,
+   "ct_slice": 0,
+   "ecg": 210,
+   "mri_slice": 1,
+   "other": 4,
+   "ultrasound": 2
+  },
+  "mri_slice": {
+   "bone_xray": 7,
+   "chest_xray": 2,
+   "ct_slice": 16,
+   "ecg": 0,
+   "mri_slice": 429,
+   "other": 3,
+   "ultrasound": 5
+  },
+  "other": {
+   "bone_xray": 26,
+   "chest_xray": 1,
+   "ct_slice": 15,
+   "ecg": 17,
+   "mri_slice": 5,
+   "other": 412,
+   "ultrasound": 10
+  },
+  "ultrasound": {
+   "bone_xray": 3,
+   "chest_xray": 4,
+   "ct_slice": 2,
+   "ecg": 0,
+   "mri_slice": 3,
+   "other": 3,
+   "ultrasound": 416
+  }
+ },
+ "smoke": false,
+ "types": [
+  "bone_xray",
+  "chest_xray",
+  "ct_slice",
+  "mri_slice",
+  "ultrasound",
+  "ecg",
+  "other"
+ ],
+ "accuracy_by_source": {
+  "multicare": 0.922,
+  "vindr": 1.0,
+  "graz": 1.0,
+  "fracatlas": 0.993,
+  "rsna_ct": 1.0
+ }
+}

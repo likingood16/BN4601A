@@ -11,7 +11,7 @@ tar -cf $pack -C $repo reasoning/src reasoning/hpc reasoning/models/heads reason
     reasoning/data/processed/cards_pool1.parquet reasoning/data/processed/pool1.parquet `
     reasoning/outputs/embeddings/cards_pool1__base4bit.npz `
     vitals/src vitals/models vision/detector/runs/fracture/weights/best.pt `
-    vision/detector/data/yolo/splits.csv vision/detector/data/yolo/images/test vision/cato/hpc_run_750/huggingface_adapter
+    vision/detector/data/yolo/splits.csv vision/detector/data/yolo/images/test vision/detector/data/yolo/labels/test vision/cato/hpc_run_3epochs/huggingface_adapter
 
 Write-Host "Uploading ..."
 scp -q $pack "${host_}:$remote/pipeline_pack.tar"

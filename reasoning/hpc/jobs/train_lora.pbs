@@ -11,5 +11,5 @@ nvidia-smi --query-gpu=name,memory.total --format=csv
 EXTRA=()
 [ -n "$INIT_FROM" ] && EXTRA+=(--init-from "$INIT_FROM")
 [ -n "$TWO_STAGE_SIZE" ] && EXTRA+=(--two-stage-size "$TWO_STAGE_SIZE")
-"$VENV/bin/python" reasoning/src/lora_train.py --arm "$ARM" --stages 99 --max-hours 46 --lr "$LR" \
+"$VENV/bin/python" reasoning/training/lora_train.py --arm "$ARM" --stages 99 --max-hours 46 --lr "$LR" \
     --ckpt-dir "reasoning/models/lora/$ARM/run" $TRAIN_BATCH "${EXTRA[@]}"

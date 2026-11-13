@@ -13,4 +13,4 @@ $PY embed.py --table cards_pool1 --name base_full --mode full --batch 16
 $PY embed.py --table cards_multicare --name base_full --mode full --batch 8
 $PY heads.py --emb base_full --train-on ktas
 $PY heads.py --emb base_full --train-on ktas+nhamcs
-$PY evaluate.py --mode full --per-source 100 --medqa ${ADAPTERS//,/ }
+$PY ../training/evaluate.py --mode full --per-source 100 --medqa ${ADAPTERS//,/ }

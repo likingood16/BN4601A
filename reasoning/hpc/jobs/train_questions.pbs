@@ -1,0 +1,20 @@
+#!/bin/bash
+#PBS -N train_questions
+#PBS -j oe
+# AI question writer (8 Nov 2026, branch ai-reasoning): a small LoRA adapter, started from the task adapter, trained on
+# make_question_data.py examples (Pool 1 train patients, +1,000 old examples so nothing is forgotten), 1 pass.
+# Then question_check.py: current vs trained adapter on 150 held-out test patients.
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=06:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/train_questions.pbs
+set -o pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TQDM_DISABLE=1 \
+       BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it
+nvidia-smi --query-gpu=name,memory.total --format=csv
+test -s reasoning/data/processed/questions_train.jsonl || { echo "no questions data - stop"; exit 1; }
+"$VENV/bin/python" -u reasoning/training/lora_train.py --arm task --task-file questions --init-from reasoning/models/lora/task/stage1 \
+    --epochs 1 --replay 1000 --stages 99 --max-hours 4 --lr 1e-4 --batch 4 --grad-acc 4 --max-seq-len 1024 \
+    --ckpt-dir reasoning/models/lora/questions/run 2>&1 | tee reasoning/outputs/logs/train_questions_live.log
+test -s reasoning/models/lora/questions/stage1/adapter/adapter_model.safetensors || { echo "no adapter - stop"; exit 1; }
+cd reasoning/src
+"$VENV/bin/python" -u ../checks/question_check.py --n 150

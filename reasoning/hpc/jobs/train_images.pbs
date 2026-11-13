@@ -1,0 +1,27 @@
+#!/bin/bash
+#PBS -N train_images
+#PBS -j oe
+# Image models for the most common ED imaging (7 Nov 2026). PART picks one:
+#   fracture   YOLO11s boxes, GRAZPEDWRI-DX + FracAtlas            (vision/train_yolo_det.py)
+#   chest      YOLO11s boxes, VinDr-CXR 14 findings, 1024 px          (vision/train_yolo_det.py)
+#   ich        head-CT bleed per slice, RSNA                         (vision/ct_head/train_ich.py)
+#   imagetype  which kind of picture, MultiCaRe                      (vision/image_type/train_image_type.py)
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=12:00:00 -v PART=chest -o reasoning/outputs/logs reasoning/hpc/jobs/train_images.pbs
+# SMOKE=1 runs the 1-epoch check instead.
+set -eo pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 YOLO_OFFLINE=true TQDM_DISABLE=1
+S="${SMOKE:+--smoke} ${SCORE_ONLY:+--score-only}"   # SCORE_ONLY=1: re-test a finished detector, no training
+nvidia-smi --query-gpu=name,memory.total --format=csv
+cd vision
+case "$PART" in
+  fracture)  "$VENV/bin/python" -u train_yolo_det.py --data detector/data/combined/combined.yaml --name fracture_v2 $S ;;
+  fracture_v3) "$VENV/bin/python" -u train_yolo_det.py --data detector/data/combined_v3/combined_v3.yaml --name fracture_v3 $S ;;
+  chest)     "$VENV/bin/python" -u train_yolo_det.py --data chest/data/vindr/vindr.yaml --name chest_vindr --imgsz 1024 --batch 16 $S ;;
+  ich)       "$VENV/bin/python" -u ct_head/train_ich.py $S ;;
+  imagetype) "$VENV/bin/python" -u image_type/train_image_type.py $S ;;
+  external)  "$VENV/bin/python" -u eval_external.py ${PARTS:+--parts ${PARTS//+/,}} ;;   # extra tests on other datasets
+  cutoffs)   "$VENV/bin/python" -u app_cutoffs.py ${PARTS:+--parts ${PARTS//+/,}} ;;      # app cut-offs: pneumothorax, grey CT
+  *) echo "set PART"; exit 1 ;;
+esac

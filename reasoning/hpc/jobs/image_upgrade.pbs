@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -N image_upgrade
+#PBS -j oe
+# Image accuracy upgrades on FracAtlas, no new data (6 Nov 2026). PART picks one:
+#   detector: YOLO11m-seg at 1024 px (was YOLO11s-seg at 640 px on the 4 GB laptop GPU), then cut-off on validation
+#   medsam:   fine-tune MedSAM's mask decoder on the training outlines (encoder frozen)
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=08:00:00 -v PART=detector -o reasoning/outputs/logs reasoning/hpc/jobs/image_upgrade.pbs
+set -eo pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 YOLO_OFFLINE=true TQDM_DISABLE=1
+cd vision/detector
+nvidia-smi --query-gpu=name,memory.total --format=csv
+case "$PART" in
+  detector)
+    "$VENV/bin/python" -u train_detector.py --model yolo11m-seg.pt --imgsz 1024 --batch 16 --epochs 150 --patience 30 \
+      --workers 8 --name fracture_m1024
+    "$VENV/bin/python" -u choose_threshold.py --run fracture_m1024 --imgsz 1024 --device 0 ;;
+  medsam)
+    "$VENV/bin/python" -u finetune_medsam.py ;;
+  *) echo "set PART=detector or PART=medsam"; exit 1 ;;
+esac

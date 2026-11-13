@@ -1,0 +1,47 @@
+{
+ "test_slices": 30126,
+ "test_bleed_slices": 15052,
+ "auroc": {
+  "any": 0.9733,
+  "epidural": 0.8731,
+  "intraparenchymal": 0.9696,
+  "intraventricular": 0.9829,
+  "subarachnoid": 0.9339,
+  "subdural": 0.9382
+ },
+ "any_cut_off_90pct_val": 0.5358,
+ "any_sensitivity": 0.9056,
+ "any_specificity": 0.9296,
+ "history": [
+  {
+   "epoch": 1,
+   "val_auroc_any": 0.9675
+  },
+  {
+   "epoch": 2,
+   "val_auroc_any": 0.9714
+  },
+  {
+   "epoch": 3,
+   "val_auroc_any": 0.9733
+  },
+  {
+   "epoch": 4,
+   "val_auroc_any": 0.9742
+  },
+  {
+   "epoch": 5,
+   "val_auroc_any": 0.9742
+  }
+ ],
+ "smoke": false,
+ "train_slices": 134756,
+ "labels": [
+  "any",
+  "epidural",
+  "intraparenchymal",
+  "intraventricular",
+  "subarachnoid",
+  "subdural"
+ ]
+}

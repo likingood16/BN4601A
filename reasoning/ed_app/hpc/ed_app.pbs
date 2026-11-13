@@ -1,0 +1,35 @@
+#!/bin/bash
+#PBS -N ed_app_v2
+#PBS -j oe
+# ED app v2 with the REAL MedGemma + trained heads, on one A40. Reach it from the laptop with ed_app/hpc/connect.ps1.
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=10:00:00 -o reasoning/outputs/logs reasoning/ed_app/hpc/ed_app.pbs
+# On start it runs the end-to-end test (test_app.py --real) once, so results exist even if nobody connects.
+# Upload new code, then  touch reasoning/outputs/logs/ed_restart  to restart with it (and re-test);
+# touch reasoning/outputs/logs/ed_stop  ends the job.
+set -o pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 YOLO_OFFLINE=true TQDM_DISABLE=1 PYTHONIOENCODING=utf-8 \
+       BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it
+PORT=8011
+LOGS=$PWD/reasoning/outputs/logs
+rm -f "$LOGS/ed_restart" "$LOGS/ed_stop"
+hostname > "$LOGS/ed_app_host.txt"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+mkdir -p "$ROOT/ed_app"
+cd reasoning/ed_app
+run=0
+while true; do
+  run=$((run + 1))
+  "$VENV/bin/python" -u server.py --lan --port $PORT --db "$ROOT/ed_app/ed.sqlite" > "$LOGS/ed_app_server.log" 2>&1 &
+  SERVER=$!
+  for i in $(seq 1 120); do curl -s "http://127.0.0.1:$PORT/api/meta" >/dev/null && break; sleep 5; done
+  echo "app up (run $run) $(date)"
+  "$VENV/bin/python" -u test_app.py --real --url "http://127.0.0.1:$PORT" > "$LOGS/ed_app_test_run$run.log" 2>&1
+  echo "test finished (run $run) $(date): $(tail -1 "$LOGS/ed_app_test_run$run.log")"
+  while kill -0 $SERVER 2>/dev/null && [ ! -f "$LOGS/ed_restart" ] && [ ! -f "$LOGS/ed_stop" ]; do sleep 10; done
+  kill $SERVER 2>/dev/null; wait $SERVER 2>/dev/null
+  rm -f "$LOGS/ed_restart"
+  [ -f "$LOGS/ed_stop" ] && break
+  echo "restarting with the new code $(date)"
+done

@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N reword_embed
+#PBS -j oe
+# 13 Nov 2026: reworded complaints + children's cards -> 4-bit MedGemma vectors (the app's model) for retraining the
+# urgency and pathway heads (training/reword_cards.py, training/child_data.py). Submit on vanda:
+#   source reasoning/hpc/hpc.conf; qsub -q $GPU_QUEUE -l $GPU_SELECT -l walltime=12:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/reword_embed.pbs
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it PYTHONUTF8=1
+PY="$VENV/bin/python"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+cd reasoning/training
+$PY reword_cards.py --limit 3 --batch 6 || exit 1
+$PY reword_cards.py --batch 64 || exit 1
+cd ../src
+$PY embed.py --table cards_children --name base4bit --mode 4bit --batch 32 || exit 1
+$PY embed.py --table cards_reworded --name base4bit --mode 4bit --batch 32 || exit 1
+$PY embed.py --table cards_pool1 --name base4bit_vanda --mode 4bit --batch 32 || exit 1
+echo JOB DONE

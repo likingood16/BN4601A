@@ -1,0 +1,21 @@
+# Packages for the ED app in test mode (Python 3.11). Runs on CPU; no GPU needed.
+#   pip install -r requirements_app.txt
+# Checked on 8 Nov 2026: a fresh clone + install_models.py passes test_app.py (64/64) with these versions or newer.
+fastapi
+uvicorn
+python-multipart
+pydantic
+torch>=2.11
+torchvision
+ultralytics>=8.4
+torchxrayvision>=1.5.7
+scikit-learn==1.9.1     # Caleb's saved vitals model (vitals/models/*.joblib) needs this exact version
+joblib
+numpy
+pandas
+scipy
+pillow
+transformers>=5.17      # imported by the pipeline code; the model itself is only loaded with the real AI
+peft>=0.21              # imported by the picture step (answers.py)
+accelerate               # loads MedGemma onto the GPU, Mac GPU or processor
+gradio==6.27.0          # only for the Gradio version (reasoning/gradio_app/app.py)

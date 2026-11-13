@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -N image_tools
+#PBS -j oe
+# Image type sorter, chest X-ray model and MedSAM outlines, each tested on held-out pictures (image_tools_check.py).
+#   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=04:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/image_tools.pbs
+set -eo pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it TQDM_DISABLE=1
+cd reasoning/checks
+for part in ${PARTS:-outline chest sorter}; do          # qsub -v PARTS="chest sorter" to run only some
+  "$VENV/bin/python" -u image_tools_check.py --part $part 2>&1 | tee ../outputs/logs/image_tools_${part}_live.log
+done

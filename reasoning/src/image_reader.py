@@ -1,19 +1,24 @@
 """Whatever image the ED gets: the group's adapted model (Cato's ED-VLM) describes it; on bone X-rays the fracture
 detector also draws outlines.
 
-    model, processor = load_image_model()   # MedGemma v1 + Cato's LoRA. adapted=False gives the same base without it
+    model, processor = load_image_model()   # MedGemma 1.5 + Cato's LoRA. adapted=False gives the same base without it
     text = describe_image(model, processor, "xray.jpg", "bone_xray")
     found = detect_fracture("xray.jpg")     # {"n": 1, "top_conf": 0.29, "overlay": <RGB array with outlines>}
 
 Only the FINDINGS step of Cato's model is used. His second step ("impression + next steps") copies the style of case
-reports and invents patient details (see vision/cato/hpc_run_750/test_predictions.csv), which must not reach a record.
+reports and invents patient details (see vision/cato/hpc_run_3epochs/test_predictions.csv), which must not reach a record.
 His findings are short and caption-like. His exact prompts aren't in the files he shared, so PROMPT is our wording.
 
 The clinician picks the image type, so no sorter model is needed. It reads single pictures only: a whole CT scan
-can't go in, only one slice. The detector runs on the CPU, so it never competes for GPU memory. This model has a
-different base from the reasoning model (v1, not 1.5), so the app holds both: too much for a 4 GB laptop.
+can't go in, only one slice. The detector runs on the CPU, so it never competes for GPU memory.
+
+Run: hpc_run_3epochs (5 Nov). Same base as the reasoning model (MedGemma 1.5) and, on Cato's test set, better than the
+older hpc_run_750 (v1 base): findings F1 0.25 vs 0.20, and it keeps to the format (0.20 had format_ok 0). Chosen over
+hpc_run_5epochs (F1 0.26) because it invents fewer details on image-only questions (25% vs 34% of cases).
+The pipeline puts it on the SAME loaded MedGemma as the text adapter (one model in memory, adapters switched).
 """
 import os
+import re
 from pathlib import Path
 
 from PIL import Image
@@ -27,12 +32,14 @@ IMAGE_TYPES = {"bone_xray": ("bone X-ray", "imaging"), "chest_xray": ("chest X-r
                "ct_slice": ("single CT slice", "imaging"), "ultrasound": ("ultrasound image", "imaging"),
                "mri_slice": ("single MRI slice", "imaging"), "ecg": ("12-lead ECG", "ecg"),
                "other": ("medical image", "imaging")}
-IMAGE_BASE = os.environ.get("BN4601A_IMAGE_BASE", "google/medgemma-4b-it")     # the HPC uses the ungated unsloth copy
-IMAGE_ADAPTER = REPO / "vision" / "cato" / "hpc_run_750" / "huggingface_adapter"
+IMAGE_BASE = os.environ.get("BN4601A_IMAGE_BASE", "google/medgemma-1.5-4b-it")     # the HPC uses the ungated unsloth copy
+IMAGE_ADAPTER = REPO / "vision" / "cato" / "hpc_run_3epochs" / "huggingface_adapter"
 PROMPT = "Describe the visible findings on this {label}."
 DETECTOR = Path(os.environ.get("BN4601A_DETECTOR", REPO / "vision" / "detector" / "runs" / "fracture" / "weights" / "best.pt"))
-DETECTOR_CONF = 0.25
-DETECTOR_NOTE = "misses about half of fractures on test X-rays, so a negative does not rule one out"
+# chosen on validation X-rays to catch 80% of fractures (vision/detector/choose_threshold.py, runs/fracture/threshold.json);
+# on test: catches 81% (was 54% at the default 0.25) and marks 27% of normal X-rays (was 4%)
+DETECTOR_CONF = 0.044
+DETECTOR_NOTE = "misses about 1 in 5 fractures and marks about 1 in 4 normal X-rays, so it only points where to look"
 _detector = None
 
 
@@ -50,10 +57,23 @@ def image_messages(path, question, system=None):
     return head + [{"role": "user", "content": [{"type": "image", "image": image}, {"type": "text", "text": question}]}]
 
 
-def describe_image(model, processor, path, image_type, max_new_tokens=128):
+def describe_image(model, processor, path, image_type, max_new_tokens=128, think=True):
     """128 tokens = the budget Cato trained and tested findings with (run_config.json)."""
     question = PROMPT.format(label=IMAGE_TYPES[image_type][0])
-    return " ".join(final_answer(ask_messages(model, processor, image_messages(path, question), max_new_tokens)).split())
+    raw = ask_messages(model, processor, image_messages(path, question), max_new_tokens, think)
+    text = re.sub(r"\*\*|(?<!\S)\*(?!\S)|^#+\s*", " ", final_answer(raw))       # MedGemma's markdown bullets and bold
+    return whole_sentences(" ".join(text.split()))
+
+
+def whole_sentences(text):
+    """The description stops at 128 tokens, often mid-sentence, and ran into the next text ("It's important to note
+    that this is just a Head-CT bleed check:", group test 10 Nov, C3). Keep it up to its last full sentence; if it
+    has none, mark the cut with "..."."""
+    text = text.strip()
+    if not text or text[-1] in ".!?":
+        return text
+    ends = [m.end() for m in re.finditer(r"[.!?](?=\s)", text) if not re.search(r"\b(?:e\.g|i\.e|vs|approx|Dr|No|\d)\.$", text[:m.end()])]
+    return text[:ends[-1]] if ends and ends[-1] > 40 else text.rstrip(" ,;:-") + " ..."
 
 
 def detect_fracture(path):
@@ -66,7 +86,8 @@ def detect_fracture(path):
         _detector = YOLO(str(DETECTOR))
     result = _detector.predict(str(path), conf=DETECTOR_CONF, imgsz=640, device="cpu", verbose=False)[0]
     confs = result.boxes.conf.tolist()
-    return {"n": len(confs), "top_conf": max(confs, default=0.0), "overlay": result.plot()[..., ::-1]}
+    return {"n": len(confs), "top_conf": max(confs, default=0.0), "overlay": result.plot()[..., ::-1],
+            "boxes": result.boxes.xyxy.tolist(), "confs": confs}          # boxes: x0, y0, x1, y1 in pixels
 
 
 def imaging_line(image_type, text, found=None):

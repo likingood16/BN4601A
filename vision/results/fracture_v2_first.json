@@ -1,0 +1,27 @@
+{
+ "box_mAP50": 0.9266,
+ "box_mAP50_95": 0.5524,
+ "mAP50_by_finding": {
+  "fracture": 0.9266
+ },
+ "per_image": {
+  "fracture": {
+   "n_test_with": 1893,
+   "auroc": 0.452,
+   "cut_off": 0.0,
+   "sensitivity": 1.0,
+   "specificity": 0.0
+  },
+  "foreignbody": {
+   "n_test_with": 0,
+   "note": "too few to score"
+  }
+ },
+ "model": "yolo11s.pt",
+ "imgsz": 640,
+ "smoke": false,
+ "names": [
+  "fracture",
+  "foreignbody"
+ ]
+}

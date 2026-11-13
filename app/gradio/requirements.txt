@@ -1,0 +1,21 @@
+# Hugging Face Space (Gradio SDK, ZeroGPU). Gradio itself comes from sdk_version in README.md.
+torch==2.11.0
+torchvision==0.26.0
+transformers>=5.17
+peft>=0.21
+accelerate
+bitsandbytes
+ultralytics>=8.4
+torchxrayvision>=1.5.7
+scikit-learn==1.9.1     # the saved vitals model needs this exact version
+joblib
+numpy
+pandas
+polars
+scipy
+pillow
+fastapi
+python-multipart
+pydantic
+uvicorn
+spaces

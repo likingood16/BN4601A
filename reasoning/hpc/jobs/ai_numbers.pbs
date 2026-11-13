@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -N ai_numbers
+#PBS -j oe
+# MedGemma number reading, second try (8 Nov 2026): clearer instructions + BP split. Train notes first (to look at
+# misses), then the 190 test notes once, clean and messy. Results: outputs/metrics/charting_numbers_*_ai.json
+set -o pipefail
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HOME=$ROOT/home HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TQDM_DISABLE=1 \
+       BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it BN4601A_IMAGE_BASE=unsloth/medgemma-1.5-4b-it
+cd reasoning/checks
+"$VENV/bin/python" -u charting_check.py --ai --split train --limit 150
+"$VENV/bin/python" -u charting_check.py --ai --split test
+"$VENV/bin/python" -u charting_check.py --ai --split test --messy

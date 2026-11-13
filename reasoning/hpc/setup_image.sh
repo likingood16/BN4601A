@@ -1,7 +1,8 @@
 #!/bin/bash
 # Run ONCE on the HPC LOGIN NODE (it has internet; GPU nodes don't): what the image step needs.
 #   bash reasoning/hpc/setup_image.sh
-# 1. the detector's library, without letting it change torch or transformers   2. the base of Cato's model (8.6 GB)
+# The detector's library, without letting it change torch or transformers. Cato's model now uses MedGemma 1.5,
+# which is already in the HPC cache, so no extra download.
 set -e
 cd "$(dirname "$0")/../.."
 source reasoning/hpc/hpc.conf
@@ -14,5 +15,4 @@ $PIP install -c "$ROOT/constraints.txt" ultralytics-thop opencv-python-headless 
 AFTER=$($PIP freeze | grep -E '^(torch|torchvision|transformers|peft)==')
 [ "$BEFORE" = "$AFTER" ] && echo "torch, transformers and peft unchanged" || { echo "VERSIONS CHANGED: $AFTER"; exit 1; }
 YOLO_OFFLINE=true "$VENV/bin/python" -c "from ultralytics import YOLO; m = YOLO('vision/detector/runs/fracture/weights/best.pt'); print('detector loads OK:', m.task)"
-"$VENV/bin/hf" download unsloth/medgemma-4b-it
 echo "setup done"

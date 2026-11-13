@@ -3,7 +3,7 @@
 #PBS -j oe
 # All final tests on held-out TEST data, base vs the final stage of each LoRA arm (see reasoning/TESTING_PLAN.md):
 #   1. answers.py: triage decisions (JSON), SBAR reports, 4-turn consultations -> outputs/answers/answers.json
-#   2. evaluate.py --split test: loss per source / emergency / general with paired 95% CIs + MedQA
+#   2. ../training/evaluate.py --split test: loss per source / emergency / general with paired 95% CIs + MedQA
 # Submit (from the BN4601A folder on the HPC):
 #   qsub -q auto_free -l select=1:ncpus=8:mem=64gb:ngpus=1 -l walltime=08:00:00 -o reasoning/outputs/logs reasoning/hpc/jobs/test_all.pbs
 cd "$PBS_O_WORKDIR"
@@ -12,4 +12,4 @@ export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unslot
 ADAPTERS="mixed/stage12 emergency/stage3 two_stage/stage2"
 cd reasoning/src
 "$VENV/bin/python" answers.py --mode full --batch 16 $ADAPTERS
-"$VENV/bin/python" evaluate.py --mode full --split test --per-source 200 --medqa $ADAPTERS
+"$VENV/bin/python" ../training/evaluate.py --mode full --split test --per-source 200 --medqa $ADAPTERS
