@@ -97,7 +97,7 @@ class Patient:
                 "level": d.level if d else None, "flagged": d.flagged if d else None,
                 "raised_by": d.raised_by() if d else "",
                 "needs_obs": bool(d and d.needs_obs), "reason": d.reason() if d else "",
-                "child": is_child(self.fields),
+                "child": is_child(self.fields), "child_score": is_child(self.fields) and child_score(),
                 "who": _who_line(self.fields), "complaint": self.complaint(),
                 "todos": self.todos, "open_questions": len(self.questions)}
 
@@ -124,10 +124,24 @@ def is_child(fields):
     return age is not None and age == age and float(age) < CHILD_AGE
 
 
+CHILD_NOTE_CHILD_SCORE = ("Patient under 16: the urgency score comes from a model trained on children (US emergency "
+                          "visits under 16); NEWS2 and the triage level come from models built on adults (NEWS2 is for "
+                          "16+). Use a paediatric scale and your own judgement.")
+
+
+def child_score():
+    """True when the children's urgency score is installed and in use (13 Nov 2026, REPORT_NOTES 5u)."""
+    return store is not None and getattr(store.ai, "child_head", None) is not None
+
+
+def child_note():
+    return CHILD_NOTE_CHILD_SCORE if child_score() else CHILD_NOTE
+
+
 def triage_lines(p):
     """The case file's triage section: the trained models' decision, word for word, plus the children's warning
     (group test 10 Nov, A2: a normal 7-year-old scored NEWS2 5 with no word that the score is an adult one)."""
-    return p.visit.decision.lines() + ([CHILD_NOTE] if is_child(p.fields) else [])
+    return p.visit.decision.lines() + ([child_note()] if is_child(p.fields) else [])
 
 
 def show_supported_pathways(p):

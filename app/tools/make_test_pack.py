@@ -210,6 +210,35 @@ def summary(p):
     return out
 
 
+def rescore(done):
+    """13 Nov 2026: new urgency models (REPORT_NOTES 5u) change only the urgency score, the urgent flag and the level,
+    which come from the numbers alone (not from MedGemma's writing or the pictures). So instead of running every case
+    through the full AI again (hours), the urgency/level step is re-run on each case's saved numbers (seconds each),
+    with the app's own code (EDPipeline.triage). Everything else in the answer key stays from the full-AI run."""
+    import sys
+    sys.path.insert(0, str(HERE.parents[1] / "reasoning" / "src"))
+    from pipeline import EDPipeline
+    ai = EDPipeline()
+    changes = []
+    for cid, p in done.items():
+        d = ai.triage(dict(p["fields"]), explain=False).decision
+        before = (p["level"], bool((p["decision"] or {}).get("flagged")), (p["decision"] or {}).get("p_urgent"))
+        p["level"], p["flagged"] = d.level, d.flagged
+        p["decision"] = {**(p["decision"] or {}), "p_urgent": d.p_urgent, "flagged": d.flagged, "head_flag": d.head_flag,
+                         "floor_flag": d.floor_flag, "level": d.level, "level_set": list(d.level_set)}
+        changes.append({"case": cid, "level_before": before[0], "level_after": d.level, "flagged_before": before[1],
+                        "flagged_after": d.flagged, "p_before": before[2], "p_after": round(d.p_urgent, 4),
+                        "child_score": ai.uses_child_score(p["fields"].get("age"))})
+    with open(PROGRESS.with_name("ED_app_test_pack_rescore_13nov.json"), "w", encoding="utf8") as fh:
+        json.dump(changes, fh, indent=1)
+    for c in changes:
+        mark = "" if (c["level_before"], c["flagged_before"]) == (c["level_after"], c["flagged_after"]) else "  <- changed"
+        print(f"{c['case']:5} level {c['level_before']}->{c['level_after']} flagged {c['flagged_before']}->"
+              f"{c['flagged_after']} score {c['p_before'] or 0:.2f}->{c['p_after']:.2f}"
+              f"{' (children)' if c['child_score'] else ''}{mark}", flush=True)
+    return done
+
+
 def pack():
     """Copy the README and the guides into the pack and zip it (also run on its own after the guides are rebuilt)."""
     made_on = time.strftime("%d %b %Y", time.localtime((OUT / "expected_results.csv").stat().st_mtime))
@@ -234,7 +263,10 @@ def main():
     ap.add_argument("--wait", type=int, default=1800, help="seconds to wait for one case (full AI: minutes)")
     ap.add_argument("--resume", action="store_true", help="keep the cases a crashed run already finished")
     ap.add_argument("--zip-only", action="store_true", help="only re-copy the README and guides and re-zip")
+    ap.add_argument("--rescore", action="store_true", help="new urgency models: re-run only the urgency/level step on "
+                    "the saved full-AI results (no app needed), then rebuild the answer key")
     a = ap.parse_args()
+    a.resume = a.resume or a.rescore
     if a.zip_only:
         print(f"wrote {pack()}")
         return
@@ -247,6 +279,8 @@ def main():
                 continue
             done[d["case"]] = d["p"]
         print(f"resuming: {len(done)} cases already done", flush=True)
+        if a.rescore:
+            done = rescore(done)
     elif PROGRESS.exists():
         PROGRESS.unlink()
     url, pics = a.url.rstrip("/"), Path(a.pics)

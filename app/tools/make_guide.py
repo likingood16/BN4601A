@@ -309,7 +309,8 @@ mean flagging about 70% of all patients, so we kept the current cut-off.</li>
 labels and crops) are harder than real scans. The head-CT bleed model says "possible bleed" but not which type: its
 type guesses were unreliable.</li>
 <li>A pathway (chest pain, stroke, sepsis ...) can be suggested that doesn't fit the complaint, with its questions
-and to-dos; the strongest one is usually right. Patients under 16 are labelled "models built on adults".</li>
+and to-dos; the strongest one is usually right. Patients under 16 get a children's urgency score (trained on 1,256 children); NEWS2 and the level are still adult
+models, and the label says so.</li>
 </ul>
 <p class="muted">How this guide was checked: every case in the tables was sent to the running app by
 <span class="mono">make_test_pack.py</span>, and every screenshot comes from a scripted run of the real screens,

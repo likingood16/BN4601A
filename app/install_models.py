@@ -9,6 +9,9 @@ publicly (VinDr-CXR, RSNA). Keep the zip inside the group.
     python install_models.py --make --split 9.5         # host: also cuts it into 9.5 MB parts (Telegram uploads)
     python install_models.py ED_app_full_ai_models.zip  # full AI: the image models + MedGemma's add-ons, one file
     python install_models.py --make --full              # host: builds build/ED_app_full_ai_models.zip
+    python install_models.py --make --update            # host: builds build/ED_app_models_update.zip (13 Nov: the
+                                                        # retrained urgency score + the children's score, 0.2 MB)
+    python install_models.py ED_app_models_update.zip   # group member: puts those 2 files in place (full AI already in)
 
 Full AI (MedGemma's add-ons: urgency/level/pathway heads, the case-file, question and number adapters, Cato's image
 adapter, plus the image models above) from the group's Hugging Face model repo (access for group members only):
@@ -51,7 +54,8 @@ def ai_targets():
     """targets() plus everything the full AI adds on top of MedGemma (name in the hub repo -> where the app looks)."""
     from config import HEADS_DIR, LORA_DIR
     adapters = ["task/stage1", "questions/stage1", "numbers/stage1"]     # pipeline.EXPLAINER, QUESTIONER, NUMBER_READER
-    files = [HEADS_DIR / f"urgent__{EMB}__ktas_nhamcs.joblib", HEADS_DIR / f"level__{EMB}.joblib",
+    files = [HEADS_DIR / f"urgent__{EMB}__ktas_nhamcs.joblib", HEADS_DIR / f"urgent__{EMB}__children.joblib",
+             HEADS_DIR / f"level__{EMB}.joblib",
              HEADS_DIR / f"pathways__{EMB}.joblib"]
     files += [LORA_DIR / a / "adapter" / n for a in adapters
               for n in ("adapter_config.json", "adapter_model.safetensors", "README.md")]
@@ -101,6 +105,19 @@ def from_hub(repo=HUB, token=None):
         done += 1
     print(f"{done} of {len(files)} files in place")
     return done
+
+
+UPDATE = "ED_app_models_update.zip"
+
+
+def make_update(zip_path):
+    """Host: only the files changed since the 10 Nov full-AI zip (the two urgency heads, REPORT_NOTES 5u)."""
+    from config import HEADS_DIR
+    files = [HEADS_DIR / f"urgent__{EMB}__ktas_nhamcs.joblib", HEADS_DIR / f"urgent__{EMB}__children.joblib"]
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in files:
+            z.write(f, f.relative_to(REPO).as_posix())
+    print(f"wrote {zip_path} ({zip_path.stat().st_size / 1e6:.2f} MB)")
 
 
 def make(zip_path, split_mb=None, full=False):
@@ -188,6 +205,7 @@ if __name__ == "__main__":
     ap.add_argument("--make", action="store_true", help="build the zip from this computer's model files")
     ap.add_argument("--split", type=float, help="with --make: also cut the zip into parts of this many MB")
     ap.add_argument("--full", action="store_true", help="with --make: the full-AI zip (" + FULL + ")")
+    ap.add_argument("--update", action="store_true", help="with --make: only the files changed since 10 Nov (" + UPDATE + ")")
     ap.add_argument("--hub", action="store_true", help="full AI: download every model file from the group's HF repo")
     ap.add_argument("--upload", action="store_true", help="host: upload every model file to the group's HF repo")
     a = ap.parse_args()
@@ -196,6 +214,8 @@ if __name__ == "__main__":
     elif a.hub:
         if from_hub(a.src or HUB) == len(ai_targets()):
             print("all there. Full AI:  python server.py   (any computer; fastest with an NVIDIA GPU)      Quick test mode:  python server.py --test")
+    elif a.make and a.update:
+        make_update(Path(a.src) if a.src else Path(__file__).resolve().parent / "build" / UPDATE)
     elif a.make:
         make(Path(a.src) if a.src else Path(__file__).resolve().parent / "build" / (FULL if a.full else NAME), a.split,
              a.full)

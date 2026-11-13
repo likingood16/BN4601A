@@ -275,7 +275,7 @@ def _header(p):
     if d.raised_by():
         parts.append(f"⬆ {d.raised_by()}")
     if S.is_child(p.fields):
-        parts.append(f"🟠 {S.CHILD_NOTE}")
+        parts.append(f"🟠 {S.child_note()}")
     if p.status == "working":
         parts.append(f"⏳ {p.progress}…")
     elif p.status == "error":

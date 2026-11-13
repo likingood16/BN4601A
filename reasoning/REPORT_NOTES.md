@@ -1328,8 +1328,17 @@ Verdict: not adopted. It catches more, especially on reworded notes, but false f
 (0.390 -> 0.417, stroke 8.3% -> 9.9%), which fails the rule and is the opposite of what the testers asked for (B1).
 Next try: choose the cut-offs on validation to hold false flags at the old level.
 
-Not yet in the app (13 Nov): the rewording urgency head and the children's head pass, but putting them in changes the
-answer key, so the 40 cases must be re-run on the full AI first; the 13 Nov version for the group does not have them.
+**In the app (13 Nov):** the rewording head replaced `urgent__base4bit__ktas_nhamcs.joblib` (old one kept as
+`..._v1_6nov.joblib`; cut-offs re-set on KTAS validation: 80% 0.211, 90% 0.115); under-16s use
+`urgent__base4bit__children.joblib` with its own cut-off (0.055, catch 9 in 10 on the children's validation) in
+`EDPipeline.decide`; the case file and the screen say "children's urgency score; NEWS2 and level from adult models".
+Group members get both as `ED_app_models_update.zip` (0.14 MB, `install_models.py --make --update`) on top of the 10 Nov
+models zip. Answer key: these heads change only the urgency score, the flag and the level, which come from the numbers
+alone, so `make_test_pack.py --rescore` re-ran only that step (the app's own `EDPipeline.triage`) on each case's numbers
+from the 12-13 Nov full-AI run (40 cases in about a minute instead of hours); all checks still pass. One case changed:
+P10 (5-year-old, cough, playing, HR 110 RR 24 sats 98%, normal chest X-ray) level 2 urgent -> level 4 (children's score
+2% vs the adults' 25%); both testers had it flagged urgent, which normal-for-age numbers did not justify
+(`app/build/ED_app_test_pack_rescore_13nov.json`). Guide screenshots retaken with the new heads.
 
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more

@@ -6,6 +6,7 @@ in one folder per message (9 Nov 2026).
     send_to_group/
         ED_app_code.zip                   the code (both apps): the tracked files as they are now
         ED_app_full_ai_models.zip         every trained model (715 MB; drag it into Telegram yourself)
+        ED_app_models_update.zip          only the models changed since 10 Nov (0.1 MB)
         ED_app_user_guide.pdf             install (section 1) and every screen of the main app
         ED_app_gradio_guide.pdf           the Gradio app
         ED_app_test_pack.zip              test cases, pictures, answer key, feedback form
@@ -23,10 +24,10 @@ PART_MB = 9.5
 
 
 def main():
-    """The 5 files for the group, in one folder: telegram/send_to_group/."""
+    """The files for the group, in one folder: telegram/send_to_group/ (a message drafted in telegram/ is kept)."""
     out = OUT / "send_to_group"
-    if OUT.exists():
-        shutil.rmtree(OUT)
+    if out.exists():
+        shutil.rmtree(out)
     out.mkdir(parents=True)
     branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=REPO, capture_output=True, text=True,
                             check=True).stdout.strip()
@@ -37,7 +38,11 @@ def main():
                    cwd=REPO, check=True)
     subprocess.run([sys.executable, str(HERE.parent / "install_models.py"), "--make", "--full",
                     str(out / "ED_app_full_ai_models.zip")], check=True, capture_output=True)
-    for name in ("ED_app_user_guide.pdf", "ED_app_gradio_guide.pdf", "ED_app_test_pack.zip"):   # make_guide.py etc.
+    # 13 Nov: the files changed since the 10 Nov models zip, so members who have it don't download 715 MB again
+    subprocess.run([sys.executable, str(HERE.parent / "install_models.py"), "--make", "--update",
+                    str(out / "ED_app_models_update.zip")], check=True, capture_output=True)
+    for name in ("ED_app_user_guide.pdf", "ED_app_gradio_guide.pdf", "ED_app_test_pack.zip",   # make_guide.py etc.
+                 "ED_app_retest_steps.pdf"):                                                    # make_retest_sheet.py
         shutil.copy(PACK / name, out / name)
     print(f"branch {branch} -> {out}")
     for f in sorted(out.iterdir()):

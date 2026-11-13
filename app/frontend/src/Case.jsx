@@ -221,7 +221,9 @@ export default function Case({ id, me, meta }) {
             {d && <span className="pill">Levels it can't rule out: {d.level_set.join(", ")}</span>}
             {p.raised_by && <span className="pill amber" title="The urgent flag catches 90% of urgent patients, so it also raises some who aren't. Use your judgement.">⬆ {p.raised_by}</span>}
             {d && <span className="pill">NEWS2 {d.news2}{p.child ? " (adult score)" : ""}</span>}
-            {d && p.child && <span className="pill amber" title="NEWS2 is for age 16 and over, and the urgency and level models were trained on patients aged 15 and over. Use a paediatric scale and your own judgement.">Under 16: scores from models trained on adults</span>}
+            {d && p.child && (p.child_score
+              ? <span className="pill amber" title="The urgency score comes from a model trained on children (US emergency visits under 16). NEWS2 is for age 16 and over, and the level model was trained on patients aged 15 and over. Use a paediatric scale and your own judgement.">Under 16: children's urgency score; NEWS2 and level from adult models</span>
+              : <span className="pill amber" title="NEWS2 is for age 16 and over, and the urgency and level models were trained on patients aged 15 and over. Use a paediatric scale and your own judgement.">Under 16: scores from models trained on adults</span>)}
             <span className="pill">{p.stage} · {p.doctor}</span>
             <span className="pill">Waiting {waited(p.created)}</span>
           </div>

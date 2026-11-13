@@ -91,6 +91,13 @@ class EDPipeline:
         if sensitivity not in thresholds:
             raise ValueError(f"no cut-off saved for {sensitivity}: run heads.py --add-threshold {sensitivity}")
         self.head, self.threshold = urgent["head"], thresholds[sensitivity]
+        # 13 Nov 2026 (REPORT_NOTES 5u): under-16s get a children's urgency score (NHAMCS 2022 children; test AUROC 0.79
+        # vs 0.70 for the adults' head, same catch, fewer false alarms). Optional file: without it, the adults' head.
+        child = HEADS_DIR / f"urgent__{emb}__children.joblib"
+        self.child_head, self.child_threshold = None, None
+        if child.exists():
+            c = joblib.load(child)
+            self.child_head, self.child_threshold = c["head"], c.get("thresholds", {}).get(sensitivity, c["threshold"])
         self.level_model, self.cutoff = level["model"], level["conformal_cutoff"]
         # ED pathway flags by a trained gate + heads on the same vector + complaint words (pathway_heads.PathwayFlagger),
         # not word rules (branch rules-reasoning)
@@ -118,11 +125,16 @@ class EDPipeline:
         with self._adapter(self.step_adapter.get(step, self.text_adapter), step):
             return ask_messages(self.model, self.processor, messages, CAPS[step], self.think)
 
-    def decide(self, vector, vitals_out):
-        """Vector + Caleb's result -> urgency and level. Same rules as head_scores.py and level_model.py."""
+    def uses_child_score(self, age):
+        return self.child_head is not None and age is not None and age == age and float(age) < image_models.CHILD_AGE
+
+    def decide(self, vector, vitals_out, age=None):
+        """Vector + Caleb's result -> urgency and level. Same rules as head_scores.py and level_model.py.
+        Under 16 (and the children's head installed): the children's urgency score and its own cut-off."""
         x = np.asarray(vector).reshape(1, -1)
-        p = float(self.head.predict_proba(x)[0, 1])
-        head_flag, floor_flag = p >= self.threshold, vitals_out["floor_priority"] <= 2
+        head, cut = (self.child_head, self.child_threshold) if self.uses_child_score(age) else (self.head, self.threshold)
+        p = float(head.predict_proba(x)[0, 1])
+        head_flag, floor_flag = p >= cut, vitals_out["floor_priority"] <= 2
         flagged = bool(head_flag or floor_flag)
         probs = self.level_model.predict_proba(x)[0]                 # columns = levels 1..5
         level = int(probs.argmax()) + 1
@@ -138,7 +150,7 @@ class EDPipeline:
         card = make_card(patient, out)
         with self._adapter(None, "decide"):
             vector = embed_one(self.model, self.processor, card)
-            decision = self.decide(vector, out)
+            decision = self.decide(vector, out, patient.get("age"))
         visit = Visit(card=card, decision=decision, ed=ed_assessment(patient, flags=self.pathways(vector, patient.get("chief_complaint"))),
                       vector=np.asarray(vector, dtype=np.float32).ravel())
         if explain:
