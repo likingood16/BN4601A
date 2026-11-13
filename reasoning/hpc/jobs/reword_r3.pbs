@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -N reword_r3
+#PBS -j oe
+# 13 Nov 2026: nurse-shorthand rewording, second try (r3, worked examples), then vectors for the new rows only.
+cd "$PBS_O_WORKDIR"
+source reasoning/hpc/hpc.conf
+export HF_HOME HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 BN4601A_BASE_MODEL=unsloth/medgemma-1.5-4b-it PYTHONUTF8=1
+PY="$VENV/bin/python"
+cd reasoning/training
+$PY reword_cards.py --limit 4 --batch 8 --styles r3 || exit 1
+$PY reword_cards.py --batch 64 --styles r3 || exit 1
+cd ../src
+$PY embed.py --table cards_reworded --name base4bit --mode 4bit --batch 32 || exit 1
+echo JOB DONE

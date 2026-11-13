@@ -13,7 +13,8 @@ const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const PORT = 9333;
 const profile = resolve(OUT, "..", "chrome_profile");      // absolute: Chrome 157 ignores a relative --user-data-dir
 const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`,
-  "--no-first-run", "--disable-gpu", "--hide-scrollbars", "about:blank"], { stdio: "pipe" });
+  "--no-first-run", "--disable-gpu", "--hide-scrollbars", "--disable-background-timer-throttling",
+  "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows", "about:blank"], { stdio: "pipe" });
 chrome.stdout.resume(); chrome.stderr.resume();          // read its output: with stdio "ignore" Chrome 157 never came up (9 Nov)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = [];
@@ -25,7 +26,7 @@ async function connect() {
   for (let i = 0; i < 100; i++) {
     try {
       const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
-      const page = list.find((t) => t.type === "page");
+      const page = list.find((t) => t.type === "page" && !t.url.startsWith("chrome://"));   // not the omnibox popup (13 Nov)
       if (page) { ws = new WebSocket(page.webSocketDebuggerUrl); break; }
     } catch { /* not up yet */ }
     await sleep(300);
@@ -36,11 +37,23 @@ async function connect() {
     if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
   });
 }
-const send = (method, params = {}) => new Promise((res, rej) => {
+// 13 Nov: a screenshot request once never came back and the run hung for an hour; now each request gives up after
+// 60 s and is tried again (3 times)
+const sendOnce = (method, params) => new Promise((res, rej) => {
   const n = ++id;
-  pending.set(n, (m) => (m.error ? rej(new Error(`${method}: ${m.error.message}`)) : res(m.result)));
+  const timer = setTimeout(() => { pending.delete(n); rej(new Error(`${method}: no answer in 60 s`)); }, 60000);
+  pending.set(n, (m) => { clearTimeout(timer); m.error ? rej(new Error(`${method}: ${m.error.message}`)) : res(m.result); });
   ws.send(JSON.stringify({ id: n, method, params }));
 });
+async function send(method, params = {}) {
+  for (let t = 1; ; t++) {
+    try { return await sendOnce(method, params); } catch (e) {
+      if (t >= 3 || !/no answer/.test(e.message)) throw e;
+      console.log(`retry ${method}`);
+      await sendOnce("Page.bringToFront", {}).catch(() => {});
+    }
+  }
+}
 const js = async (expr) => {
   const r = await send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true });
   if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || "js error");
@@ -88,10 +101,18 @@ const cases = Object.fromEntries(readFileSync(join(PACK, "expected_results.csv")
   .filter(Boolean).map((l) => [l.split(",")[0], l]));
 const note = (c) => readFileSync(join(PACK, "cases", `${c}.txt`), "utf8").trim();
 const bg = {};
-for (const c of ["T03", "T04", "T06", "R02", "R05"]) bg[c] = await newPatient(note(c));
-bg.P06 = await newPatient(note("P06"), ["cxr_pneumothorax.jpg"]);
-bg.P01 = await newPatient(note("P01"), ["adult_ankle_fracture.jpg"]);
-bg.P11 = await newPatient(note("P11"), ["ct_head_bleed_epidural.jpg"]);
+// REUSE=1: take the background patients already in the app (same notes) instead of making them again (75 min)
+const have = {};
+if (process.env.REUSE) for (const b of (await api("/api/board")).patients ?? await api("/api/board")) {
+  const p = await api(`/api/patients/${b.id}`);
+  for (const c of ["T03", "T04", "T06", "R02", "R05", "P06", "P01", "P11"]) if ((p.notes?.[0]?.text || "").trim() === note(c)) have[c] = p;
+}
+const make = async (c, pics = []) => have[c] || newPatient(note(c), pics);
+for (const c of ["T03", "T04", "T06", "R02", "R05"]) bg[c] = await make(c);
+bg.P06 = await make("P06", ["cxr_pneumothorax.jpg"]);
+bg.P01 = await make("P01", ["adult_ankle_fracture.jpg"]);
+bg.P11 = await make("P11", ["ct_head_bleed_epidural.jpg"]);
+console.log("reused", Object.keys(have).join(" ") || "none");
 check("background patients created", Object.values(bg).every((p) => p.decision));
 
 // A. charting screen
@@ -133,7 +154,9 @@ const keys = await js(`[...document.querySelectorAll(".vital .k")].map((x) => x.
 const sbpIndex = keys.findIndex((k) => k.startsWith("BP sys"));
 await typeInto(".vital input", "82", sbpIndex);
 await clickText("button.primary", "Save and re-score");
-await sleep(1500); await waitDone(pid); await sleep(2500);
+// the full AI re-scores inside the save request (minutes), so wait until the edit panel closes
+for (let t = 0; t < WAIT_MS && await js(`!!document.querySelector(".vital input")`); t += 2000) await sleep(2000);
+await waitDone(pid); await sleep(2500);
 await shot("07_after_fix", { clip: { x: 0, y: 0, width: W, height: 330 } });
 const pf = await api(`/api/patients/${pid}`);
 check("fixed number re-scored and logged", pf.fields.sbp === 82 && pf.timeline.some((e) => /Numbers corrected/.test(e.text)));

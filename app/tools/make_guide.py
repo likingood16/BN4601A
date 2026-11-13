@@ -276,6 +276,9 @@ stages, clear a patient with an outcome.</li>
 <li>try very long notes, notes in capitals, typos, impossible numbers, an empty note and a wrong file type;</li>
 <li>try 20+ patients in a row and see if the whiteboard stays quick.</li>
 </ul></li>
+<li><b>Time it</b>: for every case, write in the <span class="mono">time_taken_s</span> column roughly how many seconds it
+took from Submit until the case file appeared (a phone stopwatch is fine). Time "Save and re-score", "Add" and one chat
+answer too, and say which computer you used. The full AI can take several minutes a case; we need real times.</li>
 <li><b>Tell us</b> in <span class="mono">feedback_form.csv</span>: what you did, what happened, whether it matched, and how
 bad it was (1 = cosmetic ... 5 = could harm a patient). Screenshots help (name them after the case, e.g. <span class="mono">P06_1.png</span>).
 Also: what was confusing, what took too long, and what you would want as a nurse or doctor.</li>

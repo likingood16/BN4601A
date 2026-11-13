@@ -399,6 +399,17 @@ def set_section(report, heading, lines):
     return f"{pre}\n\n{body}" if pre else body
 
 
+def add_line(report, heading, line):
+    """Add one line to a section, keeping the order of the sections (an empty section's placeholder is replaced)."""
+    pre, sections = _split(report)
+    if heading not in sections and TRIAGE in sections:            # a missing section goes before the triage section
+        triage = sections.pop(TRIAGE)
+        sections[heading], sections[TRIAGE] = [], triage
+    sections[heading] = [l for l in sections.get(heading, []) if not _empty(l)] + [f"- {line}"]
+    body ="\n\n".join(f"## {h}\n" + ("\n".join(ls) if ls else "- not recorded") for h, ls in sections.items())
+    return f"{pre}\n\n{body}" if pre else body
+
+
 def label_before_arrival(piece):
     """An ambulance crew's numbers, typed as a separate piece ("EMS found BP 70/40 HR 130"), filed next to the ED's
     own observations read like a second set of current values (group test 10 Nov, T05). Label them; the tiles

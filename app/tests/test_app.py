@@ -235,6 +235,10 @@ def run():
     p2 = get(f"/api/patients/{a}").json()
     check("Fix numbers: saved and re-scored", r.status_code == 200 and p2["fields"]["hr"] == 150 and p2["found"]["checked_by"] == "Nurse Tan")
     check("Fix numbers: earlier notes and timeline kept", len(p2["notes"]) == len(p["notes"]) and any("corrected" in e["text"] for e in p2["timeline"]))
+    obs = p2["report"].split("## Observations")[1].split("\n## ")[0]
+    check("Fix numbers: the case file's Observations says what was corrected (13 Nov)",
+          "Corrected by Nurse Tan: HR 150 (was " in obs and "SpO2 % 85 (was " in obs
+          and p2["report"].rstrip().split("\n## ")[-1].startswith(charting.TRIAGE), obs[-200:])
     learn = get("/api/learning").json()
     check("learning: the number fix is logged (what the AI read vs the correction)", learn["enabled"]
           and learn["number_corrections"] == fixes_before + 1 and {"hr", "spo2"} <= set(learn["numbers_corrected_by_field"]))

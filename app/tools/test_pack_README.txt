@@ -14,13 +14,17 @@ What is in here
   expected_results.csv    what the app showed for every case when we ran it with the full AI ({date})
   feedback_form.csv       please fill this in and send it back (one row per case or step you tried)
 
-What we would like you to do (about 30-45 minutes)
+What we would like you to do (1-2 hours with the full AI; do as many cases as you can, starting with T01-T10)
   1. Part A of the guide: walk through the app once with case T01.
   2. Run the cases in cases/. For each one, compare what you see with expected_results.csv.
   3. Try the workflow steps in Part C of the guide (add information, fix numbers, whiteboard, clear with outcome).
   4. Try to break it (Part D of the guide): odd notes, many patients at once, two people on the whiteboard.
   5. Fill in feedback_form.csv: what you did, what happened, whether it matched, how bad (1 cosmetic - 5 unsafe).
      Screenshots help: name them by case, e.g. P06_1.png.
+  6. Please time it. For every case, write in the time_taken_s column roughly how many seconds it took from pressing
+     Submit until the case file appeared (a phone stopwatch is fine). Also time "Save and re-score", "Add" and a chat
+     answer once each, and say in comments what computer you used (laptop/GPU, or Hugging Face). This is the full AI,
+     so a case can take several minutes; we need real times for the report.
 
 Two ways to run it
   - On your own computer: python server.py runs MedGemma and every trained model. Fastest with an NVIDIA GPU, but it

@@ -479,6 +479,7 @@ def fix_numbers(pid: str, body: FieldsIn):
     new_visit = store.ai.triage(clean, explain=False)       # one model step: seconds, even while other jobs run
     with store.state_lock:
         before = p.visit
+        before_fields = dict(p.fields or {})
         p.fields = clean
         p.found["checked_by"] = body.who
         # a nurse has looked: readings the two readers disagreed on are now settled
@@ -491,9 +492,23 @@ def fix_numbers(pid: str, body: FieldsIn):
         show_supported_pathways(p)
         p.visit.log("Triage", f"Numbers corrected; level {old} -> {p.visit.decision.level}", body.who)
         if p.report:
+            # the Observations text still had the note's numbers after a fix (Gradio check 13 Nov: tile 82/60, text
+            # "BP 90/60"): say what was corrected, by whom, keeping what was typed
+            was = before_fields
+            fixes = [f"{FIELD_NAMES.get(k, k)} {_show(clean.get(k))} (was {_show(was.get(k))})"
+                     for k in FIELD_NAMES if _show(clean.get(k)) != _show(was.get(k))]
+            if fixes:
+                p.report = charting.add_line(p.report, "Observations", f"Corrected by {body.who}: " + ", ".join(fixes))
             p.report = charting.set_section(p.report, charting.TRIAGE, triage_lines(p))
     store.changed()
     return {"ok": True}
+
+
+def _show(v):
+    """A number as the nurse would write it (90.0 -> 90), or 'not recorded'."""
+    if v in (None, ""):
+        return "not recorded"
+    return f"{v:g}" if isinstance(v, float) else str(v)
 
 
 class ChatIn(BaseModel):

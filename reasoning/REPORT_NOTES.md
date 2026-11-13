@@ -1243,15 +1243,93 @@ always shown.
 | T09 no observations | urgent with no reason; asked only "level of consciousness?" | "Needs vitals: BP, RR and HR not recorded (urgency score 24% also flags)"; first question asks for all observations |
 | P04 child's wrist, fracture | picture turned white; description "no fracture" next to a red mark | real picture; fracture marked with the child cut-off; "models built on adults" label; no blood-thinner question |
 | P05 child's wrist, normal | urgent at 3% with no reason; chat invented "due to HR 96" | amber "Needs vitals: BP and RR not recorded", child label, observations asked first; chat gives the right reason |
-| P11 head CT, bleed | poisoning, stroke and collapse to-dos | collapse gone; poisoning and stroke still shown, plus "X-ray of the injured area" though a CT is attached (model errors: pathway retraining) |
+| P11 head CT, bleed | poisoning, stroke and collapse to-dos | 11 Nov: collapse gone, poisoning and stroke still shown, plus "X-ray of the injured area" though a CT is attached. 12 Nov rules: poisoning and the X-ray to-do gone; stroke stays (pathway retraining) |
 
 **A3, left as it is (a decision):** three real level-3 patients (R04-R06) are flagged urgent at 15-26%. The cut-off
 stays at "catch 9 in 10 urgent patients": moving to 8 in 10 would un-flag only one of them, and the larger cause is that
 the urgency score moves 10-20 points with the AI-written complaint wording. That is for retraining (a steadier score),
 not for the cut-off. Retrained models go live only if they do at least as well on the same held-out test patients.
 
-**Checks after the fixes:** `app/tests/test_app.py` 81/81 (13 new checks); full-AI re-runs of the six cases above.
+**Rules added 12 Nov (the pathway model's off-topic flags, until it is retrained):** (1) a pathway flag is shown only
+if the notes support it: "possible poisoning" needs a drug, overdose or alcohol word; "collapse" needs collapse, faint
+or passed out (the raw model flags are still logged for learning); (2) a small cut to a finger or hand with normal
+numbers gets no "primary survey" and no "X-ray of the injured area" (kept if glass, a foreign body or crush is named);
+(3) a CT counts as imaging, so no X-ray to-do; (4) numbers measured by the ambulance crew are labelled "Before arrival
+(ambulance crew)" in the case file. Stroke flags (T03, T07, P11) are left on purpose: missing a stroke costs more than
+one extra to-do. Code review fixes in the same batch: questions about observations are dropped only when that
+observation is recorded; "no new displacement" is no longer read as "no displacement".
+
+**A4, answer key from the full AI (12-13 Nov, `app/build/ED_app_test_pack/expected_results.csv`):** all 40 cases run
+through the full AI on the laptop (`app/tools/make_test_pack.py`); all 24 cases with a fixed expected answer pass. 6
+are recorded rather than checked: T10a-c (the same patient typed three ways) and image cases whose marks are known model
+errors (P03 fracture mark on a normal X-ray; P07 and P10 amber pneumothorax). R01-R10 are compared with the true level
+from the dataset: 3 of 8 exact (R02, R09, R10), R08 one level more urgent; none under-triaged. R03-R06 are
+over-triaged (level 2-3 for true 3-5), the A3 decision above.
+
+**Guide screenshots, full AI (13 Nov):** main app by `app/tools/guide_walkthrough.mjs` (18/18 checks; the "fix a
+number" check first failed because the full AI re-scores inside the save request for minutes, so the script now waits
+for the edit panel to close); Gradio app (16-23) retaken by hand on the full AI (the 9 Nov ones still showed "Test
+mode" and the old labels). Found while doing it: after "Fix numbers" the case file's Observations still showed the
+note's old number (tile 82/60, text "BP 90/60"). Fixed in the shared back end: a line "Corrected by <name>: BP sys 82
+(was 90)" is added under Observations (what was typed stays). Testers are now asked to time each case (seconds from
+Submit to case file, plus one save, one add and one chat answer, and which computer), for real speed numbers.
+
+**Checks after the fixes:** `app/tests/test_app.py` 90/90 (22 new checks); full-AI re-runs of the six cases above.
 Not done by choice: one upload box for text and pictures (D4).
+
+### 5u. Retraining from the group-test feedback (13 Nov 2026; A2 children, A3 steadier score, B1 pathways)
+
+**Data, on vanda (A40, ~45 min in all, job 1551235 + 1551410):**
+- Children: KTAS starts at 15 and Caleb's NHAMCS table keeps 16+, so no model had seen a child. NHAMCS 2022 has 1,795
+  ED visits under 16 with a triage level (170 urgent). `training/child_data.py` reuses Caleb's coding unchanged
+  (vitals/ not edited), split 70/15/15 (seed 42): test 270 children, 26 urgent.
+- Reworded complaints: in the app MedGemma writes the complaint from the nurse's note, while the heads were trained
+  only on NHAMCS/KTAS coded wording; the urgency score moved 6.8 points on average (p90 17) when only the complaint's
+  wording changed. `training/reword_cards.py`: MedGemma (4-bit, as in the app) rewrites ONLY the complaint, as plain
+  words (r2: "I'm having chest pain and trouble breathing") and as nurse shorthand (r3: "CP + SOB"); the numbers and
+  the label stay. A first shorthand try (r1) was thrown away: it mostly echoed "**Reason for visit:** <same words>",
+  and 654 rows copied the example abbreviations onto patients who did not have those problems. r3 gives worked
+  examples as earlier conversation turns; empty, unchanged or chatty rows are dropped (17,028 reworded cards used).
+- Vectors: 4-bit MedGemma on vanda; the same patients' vectors match the laptop's (cosine 0.99999, urgency score
+  0.5 points apart on average), and vanda vectors are used for old and new heads alike.
+
+**Rule (agreed 12 Nov):** a retrained model goes in the app only if it does at least as well on the same held-out
+test patients (`training/steady_heads.py`, `training/child_heads.py`; outputs/metrics/steady_heads.json,
+child_heads.json). Test patients never used for training or for choosing C / cut-offs.
+
+| Urgency score (cut-off: catch 9 in 10 on KTAS validation) | Adults test AUROC (n 1,452) | Sens. + floor | Spec. + floor | Reworded test AUROC | Score change with rewording (mean / p90, points) | Urgent flag flips |
+|---|---|---|---|---|---|---|
+| In the app now | 0.827 | 0.838 | 0.648 | 0.788 | 6.8 / 17.0 | 14.7% |
+| **Trained with rewordings** | **0.828** | **0.864** | 0.622 | **0.820** | **4.0 / 10.1** | **8.3%** |
+| Rewordings + children | 0.826 | 0.835 | 0.650 | 0.816 | 4.9 / 12.6 | 9.5% |
+| Children added, no rewording | 0.827 | 0.860 | 0.621 | 0.787 | 7.1 / 17.7 | 14.8% |
+
+Verdict: the rewording head passes (AUROC not lower, sensitivity higher) and is steadier (half the urgent-flag flips);
+cost: specificity 0.648 -> 0.622 (more false alarms). Adding children to the adults' head did not help either group.
+
+| Children's test (270, 26 urgent) | AUROC (95% CI) | Sens. + floor | Spec. + floor | Flagged |
+|---|---|---|---|---|
+| Caleb's vitals model (adult) | 0.49 (0.38-0.62) | 0.92 | 0.10 | 244 |
+| App's MedGemma head (adult, child cut-off) | 0.70 (0.58-0.80) | 0.885 | 0.30 | 193 |
+| App's MedGemma head (adult cut-off, as in the app) | 0.70 | 0.885 | 0.42 | 164 |
+| Children's age + vitals + words (no MedGemma) | 0.76 (0.65-0.87) | 0.92 | 0.25 | 208 |
+| **Children's MedGemma head** | **0.79 (0.69-0.87)** | 0.885 | **0.475** | **151** |
+
+Verdict: the children's MedGemma head passes (same sensitivity, fewer false alarms, higher AUROC), but with 26 urgent
+children the intervals overlap; the "models built on adults" label stays either way. The adult vitals model is no
+better than chance on children (adult heart and breathing rate limits).
+
+| Pathway flags (shown as in the app: at most 3, lead rule) | Caught (orig) | False flags / patient (orig) | Caught (reworded) | False / patient (reworded) | Stroke false-flag rate (orig) |
+|---|---|---|---|---|---|
+| In the app now | 75.8% | 0.390 | 68.9% | 0.501 | 8.3% |
+| Trained with rewordings | 77.2% | 0.417 | 76.6% | 0.482 | 9.9% |
+
+Verdict: not adopted. It catches more, especially on reworded notes, but false flags on the original wording went up
+(0.390 -> 0.417, stroke 8.3% -> 9.9%), which fails the rule and is the opposite of what the testers asked for (B1).
+Next try: choose the cut-offs on validation to hold false flags at the old level.
+
+Not yet in the app (13 Nov): the rewording urgency head and the children's head pass, but putting them in changes the
+answer key, so the 40 cases must be re-run on the full AI first; the 13 Nov version for the group does not have them.
 
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more

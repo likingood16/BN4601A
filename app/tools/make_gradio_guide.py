@@ -130,6 +130,9 @@ the case-file wording, questions and to-dos are MedGemma's own, so check they ar
 Save, Download, Chat, the whiteboard stage, doctor, Clear and Put back.</li>
 <li>Try to break it: Submit without a name, open a picture with "Open a text file", the app open in two browser tabs at
 once, a long or messy note.</li>
+<li><b>Time it</b>: write in the <code>time_taken_s</code> column roughly how many seconds each case took from Submit until
+the case file appeared, and time one Save and re-score, one Add and one chat answer. Say whether you used Hugging Face
+or your own computer.</li>
 <li>Write what you found in <code>feedback_form.csv</code> (in the test pack) with <b>Gradio</b> in the "app" column.</li>
 </ul>
 

@@ -6,7 +6,7 @@
 | change what a screen shows | `app/frontend/src/` (React), then `npm run build` in `app/frontend` |
 | change the back end (patients, whiteboard, AI job) | `app/server.py` |
 | change how the AI reads notes, scores, writes the case file | `reasoning/src/` (start at `pipeline.py`) |
-| run the app's checks | `python app/tests/test_app.py` (81 checks, test mode) |
+| run the app's checks | `python app/tests/test_app.py` (90 checks, test mode) |
 | rebuild the guides / test pack / Telegram files / Space | `app/tools/` (outputs land in `app/build/`) |
 | train or evaluate a model | `reasoning/training/`, `reasoning/checks/`, vanda jobs in `reasoning/hpc/jobs/` |
 | find a result for the report | `reasoning/REPORT_NOTES.md` |
