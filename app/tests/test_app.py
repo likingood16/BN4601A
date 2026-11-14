@@ -273,6 +273,8 @@ def run():
           "Likely an non-ST-elevation myocardial infarction (NSTEMI). Treat as NSTEMI; NSTEMI is less likely." in fixed
           and "Corrected by a fixed rule" in fixed
           and charting.fix_stemi("STEMI", "ECG ST elevation V2-4") == "STEMI"
+          and charting.fix_stemi("a non-ST-elevation myocardial infarction (NSTEMI) is likely", "ECG ST depression")
+          == "a non-ST-elevation myocardial infarction (NSTEMI) is likely"
           and "cardiac enzymes (already done" in charting.mark_done_tests("Consider a full workup including cardiac enzymes.", done), fixed)
 
     # ---------------- case file window

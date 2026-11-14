@@ -447,7 +447,8 @@ def fix_stemi(text, notes_text):
     MedGemma's other words are kept; the label is corrected and the change is said once."""
     if not st_depression_only(notes_text):
         return text
-    new = re.sub(r"(?i)\bST[- ]elevation myocardial infarction(?:\s*\(STEMI\))?", "non-ST-elevation myocardial infarction (NSTEMI)", text)
+    # full-AI QC 14 Nov: MedGemma wrote "non-ST-elevation ... (NSTEMI)" correctly and this made it "non-non-..."
+    new = re.sub(r"(?i)(?<!non-)(?<!non )\bST[- ]elevation myocardial infarction(?:\s*\(STEMI\))?", "non-ST-elevation myocardial infarction (NSTEMI)", text)
     new = re.sub(r"(?<![A-Za-z-])STEMI\b", "NSTEMI", new)
     if new != text:
         new += ("\n\n_(Corrected by a fixed rule: the notes give ST depression, not ST elevation, so 'STEMI' was changed "
