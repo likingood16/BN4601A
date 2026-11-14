@@ -25,6 +25,11 @@ URL = "http://127.0.0.1:8002"
 IMAGE = HERE / "test_images" / "bone_xray_fracture_fracatlas_IMG0003458.jpg"
 CHEST = HERE / "test_images" / "chest_xray_multicare.jpg"
 CT = HERE / "test_images" / "ct_slice_multicare.jpg"
+# picture rule (14 Nov): MultiCaRe figures (CC BY 4.0) from the test pack (P11 epidural bleed; P07 resolved pneumothorax,
+# which the chest models mark amber "possible" only)
+CT_BLEED = HERE / "test_images" / "ct_head_bleed_multicare.jpg"
+CXR_AMBER = HERE / "test_images" / "chest_xray_pneumothorax_resolved_multicare.jpg"
+CALM = "30M fell off bike, hit head, now alert GCS 15. HR 78 BP 124/78 RR 14 sats 99% RA T 36.8 pain 2/10. walk-in"
 NURSE = {"who": "Nurse Tan", "role": "Triage nurse"}
 DOCTOR = {"who": "Dr Wong", "role": "Doctor"}                 # can look, can't change the board
 LEAD = {"who": "Dr Lim", "role": "Organising doctor"}
@@ -293,6 +298,41 @@ def run():
           and any(e["what"] == "Handover" and "Dr Lim" in e["text"] for e in p6["timeline"]))
     text = get(f"/api/patients/{a}/sbar.txt").text
     check("⬇ Download the SBAR: says it is an AI draft to check", "AI draft" in text and "Situation" in text)
+
+    # ---------------- picture rule (14 Nov): vitals + words + pictures all feed the priority, pictures only move UP
+    def with_picture(text, path, name):
+        with open(path, "rb") as fh:
+            return wait(new(text, files=[("files", (name, fh, "image/jpeg"))]).json()["id"])
+    ct = with_picture(CALM, CT_BLEED, "ct_head.jpg")
+    d = ct["decision"]
+    check("picture rule: a red CT bleed moves a patient with normal vitals to urgent, level 1-2, with the reason",
+          d["flagged"] and d["level"] <= 2 and d["picture"] == "CT shows bleeding inside the skull"
+          and "moved up: ct shows bleeding inside the skull (picture model)" in ct["reason"].lower(),
+          (d, ct["reason"], [i.get("findings") for n in ct["notes"] for i in n["images"]]))
+    check("picture rule: on the case file's triage section and the timeline",
+          "picture rule: CT shows bleeding inside the skull" in ct["report"]
+          and any("Moved up by the picture rule" in e["text"] for e in ct["timeline"]))
+    row = next(x for x in get("/api/board").json()["patients"] if x["id"] == ct["id"])
+    check("picture rule: the whiteboard row says why", "CT shows bleeding inside the skull" in row["reason"], row["reason"])
+    r = requests.put(f"{URL}/api/patients/{ct['id']}/fields", json={"fields": {**ct["fields"], "hr": 76}, "who": "Dr Lim"})
+    ct2 = get(f"/api/patients/{ct['id']}").json()
+    note(ct["id"], "neuro obs unchanged, GCS 15")
+    ct3 = wait(ct["id"])
+    check("picture rule: kept after Fix numbers and after a later note",
+          r.status_code == 200 and ct2["decision"]["picture"] and ct2["flagged"]
+          and ct3["decision"]["picture"] and ct3["decision"]["level"] <= 2
+          and sum("Moved up by the picture rule" in e["text"] for e in ct3["timeline"]) == 1,
+          (ct2["decision"], ct3["decision"]))
+    frac = with_picture(CALM.replace("hit head", "hurt R ankle"), IMAGE, "ankle.jpg")
+    check("picture rule: a red fracture does NOT move a patient up",
+          any(f["name"] == "Fracture" and f["flag"] for n in frac["notes"] for i in n["images"] for f in i.get("findings") or [])
+          and not frac["decision"]["picture"] and "picture" not in frac["reason"],
+          [i.get("findings") for n in frac["notes"] for i in n["images"]])
+    amber = with_picture("28M review, chest pain settled. HR 80 RR 16 BP 122/76 sats 98% RA. walk-in", CXR_AMBER, "cxr.jpg")
+    finds = [f for n in amber["notes"] for i in n["images"] for f in i.get("findings") or []]
+    check("picture rule: an amber 'possible pneumothorax' does NOT move a patient up",
+          any(f["name"] == "Pneumothorax" and f.get("possible") and not f["flag"] for f in finds)
+          and not amber["decision"]["picture"], finds)
     r = requests.post(f"{URL}/api/patients/{a}/rerun")
     check("Re-run AI works", r.status_code == 200 and wait(a)["status"] == "ready")
     tl = get(f"/api/patients/{a}").json()["timeline"]

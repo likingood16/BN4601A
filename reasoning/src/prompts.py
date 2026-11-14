@@ -6,12 +6,14 @@ result is written into the record, and MedGemma explains it and plans next steps
 URGENT_MAX_LEVEL = 2
 
 
-def urgency_line(p_urgent, flagged, floor_flag=False, floor_why=""):
+def urgency_line(p_urgent, flagged, floor_flag=False, floor_why="", picture=""):
     """One line added to the patient card, e.g.
     'URGENCY DECISION: score 78% -> FLAGGED URGENT (triage level 1-2).'
     floor_why: what set the safety floor, in words (visit.Decision.floor_why), so nobody has to guess: the chat
     invented a reason ("due to HR 96") for a child whose BP and RR were simply not measured (10 Nov, A1)."""
     why = f" (safety floor from vital signs{': ' + floor_why if floor_why else ''})" if floor_flag and flagged else ""
+    # picture rule (14 Nov): a red critical finding from a trained image model moved the patient up
+    why += f" (picture rule: {picture}, from a trained image model)" if picture and flagged else ""
     verdict = f"FLAGGED URGENT{why} -> triage level 1-2" if flagged else "not flagged -> triage level 3-5"
     return (f"URGENCY DECISION (validated score + safety floor): {p_urgent:.0%} chance of needing level 1-2 care, "
             f"{verdict}.")

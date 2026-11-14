@@ -113,7 +113,7 @@ class Patient:
                     "p_urgent": d.p_urgent, "flagged": d.flagged, "head_flag": d.head_flag, "floor_flag": d.floor_flag,
                     "level": d.level, "level_set": list(d.level_set), "news2": d.news2,
                     "floor_priority": d.floor_priority, "needs_obs": d.needs_obs, "missing": list(d.missing),
-                    "abnormal": list(d.abnormal)}}
+                    "abnormal": list(d.abnormal), "picture": getattr(d, "picture", "")}}
 
 
 CHILD_AGE = 16
@@ -138,6 +138,40 @@ def child_score():
 
 def child_note():
     return CHILD_NOTE_CHILD_SCORE if child_score() else CHILD_NOTE
+
+
+# Picture rule (14 Nov): red critical findings from the trained image models move a patient UP, like the vital-signs
+# floor. Red only (above the model's own cut-off); not amber "possible", not fractures, effusion or shadowing.
+CRITICAL_PICTURES = {"Pneumothorax": "chest X-ray shows a pneumothorax",
+                     "Bleeding inside the skull": "CT shows bleeding inside the skull"}
+
+
+def picture_finding(p):
+    """The critical red findings on this patient's pictures, in words ('' = none)."""
+    found = []
+    for n in p.notes:
+        for img in n["images"]:
+            for f in img.get("findings") or []:
+                words = CRITICAL_PICTURES.get(f.get("name"))
+                if words and f.get("flag") is True and words not in found:
+                    found.append(words)
+    return " and ".join(found)
+
+
+def apply_picture_rule(p, who="AI (picture rule)"):
+    """After the pictures are read, a later note or a numbers fix (each makes a new decision): put the rule back on."""
+    from visit import with_picture
+    finding = picture_finding(p)
+    d = p.visit.decision if p.visit else None
+    if not finding or d is None or getattr(d, "picture", "") == finding:
+        return
+    p.visit.decision = with_picture(d, finding)
+    # logged once per finding (a later note or a numbers fix re-scores and the rule is simply put back on)
+    if not any(f"picture rule: {finding}" in e["text"] for e in p.visit.timeline):
+        p.visit.log("Triage", f"Moved up by the picture rule: {finding} (trained image model); "
+                    + ("flagged urgent, " if not d.flagged else "")
+                    + (f"level {d.level} -> {p.visit.decision.level}" if d.level != p.visit.decision.level
+                       else f"already level {d.level}"), who)
 
 
 def triage_lines(p):
@@ -288,6 +322,7 @@ class Store:
             p.fields = {**p.fields, **added}
             p.visit = new_visit
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
+            apply_picture_rule(p)                   # a re-score keeps the picture rule
             p.visit.log("Triage", f"Numbers from a later note: {', '.join(f'{FIELD_NAMES[k]} {_show(v)}' for k, v in added.items())}"
                         f"; level {old} -> {p.visit.decision.level}", who)
         if p.report:
@@ -369,6 +404,7 @@ class Store:
                 image_lines.append(f"{img['name']} ({out['kind']}): {img['text']}")
         if later and new:
             self._read_later_numbers(p, ai, new)
+        apply_picture_rule(p)                       # vitals + words + pictures all feed the priority
         show_supported_pathways(p)
         self._step(p, "Writing the case file")
         first = not p.report
@@ -554,6 +590,7 @@ def fix_numbers(pid: str, body: FieldsIn):
         p.visit = new_visit
         if before:                                  # keep everything learned since arrival; only the card + decision change
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
+        apply_picture_rule(p, body.who)             # a numbers fix keeps the picture rule
         show_supported_pathways(p)
         p.visit.log("Triage", f"Numbers corrected; level {old} -> {p.visit.decision.level}", body.who)
         if p.report:
@@ -727,6 +764,9 @@ def _log_outcome(p, body):
                 fields={k: v for k, v in p.fields.items() if k != "chief_complaint"}, complaint=p.complaint(),
                 ai_level=d.level if d else None, p_urgent=d.p_urgent if d else None, flagged=d.flagged if d else None,
                 floor_priority=d.floor_priority if d else None, pathway_flags=flags.group(1) if flags else "",
+                # the models' own decision, apart from the picture rule, so the urgency score is judged on its own
+                model_flagged=d.model_flagged if d else None, model_level=(d.model_level or d.level) if d else None,
+                picture_rule=getattr(d, "picture", "") if d else "",
                 ai_todos=[{"text": t["text"], "done": t["done"]} for t in p.todos if t.get("ai")], who=body.who)
     if store.learning is not None and p.visit is not None:
         store.learning.save_vector(p.id, getattr(p.visit, "vector", None))
