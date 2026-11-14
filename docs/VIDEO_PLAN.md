@@ -46,7 +46,7 @@ brief's tasks so the markers can tick them off:
 | 1:00-1:25 | Case file, then "Questions for you to answer" → "alert, GCS 15" → Add → tile fills in | "Core 3 Report" then "Creative task: asks for what's missing" | "Second, the text. MedGemma, a transformer model built on Google's Gemma 3, which we fine-tuned with LoRA adapters, turns the note into a structured case file. It also lists what is missing, here the level of consciousness, to remind the professional what still needs checking. The answer is read back in, and the score is updated." |
 | 1:25-1:50 | Chat: "Why is he urgent?", then "Explain to his wife in simple words"; then SBAR handover tab → Write SBAR handover | "Core 2 Explain" then "Core 3 Report: SBAR" | "The chat answers questions about the case using everything recorded so far, including new results such as a troponin, and can explain it in plain language for the family. One click then writes an SBAR handover from everything gathered." |
 | 1:50-2:15 | P01 ankle X-ray: picture → AI marks → AI outline | "Core 1 Examine: object detection" | "Third, the images. In the emergency department, X-rays are the quickest imaging to get, including portable and handheld units at the bedside; CT and MRI take longer. So we use object detection: trained detectors mark fractures, collapsed lungs and brain bleeds, and a segmentation model outlines them. A mark means look here, not a diagnosis." |
-| 2:15-2:40 | Whiteboard: patients in priority order; set stage and doctor | "Creative task: live priority" | "Every patient goes onto the whiteboard, ranked by priority. The ranking is re-evaluated whenever new information arrives, and the board shows the suggested to-dos for each patient." |
+| 2:15-2:40 | Whiteboard: patients in priority order; then as Dr Lim (role Doctor): T01 → Change priority → level 3 → T01 moves down the board | "Creative task: live priority" | "Every patient goes onto the whiteboard, ranked by priority, and the ranking is re-evaluated whenever new information arrives. The AI and the safety rules can only raise a priority; a doctor can lower it, and the app keeps what the AI said and warns if new information makes it more urgent again." |
 | 2:40-2:50 | End card: "40/40 test cases · under 2 min per patient on a laptop", names, "Student prototype, not a medical device", picture credits | | "On 40 test cases it matched the expected output every time, at under two minutes per patient on a laptop." |
 
 Say it in your own words if a line feels stiff, but keep the facts the same.
@@ -78,7 +78,7 @@ Turn the microphone **off** in Snipping Tool (you record voice separately). Brow
 | clip4 | Click a question, type "alert, GCS 15", Add, wait, show the ACVPU tile filled | |
 | clip5 | Chat: the two questions, wait for each answer; then the SBAR handover tab, Write SBAR handover | ~20 s each, SBAR ~30 s |
 | clip6 | P01 (submit it earlier): Files tab, the three pictures | |
-| clip7 | Whiteboard: set Stage "Being seen", Doctor "Dr Lim" | |
+| clip7 | Role Doctor, name Dr Lim: T01 → Change priority → level 3 → Save; then the whiteboard with T01 moved down | after the coding chat has added the button (it will say when) |
 
 ---
 

@@ -18,7 +18,7 @@ you talk, or **while** the slides are on:
 | Start the full AI | In `BN4601A\app`: `python server.py`, open `http://127.0.0.1:8000`. The top must say **Full AI** | 10 min |
 | Fill the board | `python tools\demo_seed.py` (about 12-15 min, see C) | run once |
 | Where every button is | Read `ED_app_user_guide.pdf` Part A (10 min), then click through T01 yourself | 30 min |
-| The 6-minute demo path (section E) | Do it 3 times with a phone timer; aim for 5:30 | 40 min |
+| The 6-minute demo path (section E) | Do it 3 times with a phone timer; aim for 6:00 | 40 min |
 | The likely questions (section G) | Read them out loud once | 10 min |
 
 ## B. On the day: checklist (at 10:30)
@@ -86,8 +86,9 @@ It prints each one's level when it is done. Leave it running; don't type into th
 | 3:15 | **Chat** tab: ask *Why is he urgent and what should we do first?* (~20 s) | "The chat reads the whole case file, including what we just added: troponin, ECG." |
 | 3:45 | Ask: *Explain this to his wife in simple words*. Then the **SBAR handover** tab: **Write SBAR handover** (~30 s) | "Same case, explained for a non-specialist. And one click turns everything gathered so far, including the troponin and our questions, into an SBAR handover for the next doctor." |
 | 4:15 | Open **P01** (ankle). **Files** tab: picture, AI marks, AI outline | "Pictures: a trained fracture detector draws the box, a segmentation model outlines it, MedGemma describes it. A mark means 'look here', not a diagnosis." |
-| 5:00 | Back to the **Whiteboard**. On T01: set **Stage** to *Being seen*, **Doctor** *Dr Lim* | "The nurse and the organising doctor run the board. When a patient leaves, we record the final diagnosis, and the app learns from it." |
-| 5:30 | Stop | "That's our ED triage assistant: it sees, reasons, communicates and assists, and a person always decides." |
+| 4:45 | Top right: name **Dr Lim**, role **Doctor**. On T01: **Change priority** → level **3** → Save | "The AI and the safety rules can only raise a priority. Lowering it is a doctor's decision: say the pain has settled and the ECG is normal, the doctor sets level 3. The screen keeps what the AI said, and if new information makes it more urgent again, it warns the doctor." |
+| 5:15 | Back to the **Whiteboard**: T01 has moved down. On T01: set **Stage** to *Being seen*, **Doctor** *Dr Lim* | "The nurse and the organising doctor run the board. When a patient leaves, we record the final diagnosis, and the app learns from it." |
+| 5:45 | Stop | "That's our ED triage assistant: it sees, reasons, communicates and assists, and a person always decides." |
 
 ## F. If something goes wrong
 
