@@ -102,7 +102,7 @@ It prints each one's level when it is done. Leave it running; don't type into th
 
 | Question | Answer |
 |---|---|
-| How accurate is it? | Urgency score AUROC 0.83 on 1,452 held-out patients from Korea and the US; at our cut-off it catches about 9 in 10 urgent patients. 40/40 test cases match the expected answers |
+| How accurate is it? | Urgency score AUROC 0.83 on 1,452 held-out patients from Korea and the US; the cut-off is set to catch 9 in 10 urgent patients, and on the held-out test patients it caught 86% (with the vital-signs safety rule). 40/40 test cases match the expected answers |
 | Why does it over-triage? | On purpose: missing an urgent patient is worse. The cut-off catches 9 in 10, so some level-3 patients get flagged |
 | What did training improve? | LoRA on MedGemma: shorter, always structured answers, same safety; retrained urgency score moves half as much when the same complaint is worded differently |
 | Children? | A separate children's urgency score (trained on 1,256 children); the screen says which parts are still adult models |
