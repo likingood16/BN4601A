@@ -289,7 +289,7 @@ def _header(p):
                 "from what is recorded")
     else:
         flag = (f"🔴 **Urgent: flagged** · {d.p_urgent:.0%} chance of level 1–2 · {d.reason()}" if d.flagged
-                else f"Not flagged · {d.p_urgent:.0%} chance of level 1–2")
+                else f"**{S.group(d.level, False)}**: not flagged · {d.p_urgent:.0%} chance of level 1–2")
     parts = [f"## Level {d.level} · {p.bed} · {who} · {p.complaint()}",
              f"{flag} · levels it can't rule out: {', '.join(map(str, d.level_set))} · NEWS2 {d.news2} · "
              f"{p.stage} · {p.doctor}"]
@@ -607,6 +607,9 @@ def board_view(show_left=False):
         badge = (f'<span style="display:inline-block;min-width:38px;padding:6px 0;border-radius:8px;text-align:center;'
                  f'font-weight:800;font-size:20px;color:#111;background:{LEVEL_COLOUR.get(r["level"], "#b0bec5")}">'
                  f'{r["level"] or "…"}</span>')
+        if r.get("group"):                           # Urgent / Can wait / Minor (14 Nov)
+            badge += (f'<div style="margin-top:3px;font-size:12px;font-weight:700;white-space:nowrap;'
+                      f'color:{S.GROUPS[r["group"]]}">{r["group"]}</div>')
         who = r["who"] if r["who"] != "?, ?" else ("reading the note…" if r.get("status") == "working" else "age/sex not recorded")
         cells = [badge, esc(r["bed"]), f"<b>{esc(who)}</b><div>{esc(r['complaint'] or '')}</div>{why}", esc(r["stage"]),
                  esc(r["doctor"]), f"{waited // 60}h {waited % 60:02d}m", todo, ai]

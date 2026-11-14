@@ -404,6 +404,79 @@ def tidy_numbers(report):
     return re.sub(r"\b(\d{1,2})/0+10\b", r"\1/10", report)
 
 
+NOT_RECORDED_NAMES = {"mental": r"consciousness|level of consciousness|acvpu|avpu|gcs", "hr": r"hr|heart rate|pulse",
+                      "rr": r"rr|respiratory rate|resp rate", "spo2": r"spo2|sats|oxygen saturation",
+                      "sbp": r"bp|blood pressure", "dbp": r"bp|blood pressure", "temp_c": r"temp|temperature",
+                      "nrs_pain": r"pain|pain score"}
+
+
+def drop_not_recorded(report, keys):
+    """After a later note gives a number, 'Consciousness not recorded' must not stay next to 'Consciousness alert'
+    (Caleb's retest 14 Nov, T01). Removes '<name> not recorded' for those fields, in every section."""
+    names = "|".join(NOT_RECORDED_NAMES[k] for k in keys if k in NOT_RECORDED_NAMES)
+    if not names:
+        return report
+    gone = re.compile(rf"(?i)(,\s*|;\s*)?\b(?:{names})\b(?:\s*\([^)]*\))?:?\s+(?:is\s+|was\s+)?not recorded\b\.?")
+    out = []
+    for line in report.splitlines():
+        if line.startswith("## ") or "not recorded" not in line.lower():
+            out.append(line)
+            continue
+        new = gone.sub("", line)
+        new = re.sub(r"^(\s*[-*•]\s*)[,;]\s*", r"\1", new).rstrip(" ,;")
+        if new != line and not re.sub(r"[-*•\s.,;:]", "", new):
+            continue                                              # the whole line was the placeholder
+        out.append(new)
+    return "\n".join(out)
+
+
+def strip_preamble(text):
+    """MedGemma sometimes opens with 'Okay, here is the SBAR handover...:' (Caleb's retest 14 Nov)."""
+    return re.sub(r"(?is)^\s*(?:okay|ok|sure|certainly|of course|alright)\b[^\n]{0,160}?\b(?:here is|here's|below is)"
+                  r"[^\n]*\n+", "", text, count=1).lstrip()
+
+
+DONE_TESTS = {"ECG": r"\b(?:ecg|ekg|electrocardiogram)s?\b", "troponin": r"\b(?:trop|troponin|hs-?tni?|tni)s?\b",
+              "chest X-ray": r"\b(?:cxr|chest x-?rays?|chest radiograph)\b", "CT head": r"\bct (?:head|brain)\b",
+              "blood glucose": r"\b(?:bm|cbg|blood glucose|glucose|capillary glucose)\b", "lactate": r"\blactate\b",
+              "blood gas": r"\b(?:vbg|abg|blood gas)\b"}
+NOT_YET = r"(?i)\b(?:pending|awaiting|await|requested|ordered|to be done|to do|not done|not yet|tbc|will do|sent)\b"
+
+
+def tests_done(notes):
+    """{test name: time} for tests whose result is in a later note (not 'trop pending')."""
+    done = {}
+    for n in notes:
+        for clause in re.split(r"[.;\n]", n["text"]):
+            if re.search(NOT_YET, clause):
+                continue
+            for name, pat in DONE_TESTS.items():
+                if re.search(pat, clause, re.I) and name not in done:
+                    done[name] = n["time"]
+    return done
+
+
+def mark_done_tests(text, done):
+    """Caleb's retest 14 Nov: the SBAR and the T01 chat still said 'obtain urgent ECG and troponin' with both already
+    in the notes. MedGemma's words are kept; a sentence that asks for a done test gets a note saying when it was done
+    (a repeat or serial test is a real request, so those are left alone)."""
+    if not done:
+        return text
+    ask = re.compile(r"(?i)\b(?:obtain|order|get|perform|request|send|do|arrange|check|need|consider|recommend\w*)\b")
+    # full-AI check 14 Nov: "a full ECG review" is not asking for a new ECG
+    again = re.compile(r"(?i)\b(?:repeat|serial|again|second|2nd|follow-?up|trend|re-?check|recheck|another|review\w*|interpret\w*)\b")
+    def fix(sentence):
+        if not ask.search(sentence) or again.search(sentence):
+            return sentence
+        hits = [f"{name} at {t}" for name, t in done.items() if re.search(DONE_TESTS[name], sentence, re.I)]
+        if not hits:
+            return sentence
+        end = re.search(r"[.!]?\s*$", sentence).start()
+        return sentence[:end] + f" (already done: {', '.join(hits)}, see the notes)" + sentence[end:]
+    # a sentence ends at . ! ? followed by a space or the end, so "e.g." doesn't split it (full-AI check 14 Nov)
+    return re.sub(r"(?:[^.!?\n]|[.!?](?=[^\s]))+[.!?]?", lambda m: fix(m.group(0)), text)
+
+
 def add_line(report, heading, line):
     """Add one line to a section, keeping the order of the sections (an empty section's placeholder is replaced)."""
     pre, sections = _split(report)

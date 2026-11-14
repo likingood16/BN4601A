@@ -70,7 +70,11 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | Only the AI could set the priority | **Doctor's priority**: a Doctor or Organising doctor can lower or raise the level (reason optional) ("Change priority" on the case file). The AI's level stays underneath; a red "please review" warning shows if new information makes the AI more worried. Screenshots below | **Done, in `main`** |
 
-Test-mode checks: `python app/tests/test_app.py` = **114 PASS, 0 FAIL**.
+| + | Caleb's 2nd retest (14 Nov 13:27): SBAR and T01 chat said "obtain urgent ECG and troponin" with both already done; SBAR opened "Okay, here is…"; case file kept "Consciousness not recorded" next to "Consciousness alert" | Tests whose results are in a later note are listed for the chat; any AI sentence still asking for one gets "(already done: troponin at 11:05, see the notes)" (repeat/serial requests left alone). The "Okay, here is" opening is cut. "X not recorded" is removed once a later note gives X | **Done, in `main`** |
+
+| + | Only two groups (urgent / not urgent) | **Three groups** under the level on the whiteboard and case file: **Urgent** (flagged, or level 1-2; same 9-in-10 cut-off), **Can wait** (level 3), **Minor** (level 4-5). A label only: nothing is re-scored | **Done, in `main`** (React + Gradio) |
+
+Test-mode checks: `python app/tests/test_app.py` = **118 PASS, 0 FAIL**.
 
 Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
 - `priority_override_a_before.png`: case file before, with the **Change priority** button

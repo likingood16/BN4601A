@@ -147,3 +147,9 @@ a { color: var(--accent); }
 .review-warn { font-size: 14px; font-weight: 700; background: var(--red-bg); color: var(--red); border: 1px solid #f3b5b0; padding: 6px 10px; border-radius: 8px; margin-bottom: 6px; }
 .pill.doctor { border: 1px solid var(--accent); }
 .board .why.doctor { color: #90caf9; }
+
+/* three groups under the level badge (14 Nov): Urgent / Can wait / Minor */
+.board .group { margin-top: 3px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.board .g-urgent { color: #ef5350; }
+.board .g-can-wait { color: #f9a825; }
+.board .g-minor { color: #66bb6a; }

@@ -249,6 +249,21 @@ def run():
           ([e["text"] for e in p["timeline"]][-4:], p["report"].split("## Observations")[-1][:300]))
     check("case-file slips tidied: 'Pain 3/010' -> 'Pain 3/10' (retest 14 Nov, P05)",
           charting.tidy_numbers("Pain 3/010, pain 8/10") == "Pain 3/10, pain 8/10")
+    # Caleb's 2nd retest 14 Nov (13:27): three points
+    check("case file: 'Consciousness not recorded' goes once a later note says alert (Caleb 2nd retest)",
+          not re.search(r"(?i)consciousness:? not recorded", p["report"]) and charting.drop_not_recorded(
+              "## Observations\n- HR 112, Consciousness not recorded\n- Consciousness: not recorded\n- From a later note: "
+              "Consciousness alert", {"mental": "alert"}) == "## Observations\n- HR 112\n- From a later note: Consciousness alert",
+          p["report"].split("## Observations")[-1][:300])
+    check("SBAR: 'Okay, here is the SBAR…' opening is removed (Caleb 2nd retest)",
+          charting.strip_preamble("Okay, here is the SBAR handover:\n\n**Situation**\nx") == "**Situation**\nx"
+          and charting.strip_preamble("**Situation**\nOkay overall") == "**Situation**\nOkay overall")
+    done = charting.tests_done([{"time": "11:05", "text": "trop 85. ECG ST depression V4-6"}, {"time": "11:10", "text": "CXR pending"}])
+    marked = charting.mark_done_tests("Obtain urgent ECG and troponin. Repeat troponin at 3 h. Order a chest X-ray.", done)
+    check("asking for a test already done is marked 'already done' (Caleb 2nd retest: 'obtain urgent ECG and troponin')",
+          done == {"troponin": "11:05", "ECG": "11:05"}
+          and "troponin (already done: troponin at 11:05, ECG at 11:05, see the notes)." in marked
+          and "Repeat troponin at 3 h." in marked and "Order a chest X-ray." in marked, (done, marked))
 
     # ---------------- case file window
     fixes_before = get("/api/learning").json()["number_corrections"]
@@ -425,6 +440,11 @@ def run():
     board(c, {**LEAD, "cleared": True})
     lv = [x["level"] for x in get("/api/board").json()["patients"] if not x["leaving"]]
     check("board order: most urgent first", lv == sorted(lv))
+    rows = [x for x in get("/api/board").json()["patients"] if x["level"]]
+    check("three groups: Urgent (flagged or level 1-2) / Can wait (3) / Minor (4-5) on every board row (14 Nov)",
+          all(x["group"] == ("Urgent" if x["flagged"] or x["level"] <= 2 else "Can wait" if x["level"] == 3 else "Minor")
+              for x in rows) and len({x["group"] for x in rows}) >= 2,
+          [(x["level"], x["flagged"], x.get("group")) for x in rows])
     d = new("30M cut finger, HR 80").json()["id"]
     wait(d)
     check("remove a patient: viewer refused", requests.delete(f"{URL}/api/patients/{d}?role=Doctor").status_code == 403)

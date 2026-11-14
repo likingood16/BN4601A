@@ -47,6 +47,17 @@ FIELD_NAMES = {"age": "Age", "sex": "Sex", "hr": "HR", "sbp": "BP sys", "dbp": "
                "injured": "Injury (1/0)"}
 
 
+GROUPS = {"Urgent": "#d32f2f", "Can wait": "#f9a825", "Minor": "#388e3c"}
+
+
+def group(level, flagged):
+    """Three groups for the whiteboard (Alex, 14 Nov: urgent / not urgent was too coarse). Urgent = flagged (the same
+    9-in-10 cut-off) or level 1-2; Can wait = level 3; Minor = level 4-5. Only a label: nothing is re-scored."""
+    if level is None:
+        return ""
+    return "Urgent" if flagged or level <= 2 else "Can wait" if level == 3 else "Minor"
+
+
 def now():
     return time.strftime("%d %b %H:%M")
 
@@ -128,6 +139,7 @@ class Patient:
             out.update(level=o["level"], flagged=o["level"] <= 2, raised_by="", needs_obs=False,
                        reason=override_line(o), review=self.review(),
                        override={**o, "now_ai_level": d.level, "now_ai_flagged": d.flagged})
+        out["group"] = group(out["level"], out["flagged"])
         return out
 
     def full(self):
@@ -381,6 +393,7 @@ class Store:
         if p.report:
             p.report = charting.add_line(p.report, "Observations", "From a later note: " + ", ".join(
                 f"{FIELD_NAMES[k]} {_show(v)}" for k, v in added.items()))
+            p.report = charting.drop_not_recorded(p.report, added)
 
     def _work(self, p):
         ai = None if self.test else self.ai
@@ -690,7 +703,10 @@ def chat(pid: str, body: ChatIn):
         # ... and how long ago each was: given only "since 0830", MedGemma worked the window out backwards (9 Nov)
         times = (f"Time now: {now()}. Arrived: {p.notes[0]['time']}."
                  + (f" Times written in the notes: {'; '.join(f'{c} ({_ago(c)})' for c in clock)}." if clock else ""))
-        answer = store.ai.chat(p.visit, f"({times}) {body.text}")
+        done = charting.tests_done(p.notes[1:])
+        if done:                                   # Caleb's retest 14 Nov: the T01 chat asked for an ECG + troponin already done
+            times += f" Tests already done (results in the notes): {', '.join(f'{k} at {v}' for k, v in done.items())}."
+        answer = charting.mark_done_tests(store.ai.chat(p.visit, f"({times}) {body.text}"), done)
     p.chat += [{"role": "user", "text": body.text, "who": body.who, "time": now()},
                {"role": "ai", "text": answer, "who": "AI", "time": now()}]
     p.visit.log("Chat", f"Q ({body.who}): {body.text}")
@@ -720,7 +736,8 @@ def write_sbar(pid: str, body: WhoIn):
         if later:
             p.visit.unseen.append("For the handover: results and answers added after arrival (put every one of "
                                   "them in the SBAR, and don't ask for a test that is already done):\n" + "\n".join(later))
-        text = store.ai.sbar(p.visit)
+        text = charting.strip_preamble(store.ai.sbar(p.visit))
+        text = charting.mark_done_tests(text, charting.tests_done(p.notes[1:]))
     # 3rd check: even with them listed, MedGemma dropped the troponin and the ECG in one run out of three. So they are
     # also copied word for word under the AI's text: nothing typed after arrival can go missing from the handover
     asked = [f"- {m['time']} {m['who']}: {m['text']}" for m in p.chat if m["role"] == "user"]

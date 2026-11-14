@@ -16,6 +16,7 @@ function Row({ p, can, me, now, reload, stages }) {
   return (
     <tr className={`${p.leaving || p.cleared ? "gone" : ""} ${p.flagged && !p.leaving && !p.cleared ? (p.needs_obs ? "needs-row" : "urgent-row") : ""}`}>
       <td><span className="lvl" style={{ background: p.level ? LEVEL_COLOUR[p.level] : "#607d8b" }}>{p.level ?? "…"}</span>
+        {p.group && <div className={`group g-${p.group.replace(" ", "-").toLowerCase()}`}>{p.group}</div>}
         {p.raised_by && <span className="raised" title={p.raised_by}>⬆</span>}</td>
       <td>{p.bed}</td>
       <td>
