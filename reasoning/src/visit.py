@@ -50,6 +50,14 @@ def floor_facts(vitals_out):
     return {"missing": missing, "abnormal": abnormal}
 
 
+def with_picture(decision, finding):
+    """Picture rule (14 Nov), the same kind as the vital-signs safety floor: a red critical finding from a trained
+    image model (finding = e.g. 'CT shows bleeding inside the skull') flags the patient urgent, level at most 2. It
+    can only move a patient UP. The model's own answer stays in head_flag/floor_flag/model_level (model_flagged)."""
+    from dataclasses import replace
+    return replace(decision, picture=finding, flagged=True, level=min(decision.level, 2)) if finding else decision
+
+
 @dataclass(frozen=True)
 class Decision:
     """The front-door result. Frozen: later results can't change it."""
@@ -64,6 +72,15 @@ class Decision:
     model_level: int = 0           # the level model's own answer, before the urgent flag raised it (0 = not stored)
     missing: tuple = ()            # core vital signs not recorded, when that alone set the safety floor (floor_facts)
     abnormal: tuple = ()           # vital signs scoring 2-3 NEWS2 points, when the floor is 1-2
+    picture: str = ""              # picture rule (14 Nov): e.g. "CT shows bleeding inside the skull"; '' = not used
+
+    @property
+    def model_flagged(self):
+        """The trained score and the vital-signs floor alone, without the picture rule (kept apart for learning)."""
+        return bool(self.head_flag or self.floor_flag)
+
+    def picture_why(self):
+        return f"moved up: {self.picture} (picture model)" if self.picture else ""
 
     @property
     def needs_obs(self):
@@ -72,7 +89,8 @@ class Decision:
         "Urgent: needs vitals" in amber and name what to measure (group test 10 Nov, A1: P05, T09)."""
         # the urgency score may flag as well (T09 "feeling unwell, no obs": 24%), but with the core vital signs
         # missing it rests on the complaint words alone, so the first thing to do is still to measure them
-        return bool(self.floor_flag and self.missing)
+        # a critical picture finding makes the patient truly urgent (red), not "waiting for vitals" (amber)
+        return bool(self.floor_flag and self.missing and not self.picture)
 
     def floor_why(self):
         """What set the safety floor, for the record the chat and the case file read."""
@@ -84,12 +102,16 @@ class Decision:
         """A few words for the whiteboard: why this patient is flagged ('' if not flagged)."""
         if not self.flagged:
             return ""
-        if self.needs_obs:
-            return (f"Needs vitals: {_and(self.missing)} not recorded"
+        if self.floor_flag and self.missing:
+            text = (f"Needs vitals: {_and(self.missing)} not recorded"
                     + (f" (urgency score {self.p_urgent:.0%} also flags)" if self.head_flag else ""))
-        vitals = f"abnormal {_and(self.abnormal)}" if self.abnormal else "vital-signs safety rule"
-        score = f"urgency score {self.p_urgent:.0%}"
-        text = f"{score} + {vitals}" if self.head_flag and self.floor_flag else score if self.head_flag else vitals
+        elif self.model_flagged:
+            vitals = f"abnormal {_and(self.abnormal)}" if self.abnormal else "vital-signs safety rule"
+            score = f"urgency score {self.p_urgent:.0%}"
+            text = f"{score} + {vitals}" if self.head_flag and self.floor_flag else score if self.head_flag else vitals
+        else:
+            text = ""
+        text = "; ".join(t for t in (self.picture_why(), text) if t)          # the picture first: it is the newest
         return text[0].upper() + text[1:]
 
     def raised_by(self):
@@ -98,6 +120,8 @@ class Decision:
         own = self.model_level or self.level
         if not self.flagged or own <= self.level:
             return ""
+        if self.picture and not self.model_flagged:
+            return f"Level model said {own}; raised to {self.level} by the picture rule ({self.picture})."
         if self.needs_obs and not self.head_flag:
             return (f"Level model said {own}; held at {self.level} until {_and(self.missing)} "
                     f"{'is' if len(self.missing) == 1 else 'are'} measured (safety rule for missing vital signs).")
@@ -107,7 +131,7 @@ class Decision:
 
     def lines(self):
         options = ", ".join(str(x) for x in self.level_set)
-        out = [urgency_line(self.p_urgent, self.flagged, self.floor_flag, self.floor_why()),
+        out = [urgency_line(self.p_urgent, self.flagged, self.floor_flag, self.floor_why(), self.picture),
                f"TRIAGE LEVEL (trained model): {self.level} (levels it can't rule out: {options})."]
         return out + ([self.raised_by()] if self.raised_by() else [])
 

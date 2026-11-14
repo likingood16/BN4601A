@@ -1367,6 +1367,23 @@ aspirin 300 given") and a chat question, three runs (69-131 s each):
 - Finding for the report: a 4B model summarising a long multi-turn record loses specific later results; for safety
   the facts are carried by code, the AI writes the summary. (Same pattern as the numbers: rules check the AI.)
 
+**Picture rule: vitals + words + pictures all feed the priority (14 Nov, creative task).** Before, image results went
+into the case file, chat and SBAR but never changed the level or the urgent flag. Now a **red** critical finding from
+a trained image model (above that model's own cut-off) moves the patient **up**, the same kind of rule as the
+vital-signs safety floor: **pneumothorax** (VinDr chest detector) and **bleeding inside the skull** (head-CT bleed
+model) flag the patient urgent with level at most 2. It never moves anyone down. Not used: fractures, effusion,
+pneumonia-type shadowing, and amber "possible" marks (second model only), because those are not immediately
+life-threatening or not sure enough. The reason shows wherever the floor's reason shows (urgent pill, whiteboard,
+case-file triage section, the record the chat reads), e.g. "Moved up: CT shows bleeding inside the skull (picture
+model)", and the timeline logs it once. It survives a numbers fix and later notes (each re-score puts it back on). A
+patient with a critical picture and missing vitals shows red (urgent), not amber "needs vitals". Learning logs the
+models' own decision (`model_flagged`, `model_level`) apart from the rule, so the urgency score is still judged on its
+own. **Answer key:** from the saved full-AI findings of the 40 test cases, only P06 (pneumothorax), P11 and P12 (CT
+bleeds) have a red critical finding, and all three were already urgent at level 2; the fractures (P01, P03, P04)
+stay level 4 and the amber-only P07 and P10 are unchanged. So no level or flag changes; only the reason text on P06,
+P11, P12 gains the picture. Test checks: a CT bleed moves a patient with normal vitals (urgency score 3%) to urgent
+level 2 with the reason; a red fracture and an amber pneumothorax do not (106 PASS, 0 FAIL).
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.
