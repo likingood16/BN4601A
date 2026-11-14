@@ -303,6 +303,7 @@ export default function Case({ id, me, meta }) {
               ? <span className="pill needs" title="Two or more of BP, RR and HR are not recorded, so the patient can't be scored. The safety rule treats that as urgent until they are measured.">Urgent: needs vitals · {d.missing.join(" and ")} not recorded, measure {d.missing.length > 1 ? "them" : "it"}</span>
               : <span className={`pill ${d.flagged ? "red" : ""}`}>{d.flagged ? "Urgent: flagged" : `${p.group}: not flagged`} · {Math.round(d.p_urgent * 100)}% chance of level 1–2{d.flagged && p.reason ? ` · ${p.reason}` : ""}</span>)}
             {d && !p.override && d.needs_obs && <span className="pill">{Math.round(d.p_urgent * 100)}% chance of level 1–2 from what is recorded</span>}
+            {d && Object.keys(d.groups || {}).length > 0 && <span className="pill groups" title="The level classifier's chance of each group (levels 1-2 / 3 / 4-5). The group shown on the board also uses the urgent flag and any doctor's change.">Classifier: {Object.entries(d.groups).map(([k, v]) => `${k} ${Math.round(v * 100)}%`).join(" · ")}</span>}
             {d && <span className="pill">Levels it can't rule out: {d.level_set.join(", ")}</span>}
             {p.raised_by && <span className="pill amber" title="The urgent flag catches 90% of urgent patients, so it also raises some who aren't. Use your judgement.">⬆ {p.raised_by}</span>}
             {d && <span className="pill">NEWS2 {d.news2}{p.child ? " (adult score)" : ""}</span>}

@@ -73,6 +73,15 @@ class Decision:
     missing: tuple = ()            # core vital signs not recorded, when that alone set the safety floor (floor_facts)
     abnormal: tuple = ()           # vital signs scoring 2-3 NEWS2 points, when the floor is 1-2
     picture: str = ""              # picture rule (14 Nov): e.g. "CT shows bleeding inside the skull"; '' = not used
+    level_probs: tuple = ()        # the level classifier's chance of each level 1..5 (14 Nov; () = not stored)
+
+    def groups(self):
+        """The level classifier's own answer in three groups (Alex, 14 Nov): Urgent = level 1-2, Can wait = 3,
+        Minor = 4-5, as chances that add up to 1. {} when not stored (an older board)."""
+        p = list(getattr(self, "level_probs", ()) or ())
+        if len(p) != 5:
+            return {}
+        return {"Urgent": p[0] + p[1], "Can wait": p[2], "Minor": p[3] + p[4]}
 
     @property
     def model_flagged(self):

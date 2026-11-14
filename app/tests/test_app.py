@@ -467,6 +467,10 @@ def run():
           and tm["Being seen"]["since"] == created and tm["Gone for imaging"]["label"] == "At imaging"
           and tm["Gone for imaging"]["since"] >= t0 - 1 and tm["Discharged home"]["restarted"], tm)
     board(d0, {**LEAD, "stage": "Being seen"})
+    g = get(f"/api/patients/{rows_id}").json()["decision"]["groups"] if (rows_id := next(
+        (x["id"] for x in get("/api/board").json()["patients"] if x["level"]), None)) else {}
+    check("the level classifier's three groups are shown as chances (Urgent / Can wait / Minor add up to 100%)",
+          list(g) == ["Urgent", "Can wait", "Minor"] and abs(sum(g.values()) - 1) < 0.01, g)
     rows = [x for x in get("/api/board").json()["patients"] if x["level"]]
     check("three groups: Urgent (flagged or level 1-2) / Can wait (3) / Minor (4-5) on every board row (14 Nov)",
           all(x["group"] == ("Urgent" if x["flagged"] or x["level"] <= 2 else "Can wait" if x["level"] == 3 else "Minor")

@@ -142,6 +142,7 @@ class EDPipeline:
                         level=min(level, 2) if flagged else level,
                         level_set=tuple(int(i) + 1 for i in np.flatnonzero(probs >= 1 - self.cutoff)),
                         floor_priority=vitals_out["floor_priority"], news2=vitals_out["news2"], model_level=level,
+                        level_probs=tuple(round(float(x), 4) for x in probs),
                         **floor_facts(vitals_out))
 
     def triage(self, patient, explain=True):
