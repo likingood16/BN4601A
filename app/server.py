@@ -387,7 +387,7 @@ class Store:
         p.found.setdefault("by", {})
         p.found.setdefault("warnings", [])
         for k, v in got.items():
-            if k == "chief_complaint" or k not in FIELD_NAMES or k in ("age", "sex"):
+            if k == "chief_complaint" or k not in FIELD_NAMES or k in ("age", "sex", "ambulance"):   # never change after arrival
                 continue
             if p.fields.get(k) in (None, ""):
                 added[k] = v
@@ -404,7 +404,7 @@ class Store:
                                            f"({info['found'].get(k, '')!r}), the tile has {_show(p.fields[k])}; "
                                            "use Fix numbers to change it")
         p.found["warnings"] += [w for w in info.get("warnings", []) if w.startswith("please check") and
-                                not any(x in w for x in ("Age", "Sex")) and
+                                not any(x in w for x in ("Age", "Sex", "Ambulance")) and
                                 any(c["field"] in added for c in info.get("check", []))]
         if not added:
             return
