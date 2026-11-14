@@ -25,8 +25,7 @@ patient on a shared whiteboard. The same back end as the React app (`app/server.
 
 ## How it is set up
 
-- The Space holds the **code only** (made by `app/tools/make_space_bundle.py --push` from the GitHub branch
-  `ed-app-group-test`).
+- The Space holds the **code only** (made by `app/tools/make_space_bundle.py` from the GitHub branch `main`).
 - MedGemma comes from `unsloth/medgemma-1.5-4b-it` (the same weights as `google/medgemma-1.5-4b-it`, not gated).
 - The trained parts (urgency, level and pathway heads; case-file, question and number adapters; the image adapter;
   the picture sorter, fracture, chest X-ray and head-CT models) are in the group's model repo

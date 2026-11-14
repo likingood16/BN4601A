@@ -19,7 +19,7 @@ function Row({ p, can, me, now, reload, stages }) {
         {p.raised_by && <span className="raised" title={p.raised_by}>⬆</span>}</td>
       <td>{p.bed}</td>
       <td>
-        <a href={`#/case/${p.id}`} target="ed_case_file"><b>{whoLine(p.who)}</b></a>
+        <a href={`#/case/${p.id}`} target="ed_case_file"><b>{whoLine(p.who, p.status)}</b></a>
         <div className="sub">{p.complaint || (p.status === "working" ? "AI working…" : "")}</div>
         {p.reason && <div className={`why ${p.needs_obs ? "needs" : ""}`}>{p.reason}</div>}
         {p.status === "working" && <div className="sub">⏳ {p.progress}</div>}

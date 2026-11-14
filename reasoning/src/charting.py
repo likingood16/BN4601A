@@ -399,13 +399,21 @@ def set_section(report, heading, lines):
     return f"{pre}\n\n{body}" if pre else body
 
 
+def tidy_numbers(report):
+    """Slips MedGemma makes when it copies a score out of the note: 'Pain 3/010' for 'pain 3/10' (retest 14 Nov, P05)."""
+    return re.sub(r"\b(\d{1,2})/0+10\b", r"\1/10", report)
+
+
 def add_line(report, heading, line):
     """Add one line to a section, keeping the order of the sections (an empty section's placeholder is replaced)."""
     pre, sections = _split(report)
     if heading not in sections and TRIAGE in sections:            # a missing section goes before the triage section
         triage = sections.pop(TRIAGE)
         sections[heading], sections[TRIAGE] = [], triage
-    sections[heading] = [l for l in sections.get(heading, []) if not _empty(l)] + [f"- {line}"]
+    lines = sections.get(heading, [])
+    # a lone placeholder ("- not recorded") goes; real lines like "BP not recorded" stay (they say what is missing)
+    lines = [] if all(_empty(l) for l in lines) and len(lines) <= 1 else lines
+    sections[heading] = lines + [f"- {line}"]
     body ="\n\n".join(f"## {h}\n" + ("\n".join(ls) if ls else "- not recorded") for h, ls in sections.items())
     return f"{pre}\n\n{body}" if pre else body
 

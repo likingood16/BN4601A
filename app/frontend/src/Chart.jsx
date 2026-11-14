@@ -5,7 +5,8 @@ import { api, usePoll } from "./api";
 
 const isPicture = (f) => f.type.startsWith("image/") || /\.(dcm|tif+)$/i.test(f.name);
 // "?, ?" before the numbers are read looked broken (5q #11)
-export const whoLine = (who) => (who === "?, ?" ? "reading the note…" : who);
+// "?, ?" = no age or sex yet: still reading, or (retest 14 Nov, T09) the note simply has neither
+export const whoLine = (who, status) => (who === "?, ?" ? (status === "working" ? "reading the note…" : "age/sex not recorded") : who);
 
 export function ImagePicker({ files, setFiles, compact = false, onReject = alert }) {
   const [over, setOver] = useState(false);
@@ -83,7 +84,7 @@ export default function Chart({ me, setMe }) {
 
   useEffect(() => { if (target !== "new") setCurrent(target); }, [target]);
 
-  const label = (x) => `${x.bed} · level ${x.level ?? "…"} · ${whoLine(x.who)} · ${(x.complaint || "…").slice(0, 40)}`;
+  const label = (x) => `${x.bed} · level ${x.level ?? "…"} · ${whoLine(x.who, x.status)} · ${(x.complaint || "…").slice(0, 40)}`;
   const words = find.toLowerCase().split(/\s+/).filter(Boolean);
   const all = board?.patients || [];
   // every word must match; "P12" matches bed P12 exactly, not P120
@@ -170,7 +171,7 @@ export default function Chart({ me, setMe }) {
           </div>
         </div>
         <div className="card">
-          <h3>Questions for you to answer {p && <>for {p.bed} · {whoLine(p.who)} · <a href={`#/case/${p.id}`} target="ed_case_file">open case file</a></>}</h3>
+          <h3>Questions for you to answer {p && <>for {p.bed} · {whoLine(p.who, p.status)} · <a href={`#/case/${p.id}`} target="ed_case_file">open case file</a></>}</h3>
           {/* the answer box sits ABOVE the questions so it doesn't jump down when they arrive (7 Nov stress test) */}
           {p && (
             <div className="row" style={{ marginBottom: 12 }}>

@@ -74,6 +74,7 @@ class Patient:
     pending: list = field(default_factory=list)     # note indexes the AI hasn't put in the case file yet
     report_seen_by_chat: str = ""
     early_log: list = field(default_factory=list)   # board changes made before the AI's first result
+    sbar: dict = field(default_factory=dict)        # last SBAR handover: {text, who, time, n_notes, n_chat}
 
     def complaint(self):
         """The case file's 'Presenting complaint', so a person's correction shows on the header and the whiteboard.
@@ -106,6 +107,7 @@ class Patient:
         return {**self.summary(), "notes": self.notes, "fields": self.fields, "found": self.found,
                 "field_names": FIELD_NAMES, "report": self.report, "report_by": self.report_by,
                 "questions": self.questions, "chat": self.chat, "error": self.error,
+                "sbar": getattr(self, "sbar", {}),           # boards saved before 14 Nov have no SBAR
                 "timeline": self.visit.timeline if self.visit else [],
                 "decision": None if d is None else {
                     "p_urgent": d.p_urgent, "flagged": d.flagged, "head_flag": d.head_flag, "floor_flag": d.floor_flag,
@@ -247,10 +249,56 @@ class Store:
         Image.fromarray(np.asarray(picture).astype("uint8")).save(self.images / name)
         return name
 
+    def _read_later_numbers(self, p, ai, new):
+        """Retest 14 Nov (Caleb, T01): an answer like 'alert, GCS 15' went into the case file, but the ACVPU tile and
+        the score still said 'not recorded', because only the first note's numbers were read. Later notes (answers and
+        added information) are now read the same way as the first note: MedGemma and the rules both read them
+        (charting.read_numbers). A number that was missing is filled in and the urgency and level are scored again.
+        A different value for a number that is already there is NOT changed: it goes to the nurse as 'please check'
+        (they change it with Fix numbers), so a later note can't silently move the decision."""
+        text = "\n".join(n["text"] for n in new if n["text"].strip())
+        if not text:
+            return
+        self._step(p, "Reading numbers in the new note")
+        got, info = charting.read_numbers(ai, text)
+        added, who = {}, new[-1]["who"]
+        p.found.setdefault("found", {})
+        p.found.setdefault("by", {})
+        p.found.setdefault("warnings", [])
+        for k, v in got.items():
+            if k == "chief_complaint" or k not in FIELD_NAMES:
+                continue
+            if p.fields.get(k) in (None, ""):
+                added[k] = v
+                p.found["found"][k] = info["found"].get(k, "")
+                p.found["by"][k] = info["by"].get(k, "rules")
+                p.found.setdefault("check", []).extend(c for c in info.get("check", []) if c["field"] == k)
+            elif not charting._agree(k, p.fields[k], v):
+                p.found["warnings"].append(f"please check {FIELD_NAMES[k]}: a later note says {_show(v)} "
+                                           f"({info['found'].get(k, '')!r}), the tile has {_show(p.fields[k])}; "
+                                           "use Fix numbers to change it")
+        p.found["warnings"] += [w for w in info.get("warnings", []) if w.startswith("please check") and
+                                any(c["field"] in added for c in info.get("check", []))]
+        if not added:
+            return
+        old = p.visit.decision.level
+        new_visit = self.ai.triage({**p.fields, **added}, explain=False)
+        with self.state_lock:
+            before = p.visit
+            p.fields = {**p.fields, **added}
+            p.visit = new_visit
+            p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
+            p.visit.log("Triage", f"Numbers from a later note: {', '.join(f'{FIELD_NAMES[k]} {_show(v)}' for k, v in added.items())}"
+                        f"; level {old} -> {p.visit.decision.level}", who)
+        if p.report:
+            p.report = charting.add_line(p.report, "Observations", "From a later note: " + ", ".join(
+                f"{FIELD_NAMES[k]} {_show(v)}" for k, v in added.items()))
+
     def _work(self, p):
         ai = None if self.test else self.ai
         doing = list(p.pending)                     # notes added from now on wait for the next round
         new = [p.notes[i] for i in doing]
+        later = p.visit is not None                 # these notes come after the first one: read their numbers too
         if p.visit is None:                         # first note: numbers -> urgency + level
             self._step(p, "Pulling out the numbers")
             text = "\n".join(n["text"] for n in p.notes)
@@ -319,6 +367,8 @@ class Store:
                 if hint:
                     img["text"] += f" The note mentions: {', '.join(hint)}."
                 image_lines.append(f"{img['name']} ({out['kind']}): {img['text']}")
+        if later and new:
+            self._read_later_numbers(p, ai, new)
         show_supported_pathways(p)
         self._step(p, "Writing the case file")
         first = not p.report
@@ -331,6 +381,7 @@ class Store:
             imaging = charting._split(p.report)[1].get("Imaging", [])
             if first and image_lines and all(charting._empty(l) for l in imaging):   # the AI left the readings out
                 p.report = charting.merge_into(p.report, charting.file_notes([], image_lines))
+            p.report = charting.tidy_numbers(p.report)
             # the triage section always shows the trained models' decision, word for word
             p.report = charting.set_section(p.report, charting.TRIAGE, triage_lines(p))
             if first or not p.report_by:
@@ -553,6 +604,53 @@ def chat(pid: str, body: ChatIn):
     p.visit.log("Chat", f"Q ({body.who}): {body.text}")
     store.changed()
     return {"answer": answer}
+
+
+class WhoIn(BaseModel):
+    who: str
+
+
+@app.post("/api/patients/{pid}/sbar")
+def write_sbar(pid: str, body: WhoIn):
+    """Core task 3: an SBAR handover for the next doctor, written by MedGemma from everything gathered so far (the
+    record, every later note and answer, the latest case file and the chat). A draft for a person to check."""
+    p = store.get(pid)
+    if p.visit is None or p.status == "working":
+        raise HTTPException(409, "Wait until the AI has finished reading the notes")
+    with store.chat_lock:                                     # same conversation as the chat, so it uses the chat
+        if p.report and p.report != p.report_seen_by_chat:
+            p.visit.unseen.append("CURRENT CASE FILE:\n" + p.report)
+            p.report_seen_by_chat = p.report
+        # full-AI check 14 Nov (T01): the handover had the ECG and GCS but dropped "trop 85" and asked for a troponin,
+        # so every later note and answer is listed again right before the request
+        # (2nd check: still "please obtain troponin" with "trop 85" listed: MedGemma didn't read "trop" as troponin)
+        later = [f"- {n['time']} {n['who']}: " + re.sub(r"(?i)\btrop\b", "troponin", n["text"]) for n in p.notes[1:]]
+        if later:
+            p.visit.unseen.append("For the handover: results and answers added after arrival (put every one of "
+                                  "them in the SBAR, and don't ask for a test that is already done):\n" + "\n".join(later))
+        text = store.ai.sbar(p.visit)
+    # 3rd check: even with them listed, MedGemma dropped the troponin and the ECG in one run out of three. So they are
+    # also copied word for word under the AI's text: nothing typed after arrival can go missing from the handover
+    asked = [f"- {m['time']} {m['who']}: {m['text']}" for m in p.chat if m["role"] == "user"]
+    if later:
+        text += ("\n\n**Added after arrival (copied from the notes, not written by the AI)**\n"
+                 + "\n".join(f"- {n['time']} {n['who']}: {n['text']}" for n in p.notes[1:]))
+    if asked:
+        text += "\n\n**Asked in the chat**\n" + "\n".join(asked)
+    p.sbar = {"text": text, "who": body.who, "time": now(), "n_notes": len(p.notes), "n_chat": len(p.chat)}
+    p.visit.log("Handover", f"SBAR handover written by the AI (asked by {body.who}); for a person to check")
+    store.changed()
+    return p.sbar
+
+
+@app.get("/api/patients/{pid}/sbar.txt", response_class=PlainTextResponse)
+def sbar_text(pid: str):
+    p = store.get(pid)
+    s = getattr(p, "sbar", {})
+    if not s:
+        raise HTTPException(404, "No SBAR handover written yet")
+    return (f"SBAR handover: {p.bed} ({_who_line(p.fields)})\nWritten by the AI at {s['time']}, asked by {s['who']}. "
+            f"AI draft: check before use.\n\n{s['text']}\n")
 
 
 def _ago(written, clock=None):

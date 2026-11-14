@@ -41,7 +41,10 @@ VISIT_CHAT_SYSTEM = CHAT_SYSTEM + (
     "and say 'not recorded' when something is missing. "
     # group test 10 Nov (D1): "the chatbot just regurgitates what the user inputs" - it restated the record first
     "Answer the question that was asked, in your first sentence. Keep it short: at most 5 short sentences or "
-    "bullet points. Do not repeat or summarise the record unless you are asked to.")
+    "bullet points. Do not repeat or summarise the record unless you are asked to. "
+    # group retest 14 Nov (Caleb, P05): "NEWS2 score is 1, indicating a HIGH risk" for a child with BP and RR missing
+    "NEWS2 0-4 is a low score. If the record says the risk was escalated because core vital signs could not be "
+    "recorded, say the risk is treated as high because those signs are missing, not because the score is high.")
 
 FRACTURE_QUESTION = ("Is a bone fracture visible on this X-ray? Give a short reason, then finish with a last line "
                      "that says exactly ANSWER: YES or ANSWER: NO.")

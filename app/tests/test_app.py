@@ -6,6 +6,7 @@ Each check prints PASS or FAIL. One FAIL = the button doesn't do what it says. A
 check that the board and case files survive a restart. The buttons are listed in APP_DESIGN.md (section 11).
 """
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -228,6 +229,21 @@ def run():
     p = wait(a)
     check("answering a question adds it to the notes", any("NKDA" in n["text"] for n in p["notes"]))
     check("Rebuilt case file keeps the earlier notes", "aspirin 300" in p["report"])
+    # retest 14 Nov (Caleb, T01): an answered number reached the case file but not the tiles or the score
+    note(a, "What is the level of consciousness (AVPU/GCS)? → alert, GCS 15. T 37.9. HR 140")
+    p = wait(a)
+    f = p["fields"]
+    check("answer: missing numbers are read into the tiles (consciousness, temperature)",
+          f.get("mental") == "alert" and f.get("temp_c") == 37.9, f)
+    check("answer: a number already on a tile is not changed, the nurse is asked to check it",
+          f.get("hr") == 118 and any(w.startswith("please check HR") for w in p["found"].get("warnings", [])),
+          p["found"].get("warnings"))
+    check("answer: re-scored and logged; the case file says what was read",
+          any("Numbers from a later note" in e["text"] for e in p["timeline"])
+          and re.search(r"From a later note: [^\n]*Consciousness alert", p["report"]) is not None,
+          ([e["text"] for e in p["timeline"]][-4:], p["report"].split("## Observations")[-1][:300]))
+    check("case-file slips tidied: 'Pain 3/010' -> 'Pain 3/10' (retest 14 Nov, P05)",
+          charting.tidy_numbers("Pain 3/010, pain 8/10") == "Pain 3/10, pain 8/10")
 
     # ---------------- case file window
     fixes_before = get("/api/learning").json()["number_corrections"]
@@ -259,6 +275,24 @@ def run():
     p5 = wait(a)
     check("a later note is added without losing the person's edit", "Crushing central chest pain" in p5["report"]
           and "surgical team aware" in p5["report"] and p5["report_by"] == "Dr Lim")
+    # Core task 3: SBAR handover from everything gathered (later notes, answers, the chat)
+    check("SBAR: nothing to download before one is written", get(f"/api/patients/{a}/sbar.txt").status_code == 404)
+    r = requests.post(f"{URL}/api/patients/{a}/sbar", json={"who": "Dr Lim"})
+    s = r.json() if r.status_code == 200 else {}
+    check("SBAR handover: four headings, written for the person who asked",
+          all(h in s.get("text", "") for h in ("Situation", "Background", "Assessment", "Recommendation"))
+          and s.get("who") == "Dr Lim", r.text[:200])
+    check("SBAR uses the later notes and the chat, not just the first note",
+          "aspirin 300" in s.get("text", "") and "surgical team aware" in s.get("text", "")
+          and "1 chat turn" in s.get("text", ""), s.get("text"))
+    check("SBAR: later notes and chat questions copied word for word under the AI's text (none can go missing)",
+          "Added after arrival (copied from the notes" in s.get("text", "")
+          and "Asked in the chat" in s.get("text", "") and "What should we rule out?" in s.get("text", ""), s.get("text"))
+    p6 = get(f"/api/patients/{a}").json()
+    check("SBAR: kept on the patient and logged on the timeline", p6["sbar"].get("text") == s.get("text")
+          and any(e["what"] == "Handover" and "Dr Lim" in e["text"] for e in p6["timeline"]))
+    text = get(f"/api/patients/{a}/sbar.txt").text
+    check("⬇ Download the SBAR: says it is an AI draft to check", "AI draft" in text and "Situation" in text)
     r = requests.post(f"{URL}/api/patients/{a}/rerun")
     check("Re-run AI works", r.status_code == 200 and wait(a)["status"] == "ready")
     tl = get(f"/api/patients/{a}").json()["timeline"]

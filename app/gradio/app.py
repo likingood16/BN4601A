@@ -154,6 +154,11 @@ def _gpu_chat(visit, text):
     return AI.chat(visit, text), visit
 
 
+@GPU(duration=90)
+def _gpu_sbar(visit):
+    return AI.sbar(visit), visit
+
+
 class _RemoteAI:
     """On ZeroGPU the model only answers inside GPU calls: these send fix-numbers and chat there."""
 
@@ -170,6 +175,11 @@ class _RemoteAI:
         answer, back = _gpu_chat(visit, text)
         visit.messages, visit.unseen = back.messages, back.unseen
         return answer
+
+    def sbar(self, visit):
+        text, back = _gpu_sbar(visit)
+        visit.messages, visit.unseen = back.messages, back.unseen
+        return text
 
 
 if ZERO:                                                    # (test mode too, so BN4601A_FAKE_ZERO checks this path)
@@ -245,7 +255,7 @@ def _choices(new=True, cleared=False, everyone=False):
                                                        for r in S.board(cleared=True)["patients"]]
     for r in rows:
         level = r["level"] if r["level"] else "…"
-        who = "reading the note…" if r["who"] == "?, ?" else r["who"]
+        who = r["who"] if r["who"] != "?, ?" else ("reading the note…" if r.get("status") == "working" else "age/sex not recorded")
         out.append((f"{r['bed']} · level {level} · {who} · {(r['complaint'] or '')[:45]}", r["id"]))
     return out
 
@@ -352,7 +362,21 @@ def case_view(pid):
     chat = [{"role": "user" if m["role"] == "user" else "assistant",
              "content": (f"**{m['who']}:** " if m["role"] == "user" else "") + m["text"]} for m in (p.chat if p else [])]
     return (_header(p), rows, warnings, f"{by}\n\n{report}", notes, pics, pic_text, timeline,
-            gr.update(choices=questions, value=None), todos, remove, chat, _case_file_path(p), store.version)
+            gr.update(choices=questions, value=None), todos, remove, chat, _case_file_path(p), *_sbar_view(p),
+            store.version)
+
+
+def _sbar_view(p):
+    """The SBAR handover tab: the text and the file its download button holds (None until one is written)."""
+    s = getattr(p, "sbar", {}) if p else {}
+    if not s:
+        return "_No handover yet. Press **Write SBAR handover** when you are ready to hand over._", None
+    stale = len(p.notes) > s["n_notes"] or len(p.chat) > s["n_chat"]
+    head = (f"_Written by the AI at {s['time']}, asked by {s['who']}. A draft: check it before you hand over._"
+            + ("\n\n⚠ **New information was added after this was written: write it again to include it.**" if stale else ""))
+    path = Path(tempfile.gettempdir()) / f"SBAR_{p.bed}.txt"
+    path.write_text(S.sbar_text(p.id), encoding="utf-8")
+    return f"{head}\n\n{s['text']}", str(path)
 
 
 def _case_file_path(p):
@@ -371,7 +395,7 @@ def tick(pid, seen, labels):
     choices = _choices(new=False, everyone=True)
     new_list = (gr.update(choices=choices), choices) if choices != labels else (gr.skip(), gr.skip())
     if store.version == seen:
-        return [gr.skip()] * 14 + list(new_list)
+        return [gr.skip()] * 16 + list(new_list)
     return (*case_view(pid), *new_list)
 
 
@@ -497,6 +521,14 @@ def ask_chat(name, pid, text):
     return gr.update(value=""), *case_view(pid)
 
 
+def write_sbar(name, pid):
+    name = _need_name(name)
+    if not pid:
+        raise gr.Error("Pick a patient first")
+    _call(S.write_sbar, pid, S.WhoIn(who=name))
+    return case_view(pid)
+
+
 def set_todos(name, role, pid, done):
     p = _patient(pid)
     if p is None:
@@ -545,7 +577,7 @@ def board_view(show_left=False):
         badge = (f'<span style="display:inline-block;min-width:38px;padding:6px 0;border-radius:8px;text-align:center;'
                  f'font-weight:800;font-size:20px;color:#111;background:{LEVEL_COLOUR.get(r["level"], "#b0bec5")}">'
                  f'{r["level"] or "…"}</span>')
-        who = "reading the note…" if r["who"] == "?, ?" else r["who"]
+        who = r["who"] if r["who"] != "?, ?" else ("reading the note…" if r.get("status") == "working" else "age/sex not recorded")
         cells = [badge, esc(r["bed"]), f"<b>{esc(who)}</b><div>{esc(r['complaint'] or '')}</div>{why}", esc(r["stage"]),
                  esc(r["doctor"]), f"{waited // 60}h {waited % 60:02d}m", todo, ai]
         rows.append(f'<tr style="background:{tint or "#ffffff"};color:#1b2733;{"opacity:.6;" if r["leaving"] else ""}">'
@@ -679,6 +711,13 @@ with gr.Blocks(title="ED triage app") as demo:
                             report = gr.Markdown()
                             edit_box = gr.Textbox(lines=18, visible=False, label="Edit the case file")
                             edit_save = gr.Button("Save", variant="primary", visible=False)
+                        with gr.Tab("SBAR handover"):
+                            gr.Markdown("A handover for the next doctor (Situation, Background, Assessment, "
+                                        "Recommendation), from the notes, every answer and number fix, and the chat.")
+                            with gr.Row():
+                                sbar_btn = gr.Button("Write SBAR handover", variant="primary", size="sm")
+                                sbar_dl = gr.DownloadButton("⬇ Download the handover", size="sm")
+                            sbar_md = gr.Markdown(buttons=["copy"])
                         with gr.Tab("Notes as typed"):
                             notes_md = gr.Markdown()
                         with gr.Tab("Files"):
@@ -738,7 +777,7 @@ with gr.Blocks(title="ED triage app") as demo:
                 b_show_board = gr.Button("← Back to the board", visible=False)
 
     case_out = [header, numbers, warn, report, notes_md, gallery, pics_md, timeline, questions, todos, todo_pick, chat,
-                dl, seen]
+                dl, sbar_md, sbar_dl, seen]
     timer = gr.Timer(2)
     timer.tick(tick, [case_pick, seen, labels], [*case_out, case_pick, labels])
     case_pick.change(case_view, case_pick, case_out)
@@ -753,6 +792,7 @@ with gr.Blocks(title="ED triage app") as demo:
     on(fix_save.click, save_fix, [name, case_pick, fix_table], [fix_table, fix_save, *case_out])
     on(chat_btn.click, ask_chat, [name, case_pick, chat_q], [chat_q, *case_out])
     on(chat_q.submit, ask_chat, [name, case_pick, chat_q], [chat_q, *case_out])
+    on(sbar_btn.click, write_sbar, [name, case_pick], case_out)
     on(todos.input, set_todos, [name, role, case_pick, todos], case_out)
     on(todo_add.click, add_todo, [name, role, case_pick, todo_new], [todo_new, *case_out])
     on(todo_del.click, remove_todo, [name, role, case_pick, todo_pick], case_out)
