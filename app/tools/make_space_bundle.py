@@ -3,6 +3,7 @@ repo (install_models.HUB) and the Space downloads them when it starts, with its 
 
     python make_space_bundle.py                      # -> app/build/space/  (the Space's files)
     python make_space_bundle.py --push               # also creates / updates the Space (ZeroGPU) and uploads them
+    python make_space_bundle.py --push --space <org>/bn4601a-ed-triage --public   # into the course's HF org
 
 In the Space (same folders as the repo; README.md + requirements.txt at the top, the app is app/gradio/app.py):
     README.md (the Space settings: app_file = app/gradio/app.py), requirements.txt
@@ -64,7 +65,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--push", action="store_true")
     ap.add_argument("--public", action="store_true", help="with --push: make the Space public")
+    ap.add_argument("--space", default=SPACE, help="with --push: <owner or org>/<space name>, e.g. the course org")
     a = ap.parse_args()
     build()
     if a.push:
-        push(private=not a.public)
+        push(a.space, private=not a.public)
