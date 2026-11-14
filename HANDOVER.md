@@ -80,7 +80,7 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | The three groups were only a label from the level | The **level classifier's own chances for the three groups** are shown on the case file ("Classifier: Urgent 6% · Can wait 51% · Minor 44%" = levels 1-2 / 3 / 4-5 added up from its 1-5 output). Full AI: T01 70/30/0, T07 6/51/44, T04 0/1/99. No retraining, so no reported number changes | **Done, in `main`** (React + Gradio) |
 
-| + | Case file and whiteboard opened in separate windows | **Same-tab navigation**: "▦ Whiteboard" in the case-file header opens the board in the same tab, with "← Back to P1 case file"; clicking a patient on the board opens their case file in the same tab; the browser Back button works (hash routes `#/board/<id>`). Gradio: "▦ Whiteboard" and "← Back to P1 case file" switch tabs | **Done, in `main`** (React + Gradio; checked in the browser, test mode) |
+| + | Case file and whiteboard opened in separate windows | **Same-tab navigation**: "▦ Whiteboard" in the case-file header opens the board in the same tab, with "← Back to P1 case file"; **➕ New patient** on the case file and the board opens Charting with a blank new patient (`#/new`); clicking a patient on the board opens their case file in the same tab; the browser Back button works (hash routes `#/board/<id>`). Gradio: "▦ Whiteboard" and "← Back to P1 case file" switch tabs | **Done, in `main`** (React + Gradio; checked in the browser, test mode) |
 
 Test-mode checks: `python app/tests/test_app.py` = **122 PASS, 0 FAIL**.
 
