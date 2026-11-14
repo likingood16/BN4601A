@@ -20,7 +20,7 @@ function Row({ p, can, me, now, reload, stages }) {
         {p.raised_by && <span className="raised" title={p.raised_by}>⬆</span>}</td>
       <td>{p.bed}</td>
       <td>
-        <a href={`#/case/${p.id}`} target="ed_case_file"><b>{whoLine(p.who, p.status)}</b></a>
+        <a href={`#/case/${p.id}`}><b>{whoLine(p.who, p.status)}</b></a>
         <div className="sub">{p.complaint || (p.status === "working" ? "AI working…" : "")}</div>
         {p.reason && <div className={`why ${p.needs_obs ? "needs" : ""} ${p.override && !p.flagged ? "doctor" : ""}`}>{p.override ? "🩺 " : ""}{p.reason}</div>}
         {p.review && <div className="why needs">⚠ {p.review}</div>}
@@ -83,7 +83,7 @@ function Row({ p, can, me, now, reload, stages }) {
   );
 }
 
-export default function Board({ me, meta }) {
+export default function Board({ me, meta, from }) {
   const [left, setLeft] = useState(false);              // show the patients who left the ED instead
   const [board, error, reload] = usePoll(left ? "/api/board?cleared=true" : "/api/board", 3000);
   const can = (meta?.board_editors || []).includes(me.role);
@@ -92,6 +92,10 @@ export default function Board({ me, meta }) {
   return (
     <div className="page" style={{ maxWidth: "none" }}>
       <div className="row" style={{ color: "#9fb3c8", marginBottom: 6 }}>
+        {from && (() => {                                   // came from a case file (Alex, 15 Nov): back in the same tab
+          const back = board.patients.find((x) => x.id === from);
+          return <a className="back-btn" href={`#/case/${from}`}>← Back to {back ? `${back.bed} ` : ""}case file</a>;
+        })()}
         <span>{left ? `${board.patients.length} patients who left the ED` : `${board.patients.length} patients in the ED`} ·
           ✦ = suggested by the AI, a person ticks it off ·{" "}
           {can ? `You (${me.role}) can change the board` : "View only: the triage nurse or organising doctor changes the board"}</span>
