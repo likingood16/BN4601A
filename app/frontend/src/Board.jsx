@@ -11,8 +11,8 @@ function Row({ p, can, me, now, reload, stages }) {
   const [finalLevel, setFinalLevel] = useState("");
   const body = { who: me.who || "not recorded", role: me.role };
   const act = async (fn) => { try { await fn(); reload(); } catch (e) { alert(e.message); } };
-  const mins = (now - p.created) / 60;
-  const late = mins > 60 && ["Waiting for doctor", "Results pending"].includes(p.stage);
+  const mins = (now - p.timer.since) / 60;          // waiting to be seen from arrival; imaging / leaving start again
+  const late = mins > 60 && ["Waiting for doctor", "Results pending", "Gone for imaging"].includes(p.stage);
   return (
     <tr className={`${p.leaving || p.cleared ? "gone" : ""} ${p.flagged && !p.leaving && !p.cleared ? (p.needs_obs ? "needs-row" : "urgent-row") : ""}`}>
       <td><span className="lvl" style={{ background: p.level ? LEVEL_COLOUR[p.level] : "#607d8b" }}>{p.level ?? "…"}</span>
@@ -32,9 +32,9 @@ function Row({ p, can, me, now, reload, stages }) {
             {stages.map((s) => <option key={s}>{s}</option>)}
           </select>
         ) : p.stage}
-        {can && p.leaving && (
+        {can && (p.leaving || !p.cleared) && (
           <div style={{ marginTop: 6 }}>
-            {!p.cleared && (
+            {!p.cleared && p.leaving && (
               <div className="outcome" title="Optional. Used to check and improve the AI; never changes this patient's record">
                 <input value={dx} placeholder="Final diagnosis (optional)" aria-label="Final diagnosis"
                   onChange={(e) => setDx(e.target.value)} />
@@ -47,7 +47,7 @@ function Row({ p, can, me, now, reload, stages }) {
             <button className="small clear-btn" onClick={() => act(() => api.patch(`/api/patients/${p.id}/board`, {
               ...body, cleared: !p.cleared,
               ...(p.cleared ? {} : { diagnosis: dx || null, final_level: finalLevel ? Number(finalLevel) : null }) }))}>
-              {p.cleared ? "Put back on the board" : "✓ Clear from board"}
+              {p.cleared ? "Put back on the board" : p.leaving ? "✓ Clear from board" : "✕ Remove from board"}
             </button>
           </div>
         )}
@@ -59,7 +59,8 @@ function Row({ p, can, me, now, reload, stages }) {
             onKeyDown={(e) => e.key === "Enter" && e.target.blur()} />
         ) : p.doctor}
       </td>
-      <td className={late ? "late" : ""} style={{ whiteSpace: "nowrap" }}>{waited(p.created, now)}</td>
+      <td className={late ? "late" : ""} style={{ whiteSpace: "nowrap" }}><span title={p.timer.label}>{waited(p.timer.since, now)}</span>
+        <div className="muted small">{p.timer.restarted ? `${p.timer.label.toLowerCase()} · total ${waited(p.created, now)}` : p.timer.label.toLowerCase()}</div></td>
       <td>
         {p.todos.map((t, i) => (
           <span key={i} className={`chip ${t.done ? "done" : ""}`}>
@@ -106,7 +107,7 @@ export default function Board({ me, meta }) {
       )}
       {error && <div className="error">{error}</div>}
       <div className="board-wrap"><table className="board">
-        <thead><tr><th>Level</th><th>Bed</th><th>Patient</th><th>Stage</th><th>Doctor</th><th>Waiting</th><th>To do</th></tr></thead>
+        <thead><tr><th>Level</th><th>Bed</th><th>Patient</th><th>Stage</th><th>Doctor</th><th title="Waiting to be seen counts from arrival; going for imaging or a decision to leave starts it again">Time</th><th>To do</th></tr></thead>
         <tbody>
           {board.patients.map((p) => <Row key={p.id} p={p} can={can} me={me} now={board.now} reload={reload} stages={meta?.stages || []} />)}
         </tbody>

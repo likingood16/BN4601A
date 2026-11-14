@@ -74,7 +74,9 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | Only two groups (urgent / not urgent) | **Three groups** under the level on the whiteboard and case file: **Urgent** (flagged, or level 1-2; same 9-in-10 cut-off), **Can wait** (level 3), **Minor** (level 4-5). A label only: nothing is re-scored | **Done, in `main`** (React + Gradio) |
 
-Test-mode checks: `python app/tests/test_app.py` = **118 PASS, 0 FAIL**.
+| + | Board clock only counted from arrival; a patient could only be cleared after setting where they went | **Time** column: "waiting to be seen" from arrival; **Gone for imaging** (new stage) or a decision to leave starts the clock again ("at imaging 12m · total 1h 05m"). **✕ Remove from board** in one step for the triage nurse / organising doctor (case file kept under "Left the ED") | **Done, in `main`** (React + Gradio) |
+
+Test-mode checks: `python app/tests/test_app.py` = **119 PASS, 0 FAIL**.
 
 Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
 - `priority_override_a_before.png`: case file before, with the **Change priority** button
