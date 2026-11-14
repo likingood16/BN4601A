@@ -147,6 +147,12 @@ class Visit:
         MedGemma copied 'PAST HISTORY: not recorded' over a note that said 'hx DM, HTN on metformin. NKDA'
         (real-AI test, 9 Nov, REPORT_NOTES 5q #1). Only the record changes; the card the urgency model reads doesn't."""
         body = self.card.replace(END, "").rstrip()
+        # retest 14 Nov (Caleb, P05; full-AI recheck): the vitals line says "NEWS2 1 = HIGH risk (escalated: core
+        # vitals could not be recorded)" and MedGemma kept saying "NEWS2 1, indicating a high risk" even when told
+        # not to. Reworded for the chat and SBAR only (the scores read the card unchanged).
+        body = re.sub(r"NEWS2 (\d+) = HIGH risk \(escalated: ([^)]*)\)",
+                      r"NEWS2 \1 (a LOW score from the few signs recorded; the risk is treated as HIGH only because \2)",
+                      body)
         extra = [self.ed] if self.ed else []
         has_notes = bool(self.results.get("notes"))
         for key, heading in SECTIONS.items():

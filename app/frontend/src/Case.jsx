@@ -87,6 +87,48 @@ function Report({ text }) {
   return <div className="report">{out}</div>;
 }
 
+// Core task 3: the SBAR handover, written by the AI from everything gathered so far (notes, answers, chat)
+const SBAR_HEAD = /^\W*(Situation|Background|Assessment|Recommendations?)\b\W*$/i;
+function Handover({ p, me, reload }) {
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const s = p.sbar || {};
+  const write = async () => {
+    setBusy(true);
+    try { await api.post(`/api/patients/${p.id}/sbar`, { who: me.who || "not recorded" }); reload(); }
+    catch (e) { alert(e.message); }
+    setBusy(false);
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(s.text); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+    catch { alert("Copy didn't work here: use Download instead"); }
+  };
+  // "**Situation**" or "S - Situation:" on its own line becomes a heading; other ** marks are dropped
+  const shown = (s.text || "").split("\n").map((l) => SBAR_HEAD.test(l.replace(/\*/g, "")) ? `## ${l.replace(/[^A-Za-z ]/g, "").trim()}`
+    : /^\*\*[^*]+\*\*$/.test(l.trim()) ? `## ${l.replace(/\*\*/g, "").trim()}` : l.replace(/\*\*/g, "")).join("\n");
+  const stale = s.text && (p.notes.length > s.n_notes || p.chat.length > s.n_chat);
+  return (
+    <div>
+      <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
+        <span className="muted">A handover for the next doctor (Situation, Background, Assessment, Recommendation), from the notes, every answer and number fix, and the chat.</span>
+        <button className="primary" onClick={write} disabled={busy || p.status === "working" || !p.decision}>
+          {busy ? "Writing… (about 30 s)" : s.text ? "Write it again" : "Write SBAR handover"}</button>
+      </div>
+      {s.text ? (
+        <>
+          <p className="muted">Written by the AI at {s.time}, asked by {s.who}. A draft: check it before you hand over.</p>
+          {stale && <p className="disagree-note">New information was added after this was written: write it again to include it.</p>}
+          <div className="row" style={{ marginBottom: 6 }}>
+            <button className="small" onClick={copy}>{copied ? "✓ Copied" : "Copy"}</button>
+            <a href={`/api/patients/${p.id}/sbar.txt`} download={`SBAR_${p.bed}.txt`}><button className="small">⬇ Download</button></a>
+          </div>
+          <Report text={shown} />
+        </>
+      ) : <p className="muted">No handover yet. Press the button when you are ready to hand over.</p>}
+    </div>
+  );
+}
+
 function Files({ p }) {
   const [zoom, setZoom] = useState(null);
   const images = p.notes.flatMap((n) => n.images.map((img) => ({ ...img, who: n.who, time: n.time })));
@@ -212,7 +254,7 @@ export default function Case({ id, me, meta }) {
       <div className="head">
         <div className="level" style={{ background: d ? LEVEL_COLOUR[d.level] : "#cfd8dc" }}>{d ? d.level : "…"}</div>
         <div>
-          <div className="name">{p.bed} · {whoLine(p.who)} · {p.complaint || "…"}</div>
+          <div className="name">{p.bed} · {whoLine(p.who, p.status)} · {p.complaint || "…"}</div>
           <div className="row" style={{ marginTop: 4 }}>
             {d && (d.needs_obs
               ? <span className="pill needs" title="Two or more of BP, RR and HR are not recorded, so the patient can't be scored. The safety rule treats that as urgent until they are measured.">Urgent: needs vitals · {d.missing.join(" and ")} not recorded, measure {d.missing.length > 1 ? "them" : "it"}</span>
@@ -252,7 +294,7 @@ export default function Case({ id, me, meta }) {
       <div className="split wide">
         <div className="card">
           <div className="tabs">
-            {[["case", "Case file"], ["notes", `Notes as typed (${p.notes.length})`], ["files", `Files (${p.notes.reduce((n, x) => n + x.images.length, 0)})`], ["timeline", "Timeline"]].map(([k, l]) => (
+            {[["case", "Case file"], ["sbar", "SBAR handover"], ["notes", `Notes as typed (${p.notes.length})`], ["files", `Files (${p.notes.reduce((n, x) => n + x.images.length, 0)})`], ["timeline", "Timeline"]].map(([k, l]) => (
               <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>
             ))}
           </div>
@@ -272,6 +314,7 @@ export default function Case({ id, me, meta }) {
             </>
           ))}
           {tab === "notes" && p.notes.map((n, i) => <div key={i} className="note"><span className="muted">{n.time} · {n.who}</span>{"\n"}{n.text}</div>)}
+          {tab === "sbar" && <Handover p={p} me={me} reload={reload} />}
           {tab === "files" && <Files p={p} />}
           {tab === "timeline" && p.timeline.map((e, i) => <div key={i} className="note"><span className="muted">{e.time} · {e.who} · {e.what}</span>{"\n"}{e.text}</div>)}
         </div>
