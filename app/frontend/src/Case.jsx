@@ -87,6 +87,46 @@ function Report({ text }) {
   return <div className="report">{out}</div>;
 }
 
+// 14 Nov: a doctor changes the priority (lower or raise) with a reason; the AI never lowers by itself
+const DOCTORS = ["Doctor", "Organising doctor"];
+function Priority({ p, me, reload }) {
+  const [open, setOpen] = useState(false);
+  const [level, setLevel] = useState("");
+  const [reason, setReason] = useState("");
+  const [msg, setMsg] = useState("");
+  const d = p.decision;
+  if (!d) return null;
+  const can = DOCTORS.includes(me.role);
+  const send = async (body) => {
+    try { await api.put(`/api/patients/${p.id}/priority`, { who: me.who || "not recorded", role: me.role, ...body }); setOpen(false); setReason(""); setMsg(""); reload(); }
+    catch (e) { setMsg(e.message); }
+  };
+  return (
+    <div className="priority">
+      {p.review && <div className="review-warn">⚠ {p.review}</div>}
+      <div className="row">
+        {can && !open && <button className="small" onClick={() => { setLevel(String(p.level)); setOpen(true); }}>Change priority</button>}
+        {can && p.override && !open && <button className="small" onClick={() => send({ clear: true })}>Back to the AI's level ({p.override.now_ai_level})</button>}
+        {!can && <span className="muted">Only a doctor (Doctor or Organising doctor) can change the priority.</span>}
+        {p.raised_by && !p.override && <span className="muted hint">The score and the safety rules disagree. A doctor can review and change the priority.</span>}
+      </div>
+      {open && (
+        <div className="row priority-form">
+          <label>Level <select value={level} onChange={(e) => setLevel(e.target.value)} aria-label="New level">
+            {[1, 2, 3, 4, 5].map((l) => <option key={l} value={l}>{l}{l <= 2 ? " (urgent)" : ""}</option>)}
+          </select></label>
+          <input style={{ flex: 1 }} value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Reason"
+            placeholder="Reason (optional), e.g. chest pain settled, ECG and troponin normal" />
+          <button className="primary" onClick={() => send({ level: Number(level), reason })}>Save</button>
+          <button onClick={() => { setOpen(false); setMsg(""); }}>Cancel</button>
+          <span className="muted">AI + safety rules say level {d.level}{d.flagged ? " (urgent)" : ""}.</span>
+        </div>
+      )}
+      {msg && <div className="error">{msg}</div>}
+    </div>
+  );
+}
+
 // Core task 3: the SBAR handover, written by the AI from everything gathered so far (notes, answers, chat)
 const SBAR_HEAD = /^\W*(Situation|Background|Assessment|Recommendations?)\b\W*$/i;
 function Handover({ p, me, reload }) {
@@ -252,14 +292,17 @@ export default function Case({ id, me, meta }) {
   return (
     <div className="page">
       <div className="head">
-        <div className="level" style={{ background: d ? LEVEL_COLOUR[d.level] : "#cfd8dc" }}>{d ? d.level : "…"}</div>
+        <div className="level" style={{ background: d ? LEVEL_COLOUR[p.level] : "#cfd8dc" }}
+          title={p.override ? `Set by ${p.override.who}; AI + safety rules say ${p.override.now_ai_level}` : ""}>{d ? p.level : "…"}</div>
         <div>
           <div className="name">{p.bed} · {whoLine(p.who, p.status)} · {p.complaint || "…"}</div>
           <div className="row" style={{ marginTop: 4 }}>
-            {d && (d.needs_obs
+            {d && p.override && <span className={`pill ${p.flagged ? "red" : ""} doctor`}>🩺 {p.reason} · {p.override.time}</span>}
+            {d && p.override && <span className="pill">AI + safety rules now: level {d.level}{d.flagged ? ", urgent" : ""} · {Math.round(d.p_urgent * 100)}% chance of level 1–2</span>}
+            {d && !p.override && (d.needs_obs
               ? <span className="pill needs" title="Two or more of BP, RR and HR are not recorded, so the patient can't be scored. The safety rule treats that as urgent until they are measured.">Urgent: needs vitals · {d.missing.join(" and ")} not recorded, measure {d.missing.length > 1 ? "them" : "it"}</span>
               : <span className={`pill ${d.flagged ? "red" : ""}`}>{d.flagged ? "Urgent: flagged" : "Not flagged"} · {Math.round(d.p_urgent * 100)}% chance of level 1–2{d.flagged && p.reason ? ` · ${p.reason}` : ""}</span>)}
-            {d && d.needs_obs && <span className="pill">{Math.round(d.p_urgent * 100)}% chance of level 1–2 from what is recorded</span>}
+            {d && !p.override && d.needs_obs && <span className="pill">{Math.round(d.p_urgent * 100)}% chance of level 1–2 from what is recorded</span>}
             {d && <span className="pill">Levels it can't rule out: {d.level_set.join(", ")}</span>}
             {p.raised_by && <span className="pill amber" title="The urgent flag catches 90% of urgent patients, so it also raises some who aren't. Use your judgement.">⬆ {p.raised_by}</span>}
             {d && <span className="pill">NEWS2 {d.news2}{p.child ? " (adult score)" : ""}</span>}
@@ -269,6 +312,7 @@ export default function Case({ id, me, meta }) {
             <span className="pill">{p.stage} · {p.doctor}</span>
             <span className="pill">Waiting {waited(p.created)}</span>
           </div>
+          <Priority p={p} me={me} reload={reload} />
         </div>
       </div>
       {p.status === "working" && <div className="working"><div className="spin" />{p.progress}…</div>}

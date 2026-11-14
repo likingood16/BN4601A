@@ -75,6 +75,28 @@ class Patient:
     report_seen_by_chat: str = ""
     early_log: list = field(default_factory=list)   # board changes made before the AI's first result
     sbar: dict = field(default_factory=dict)        # last SBAR handover: {text, who, time, n_notes, n_chat}
+    # a doctor's priority (14 Nov): {level, reason, who, role, time, ai_level, ai_flagged}; the AI's decision stays
+    # underneath, unchanged, for learning and for showing
+    override: dict = field(default_factory=dict)
+
+    def shown_level(self):
+        """The level everyone sees and the board sorts by: the doctor's when they set one, else the AI + rules'."""
+        o, d = getattr(self, "override", {}), self.visit.decision if self.visit else None
+        return o["level"] if o and d else d.level if d else None
+
+    def review(self):
+        """New information since the doctor's change made the AI + rules MORE urgent than both then and the doctor's
+        level: the doctor's level stays, with a warning ('' = nothing to review)."""
+        o, d = getattr(self, "override", {}), self.visit.decision if self.visit else None
+        if not (o and d) or d.level >= o["level"]:
+            return ""
+        # "more urgent than when the doctor decided": a lower level, a higher score, NEWS2 up by 2+, a stricter floor or a
+        # new critical picture (the level alone rarely goes below 2, so a sicker T01 would never have warned)
+        worse = (d.level < o["ai_level"] or d.p_urgent > o.get("ai_p", 1) + 0.05 or d.news2 >= o.get("ai_news2", 99) + 2
+                 or d.floor_priority < o.get("ai_floor", 0) or (getattr(d, "picture", "") and not o.get("ai_picture")))
+        if not worse:
+            return ""
+        return f"New information since {o['who']}'s change: AI and rules now say level {d.level}, please review"
 
     def complaint(self):
         """The case file's 'Presenting complaint', so a person's correction shows on the header and the whiteboard.
@@ -92,15 +114,21 @@ class Patient:
 
     def summary(self):
         d = self.visit.decision if self.visit else None
-        return {"id": self.id, "bed": self.bed, "created": self.created, "stage": self.stage, "doctor": self.doctor, "cleared": self.cleared,
-                "leaving": self.stage in LEAVING,
-                "status": self.status, "progress": self.progress,
-                "level": d.level if d else None, "flagged": d.flagged if d else None,
-                "raised_by": d.raised_by() if d else "",
-                "needs_obs": bool(d and d.needs_obs), "reason": d.reason() if d else "",
-                "child": is_child(self.fields), "child_score": is_child(self.fields) and child_score(),
-                "who": _who_line(self.fields), "complaint": self.complaint(),
-                "todos": self.todos, "open_questions": len(self.questions)}
+        o = getattr(self, "override", {}) if d else {}
+        out = {"id": self.id, "bed": self.bed, "created": self.created, "stage": self.stage, "doctor": self.doctor, "cleared": self.cleared,
+               "leaving": self.stage in LEAVING,
+               "status": self.status, "progress": self.progress,
+               "level": d.level if d else None, "flagged": d.flagged if d else None,
+               "raised_by": d.raised_by() if d else "",
+               "needs_obs": bool(d and d.needs_obs), "reason": d.reason() if d else "",
+               "child": is_child(self.fields), "child_score": is_child(self.fields) and child_score(),
+               "who": _who_line(self.fields), "complaint": self.complaint(),
+               "todos": self.todos, "open_questions": len(self.questions), "override": None, "review": ""}
+        if o:                                       # a doctor set the priority: theirs is shown, the AI's underneath
+            out.update(level=o["level"], flagged=o["level"] <= 2, raised_by="", needs_obs=False,
+                       reason=override_line(o), review=self.review(),
+                       override={**o, "now_ai_level": d.level, "now_ai_flagged": d.flagged})
+        return out
 
     def full(self):
         d = self.visit.decision if self.visit else None
@@ -174,10 +202,35 @@ def apply_picture_rule(p, who="AI (picture rule)"):
                        else f"already level {d.level}"), who)
 
 
+DOCTOR_ROLES = {"Doctor", "Organising doctor"}     # who may change a patient's priority (14 Nov)
+
+
+def override_line(o):
+    why = f": {o['reason']}" if o.get("reason") else ""                     # the reason is optional
+    return f"Level {o['level']}, set by {o['who']}{why} (AI + safety rules said {o['ai_level']})"
+
+
 def triage_lines(p):
     """The case file's triage section: the trained models' decision, word for word, plus the children's warning
-    (group test 10 Nov, A2: a normal 7-year-old scored NEWS2 5 with no word that the score is an adult one)."""
-    return p.visit.decision.lines() + ([child_note()] if is_child(p.fields) else [])
+    (group test 10 Nov, A2: a normal 7-year-old scored NEWS2 5 with no word that the score is an adult one).
+    A doctor's priority goes first, with the AI's decision kept underneath."""
+    o = getattr(p, "override", {})
+    doctor = ([f"PRIORITY SET BY A DOCTOR: {override_line(o)}, {o['time']}."]
+              + ([f"PLEASE REVIEW: {p.review()}."] if p.review() else []) + ["The AI and safety rules said:"]) if o else []
+    return doctor + p.visit.decision.lines() + ([child_note()] if is_child(p.fields) else [])
+
+
+def check_override(p):
+    """After any re-score (later note, answer, picture, Fix numbers): if the AI + rules now say more urgent than the
+    doctor's level, the doctor's level stays and a warning shows; logged once per new AI level."""
+    o, warn = getattr(p, "override", {}), p.review()
+    d = p.visit.decision
+    now = [d.level, round(d.p_urgent, 2), d.floor_priority, d.news2]
+    if warn and o.get("review_logged") != now:
+        o["review_logged"] = now
+        p.visit.log("Priority", warn, "AI (decision support)")
+        store.learn("priority_review", p, doctor_level=o["level"], ai_level_then=o["ai_level"],
+                    ai_level_now=p.visit.decision.level, p_urgent=p.visit.decision.p_urgent)
 
 
 def show_supported_pathways(p):
@@ -405,6 +458,7 @@ class Store:
         if later and new:
             self._read_later_numbers(p, ai, new)
         apply_picture_rule(p)                       # vitals + words + pictures all feed the priority
+        check_override(p)                           # a doctor's level stays; warn if the AI now says more urgent
         show_supported_pathways(p)
         self._step(p, "Writing the case file")
         first = not p.report
@@ -473,7 +527,7 @@ def board(cleared: bool = False):
     """On the board: most urgent first, then longest waiting; patients on their way out at the bottom.
     cleared=true lists the patients who left the ED instead."""
     rows = sorted((p for p in store.patients.values() if p.cleared == cleared),
-                  key=lambda p: (p.stage in LEAVING, p.visit is None, p.visit.decision.level if p.visit else 9, p.created))
+                  key=lambda p: (p.stage in LEAVING, p.visit is None, p.shown_level() or 9, p.created))
     n_cleared = sum(p.cleared for p in store.patients.values())
     return {"version": store.version, "patients": [p.summary() for p in rows], "now": time.time(), "n_cleared": n_cleared}
 
@@ -591,6 +645,7 @@ def fix_numbers(pid: str, body: FieldsIn):
         if before:                                  # keep everything learned since arrival; only the card + decision change
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
         apply_picture_rule(p, body.who)             # a numbers fix keeps the picture rule
+        check_override(p)                           # ... and a doctor's level
         show_supported_pathways(p)
         p.visit.log("Triage", f"Numbers corrected; level {old} -> {p.visit.decision.level}", body.who)
         if p.report:
@@ -755,6 +810,52 @@ def set_board(pid: str, body: BoardIn):
     return {"ok": True}
 
 
+class PriorityIn(BaseModel):
+    who: str
+    role: str
+    level: int | None = None
+    reason: str = ""
+    clear: bool = False                             # back to the AI + safety rules' level
+
+
+@app.put("/api/patients/{pid}/priority")
+def set_priority(pid: str, body: PriorityIn):
+    """A doctor changes the priority (lower or raise) with a reason (14 Nov). The AI never lowers by itself; its
+    decision stays underneath, unchanged, and both are logged for learning."""
+    if body.role not in DOCTOR_ROLES:
+        raise HTTPException(403, "Only a doctor (Doctor or Organising doctor) can change the priority")
+    if body.who.strip().lower() in ("", "not recorded"):
+        raise HTTPException(400, "Type your name (top right) first, so the timeline shows who changed the priority")
+    p = store.get(pid)
+    if p.visit is None or p.status == "working":
+        raise HTTPException(409, "Wait until the AI has finished reading the notes")
+    d, who = p.visit.decision, body.who.strip()
+    if body.clear:
+        if getattr(p, "override", {}):
+            p.override = {}
+            p.visit.log("Priority", f"Back to the AI + safety rules' level ({d.level})", who)
+    else:
+        if body.level is None or not 1 <= body.level <= 5:
+            raise HTTPException(400, "Pick a level from 1 to 5")
+        p.override = {"level": body.level, "reason": body.reason.strip(), "who": who, "role": body.role, "time": now(),
+                      "ai_level": d.level, "ai_flagged": d.flagged, "ai_p": d.p_urgent, "ai_floor": d.floor_priority,
+                      "ai_news2": d.news2,
+                      "ai_picture": getattr(d, "picture", "")}
+        p.visit.log("Priority", f"Level set to {body.level} ({'urgent' if body.level <= 2 else 'not urgent'}) by {who}"
+                    f"{': ' + body.reason.strip() if body.reason.strip() else ''}. AI + safety rules said {d.level}"
+                    f"{' (flagged urgent)' if d.flagged else ''}", who)
+        store.learn("priority_override", p, doctor_level=body.level, reason=body.reason.strip(), role=body.role,
+                    ai_level=d.level, ai_flagged=d.flagged, model_level=d.model_level or d.level,
+                    model_flagged=d.model_flagged, p_urgent=d.p_urgent, floor_priority=d.floor_priority,
+                    picture_rule=getattr(d, "picture", ""), fields={k: v for k, v in p.fields.items()
+                                                                    if k != "chief_complaint"},
+                    complaint=p.complaint(), who=who)
+    if p.report:
+        p.report = charting.set_section(p.report, charting.TRIAGE, triage_lines(p))
+    store.changed()
+    return {"ok": True, "level": p.shown_level()}
+
+
 def _log_outcome(p, body):
     """The patient left the ED: one labelled case for learning.py (what the AI said at arrival vs what happened)."""
     d = p.visit.decision if p.visit else None
@@ -767,6 +868,7 @@ def _log_outcome(p, body):
                 # the models' own decision, apart from the picture rule, so the urgency score is judged on its own
                 model_flagged=d.model_flagged if d else None, model_level=(d.model_level or d.level) if d else None,
                 picture_rule=getattr(d, "picture", "") if d else "",
+                doctor_level=getattr(p, "override", {}).get("level"),     # a doctor's priority, if one was set
                 ai_todos=[{"text": t["text"], "done": t["done"]} for t in p.todos if t.get("ai")], who=body.who)
     if store.learning is not None and p.visit is not None:
         store.learning.save_vector(p.id, getattr(p.visit, "vector", None))
