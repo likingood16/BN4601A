@@ -21,7 +21,8 @@ function Row({ p, can, me, now, reload, stages }) {
       <td>
         <a href={`#/case/${p.id}`} target="ed_case_file"><b>{whoLine(p.who, p.status)}</b></a>
         <div className="sub">{p.complaint || (p.status === "working" ? "AI working…" : "")}</div>
-        {p.reason && <div className={`why ${p.needs_obs ? "needs" : ""}`}>{p.reason}</div>}
+        {p.reason && <div className={`why ${p.needs_obs ? "needs" : ""} ${p.override && !p.flagged ? "doctor" : ""}`}>{p.override ? "🩺 " : ""}{p.reason}</div>}
+        {p.review && <div className="why needs">⚠ {p.review}</div>}
         {p.status === "working" && <div className="sub">⏳ {p.progress}</div>}
       </td>
       <td>

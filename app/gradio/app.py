@@ -272,6 +272,17 @@ def _header(p):
     if d is None:
         line = f"### {p.bed} · {who}\n\n⏳ {p.progress}…"
         return line + (f"\n\n⚠️ {p.error}" if p.status == "error" else "")
+    o = getattr(p, "override", {})
+    if o:                                        # a doctor set the priority (14 Nov): theirs first, the AI's underneath
+        parts = [f"## Level {o['level']} · {p.bed} · {who} · {p.complaint()}",
+                 f"{'🔴' if o['level'] <= 2 else '🩺'} **{S.override_line(o)}** · {o['time']}",
+                 f"AI + safety rules now: level {d.level}{', urgent' if d.flagged else ''} · {d.p_urgent:.0%} chance of "
+                 f"level 1–2 · NEWS2 {d.news2} · {p.stage} · {p.doctor}"]
+        if p.review():
+            parts.append(f"⚠️ **{p.review()}**")
+        if p.status == "working":
+            parts.append(f"⏳ {p.progress}…")
+        return "\n\n".join(parts)
     if d.needs_obs:                              # urgent only because vital signs are missing (10 Nov, A1)
         flag = (f"🟠 **Urgent: needs vitals** · {' and '.join(d.missing)} not recorded, measure "
                 f"{'them' if len(d.missing) > 1 else 'it'} to score this patient · {d.p_urgent:.0%} chance of level 1–2 "
@@ -283,7 +294,8 @@ def _header(p):
              f"{flag} · levels it can't rule out: {', '.join(map(str, d.level_set))} · NEWS2 {d.news2} · "
              f"{p.stage} · {p.doctor}"]
     if d.raised_by():
-        parts.append(f"⬆ {d.raised_by()}")
+        parts.append(f"⬆ {d.raised_by()}  \n_The score and the safety rules disagree. A doctor can review and change "
+                     "the priority (Change priority, below)._")
     if S.is_child(p.fields):
         parts.append(f"🟠 {S.child_note()}")
     if p.status == "working":
@@ -521,6 +533,22 @@ def ask_chat(name, pid, text):
     return gr.update(value=""), *case_view(pid)
 
 
+def change_priority(name, role, pid, level, reason):
+    name = _need_name(name)
+    if not pid:
+        raise gr.Error("Pick a patient first")
+    if not str(level or "").isdigit():
+        raise gr.Error("Pick a level from 1 to 5")
+    _call(S.set_priority, pid, S.PriorityIn(who=name, role=role, level=int(level), reason=(reason or "").strip()))
+    return gr.update(value=""), *case_view(pid)
+
+
+def back_to_ai_level(name, role, pid):
+    name = _need_name(name)
+    _call(S.set_priority, pid, S.PriorityIn(who=name, role=role, clear=True))
+    return case_view(pid)
+
+
 def write_sbar(name, pid):
     name = _need_name(name)
     if not pid:
@@ -573,7 +601,9 @@ def board_view(show_left=False):
         waited = int((time.time() - r["created"]) // 60)
         tint = "" if not r["flagged"] or r["leaving"] else "#fff3e0" if r["needs_obs"] else "#fdecea"
         why = (f'<div style="font-weight:700;color:{"#a15c00" if r["needs_obs"] else "#b71c1c"}">'
-               f'{"🟠" if r["needs_obs"] else "🔴"} {esc(r["reason"])}</div>') if r["reason"] else ""
+               f'{"🩺" if r.get("override") else "🟠" if r["needs_obs"] else "🔴"} {esc(r["reason"])}</div>') if r["reason"] else ""
+        if r.get("review"):                          # new information since a doctor's change (14 Nov)
+            why += f'<div style="font-weight:700;color:#b71c1c">⚠️ {esc(r["review"])}</div>'
         badge = (f'<span style="display:inline-block;min-width:38px;padding:6px 0;border-radius:8px;text-align:center;'
                  f'font-weight:800;font-size:20px;color:#111;background:{LEVEL_COLOUR.get(r["level"], "#b0bec5")}">'
                  f'{r["level"] or "…"}</span>')
@@ -696,6 +726,16 @@ with gr.Blocks(title="ED triage app") as demo:
             fix_table = gr.Dataframe(headers=["Number", "Value"], interactive=True, visible=False, static_columns=[0],
                                      label="Fix the numbers (the urgency and level are scored again)")
             fix_save = gr.Button("Save and re-score", variant="primary", visible=False)
+            with gr.Accordion("Change priority (doctors only: Doctor or Organising doctor)", open=False):
+                gr.Markdown("Lower or raise this patient's level, with a reason. The AI never lowers a level by "
+                            "itself; its own level stays underneath, and you are warned if new information makes it "
+                            "more urgent than yours.")
+                with gr.Row():
+                    pr_level = gr.Dropdown(["1", "2", "3", "4", "5"], label="New level (1-2 = urgent)", scale=1)
+                    pr_reason = gr.Textbox(label="Reason (optional)", scale=4,
+                                           placeholder="e.g. chest pain settled, ECG and troponin normal")
+                    pr_save = gr.Button("Save priority", variant="primary", scale=0)
+                    pr_clear = gr.Button("Back to the AI's level", scale=0)
             with gr.Row():
                 more = gr.Textbox(label="Add information", placeholder="trop 2.1, ECG ST depression V4-6, aspirin 300 "
                                                                        "given", scale=4)
@@ -793,6 +833,8 @@ with gr.Blocks(title="ED triage app") as demo:
     on(chat_btn.click, ask_chat, [name, case_pick, chat_q], [chat_q, *case_out])
     on(chat_q.submit, ask_chat, [name, case_pick, chat_q], [chat_q, *case_out])
     on(sbar_btn.click, write_sbar, [name, case_pick], case_out)
+    on(pr_save.click, change_priority, [name, role, case_pick, pr_level, pr_reason], [pr_reason, *case_out])
+    on(pr_clear.click, back_to_ai_level, [name, role, case_pick], case_out)
     on(todos.input, set_todos, [name, role, case_pick, todos], case_out)
     on(todo_add.click, add_todo, [name, role, case_pick, todo_new], [todo_new, *case_out])
     on(todo_del.click, remove_todo, [name, role, case_pick, todo_pick], case_out)

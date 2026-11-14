@@ -1384,6 +1384,26 @@ stay level 4 and the amber-only P07 and P10 are unchanged. So no level or flag c
 P11, P12 gains the picture. Test checks: a CT bleed moves a patient with normal vitals (urgency score 3%) to urgent
 level 2 with the reason; a red fracture and an amber pneumothorax do not (106 PASS, 0 FAIL).
 
+**A doctor can change the priority (14 Nov; human in control).** The AI and the safety rules only ever move a patient
+up; lowering is a person's decision. A **Doctor** or **Organising doctor** (not the triage nurse or other roles) can set
+any level 1-5 with an optional reason (`PUT /api/patients/{id}/priority`; React "Change priority" on the case file,
+Gradio accordion on the Case file tab). The shown level, urgent flag (level 1-2) and whiteboard order follow the
+doctor; the line reads e.g. "Level 3, set by Dr Lim: chest pain settled, ECG and troponin normal (AI + safety rules said
+2)". The AI's own decision stays underneath, unchanged, and is shown next to it ("AI + safety rules now: level 2,
+urgent"). It is logged on the timeline, in the case file's triage section (so the chat and SBAR see it) and in the
+learning log (`priority_override`: doctor's level and reason next to the models' level, flag, score, floor, picture
+rule; `/api/learning` counts changes and how many lowered). The doctor's level survives later notes, answers, picture
+reads and number fixes. **Safety net:** if new information makes the AI + rules more worried than when the doctor
+decided (lower level, score up >5 points, NEWS2 up by 2+, a stricter vital-signs floor, or a new critical picture) and
+they now say more urgent than the doctor's level, the level is kept but a red warning shows on the case file and the
+whiteboard ("New information since Dr Lim's change: AI and rules now say level 2, please review"), logged once per
+change. The first design compared levels only; it never warned on T01, because the level rarely goes below 2 even when
+the patient gets sicker (NEWS2 8 -> 13 in the test). "Back to the AI's level" removes the change. Where the score and
+the safety rules disagree (the "raised by" case), a hint says a doctor can review the priority. Test checks: nurse
+refused, works without a reason, 2 -> 3 turns the flag off and moves the patient down the board, timeline + learning logged,
+a sicker later note keeps level 3 and warns, undo works (114 PASS, 0 FAIL). The answer key has no doctor changes, so
+none of the 40 cases change.
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.

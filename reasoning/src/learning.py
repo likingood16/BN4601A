@@ -92,6 +92,10 @@ class FeedbackLog:
                 "ai_todos": by_source,
                 "level_changed_by_clinician": sum(1 for o in outs if o.get("final_level") and o.get("ai_level")
                                                   and int(o["final_level"]) != int(o["ai_level"])),
+                # 14 Nov: a doctor changed the priority in the ED (the AI's level is logged next to theirs)
+                "priority_changed_by_doctor": len(self.events("priority_override")),
+                "priority_lowered_by_doctor": sum(1 for e in self.events("priority_override")
+                                                  if int(e["doctor_level"]) > int(e["ai_level"])),
                 "last_update": updates[-1] if updates else None, "models_version": _version()}
 
 

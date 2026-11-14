@@ -333,6 +333,48 @@ def run():
     check("picture rule: an amber 'possible pneumothorax' does NOT move a patient up",
           any(f["name"] == "Pneumothorax" and f.get("possible") and not f["flag"] for f in finds)
           and not amber["decision"]["picture"], finds)
+
+    # ---------------- a doctor changes the priority (14 Nov); the AI never lowers by itself
+    cp = wait(new("67M CP since 0600, sweaty, radiating to L arm. HR 112 BP 90/60 RR 22 sats 94% RA pain 8/10. walk-in")
+              .json()["id"])
+    order = lambda: [x["id"] for x in get("/api/board").json()["patients"]]
+    levels = {x["id"]: x["level"] for x in get("/api/board").json()["patients"]}
+    check("priority: T01-like patient starts urgent at level 2 (AI + safety rules)", cp["flagged"] and cp["level"] <= 2,
+          cp["decision"])
+    ai_level = cp["level"]
+    before = order()
+    put = lambda body: requests.put(f"{URL}/api/patients/{cp['id']}/priority", json=body, timeout=30)
+    r = put({"who": "Nurse Tan", "role": "Triage nurse", "level": 3, "reason": "settled"})
+    check("priority: a nurse can't change it (doctors only)", r.status_code == 403, r.text)
+    r = put({"who": "Dr Wong", "role": "Doctor", "level": 3})
+    check("priority: works without a reason", r.status_code == 200 and get(f"/api/patients/{cp['id']}").json()["reason"]
+          == f"Level 3, set by Dr Wong (AI + safety rules said {ai_level})", r.text)
+    learned = get("/api/learning").json().get("priority_changed_by_doctor", 0)
+    r = put({"who": "Dr Wong", "role": "Doctor", "level": 3, "reason": "Chest pain settled, ECG and troponin normal"})
+    p = get(f"/api/patients/{cp['id']}").json()
+    check("priority: a doctor lowers 2 -> 3 with a reason: level 3, not urgent, the AI's own level kept underneath",
+          r.status_code == 200 and p["level"] == 3 and not p["flagged"] and p["decision"]["level"] == ai_level
+          and p["reason"] == f"Level 3, set by Dr Wong: Chest pain settled, ECG and troponin normal (AI + safety rules "
+                             f"said {ai_level})", (r.text, p["reason"]))
+    after = order()
+    check("priority: the whiteboard sorts by the doctor's level",
+          all(after.index(cp["id"]) > after.index(i) for i, l in levels.items() if l and l <= 2 and i in after
+              and i != cp["id"]) and after != before, (before, after))
+    check("priority: logged on the timeline, the case file and for learning",
+          any(e["what"] == "Priority" and "Level set to 3" in e["text"] and "Dr Wong" in e["text"] for e in p["timeline"])
+          and "PRIORITY SET BY A DOCTOR: Level 3, set by Dr Wong" in p["report"]
+          and get("/api/learning").json().get("priority_changed_by_doctor", 0) == learned + 1)
+    note(cp["id"], "now responds to pain only, GCS 9. T 39.4")      # sicker: the consciousness tile was empty
+    p = wait(cp["id"])
+    check("priority: a later note that makes the AI + rules more worried keeps the doctor's level and warns",
+          p["level"] == 3 and p["override"]["level"] == 3 and p["review"].startswith("New information since Dr Wong's "
+          "change: AI and rules now say level") and p["review"].endswith("please review")
+          and any(e["what"] == "Priority" and "please review" in e["text"] for e in p["timeline"])
+          and "PLEASE REVIEW" in p["report"], (p["fields"].get("mental"), p["decision"], p["review"]))
+    r = put({"who": "Dr Lim", "role": "Organising doctor", "clear": True})
+    p = get(f"/api/patients/{cp['id']}").json()
+    check("priority: 'Back to the AI's level' undoes it", r.status_code == 200 and p["override"] is None
+          and p["level"] == p["decision"]["level"] and not p["review"])
     r = requests.post(f"{URL}/api/patients/{a}/rerun")
     check("Re-run AI works", r.status_code == 200 and wait(a)["status"] == "ready")
     tl = get(f"/api/patients/{a}").json()["timeline"]

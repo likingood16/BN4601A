@@ -68,7 +68,19 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | Pictures never changed the priority (only vitals and words did) | **Picture rule**: a red pneumothorax or a red bleed on head CT (trained image models) flags the patient urgent, level at most 2, with the reason "Moved up: CT shows bleeding inside the skull (picture model)" on the pill, whiteboard, case file and chat. Only moves UP; not fractures, effusion, shadowing or amber marks | **Done, in `main`.** None of the 40 answer-key levels change (P06, P11, P12 were already level 2) |
 
-Test-mode checks: `python app/tests/test_app.py` = **106 PASS, 0 FAIL**. Details: `reasoning/REPORT_NOTES.md` 5v.
+| + | Only the AI could set the priority | **Doctor's priority**: a Doctor or Organising doctor can lower or raise the level (reason optional) ("Change priority" on the case file). The AI's level stays underneath; a red "please review" warning shows if new information makes the AI more worried. Screenshots below | **Done, in `main`** |
+
+Test-mode checks: `python app/tests/test_app.py` = **114 PASS, 0 FAIL**.
+
+Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
+- `priority_override_a_before.png`: case file before, with the **Change priority** button
+- `priority_override_a_board_before.png`: whiteboard before (T01 urgent, level 2)
+- `priority_override_b_filled.png`: level 3 picked, reason typed
+- `priority_override_c_after.png`: "Level 3, set by Dr Lim … (AI + safety rules said 2)", AI's level shown next to it
+- `priority_override_c_board_after.png`: whiteboard: T01 moved below the urgent patient
+- `priority_override_c_timeline.png`: the timeline entry
+- `priority_override_d_review.png`: after a worse note: red "New information since Dr Lim's change … please review"
+- `priority_override_d_board_review.png`: the same warning on the whiteboard Details: `reasoning/REPORT_NOTES.md` 5v.
 
 **Caleb: one more retest, please** (pull `main`; ask your Claude to read this section and run it): T01, answer the
 consciousness question ("alert, GCS 15") and check the ACVPU tile and the timeline; Add "trop 85, ECG ST depression
