@@ -1340,6 +1340,33 @@ P10 (5-year-old, cough, playing, HR 110 RR 24 sats 98%, normal chest X-ray) leve
 2% vs the adults' 25%); both testers had it flagged urgent, which normal-for-age numbers did not justify
 (`app/build/ED_app_test_pack_rescore_13nov.json`). Guide screenshots retaken with the new heads.
 
+### 5v. Retest 14 Nov fixes + SBAR handover (14 Nov 2026; commit bd88409, `main` a471b12)
+
+Caleb's retest of the 13 Nov version (full AI, RTX 4050): 40/40 cases match the answer key, 104 s median per case.
+Four app problems fixed; each checked on the full AI on the RTX 3050 laptop (MedGemma 1.5 4-bit) and by the test-mode
+checks (`app/tests/test_app.py`: **100 PASS, 0 FAIL**, 11 new).
+
+| # | Problem (retest) | Fix | Full-AI check (14 Nov) |
+|---|---|---|---|
+| 1 | Answering "alert, GCS 15" didn't change the tiles or the score | Later notes are read by MedGemma + rules like the first note; empty tiles filled and the score re-run; a different value for a filled tile is flagged "please check", never overwritten | T01: ACVPU tile became alert; timeline "Numbers from a later note: Consciousness alert; level 2 -> 2" (34 s) |
+| 2 | Chat (P05, 7-year-old, BP and RR missing): "NEWS2 1, indicating a HIGH risk" | A prompt line alone did **not** fix it (first full-AI recheck still said it): the vitals line in the record says "NEWS2 1 = HIGH risk (escalated: ...)". Now reworded in the chat/SBAR record only ("a LOW score ... risk treated as HIGH only because core vitals could not be recorded"); the urgency heads still read the card unchanged, so no score changes | P05: "The NEWS2 score is low due to the few recorded signs, but the risk is treated as high because these essential vital signs are missing." |
+| 3 | Whiteboard "reading the note…" on a finished patient with no age/sex | "age/sex not recorded" once the AI is done (React + Gradio) | test checks |
+| 4 | Case file "Pain 3/010" | `charting.tidy_numbers` | test check |
+
+**SBAR handover (Core task 3, structured specialty report from the whole conversation).** A "Write SBAR handover"
+button (React case-file tab and Gradio tab) runs `EDPipeline.sbar` in the same conversation as the chat, after it is
+given the latest case file and the later notes. Full AI, T01 after an answer, an Add ("trop 85, ECG ST depression V4-6,
+aspirin 300 given") and a chat question, three runs (69-131 s each):
+- the AI's text always had the four headings, the answer (alert, GCS 15) and the vitals/NEWS2;
+- but it **dropped later results in 3 of 3 runs**: the troponin every time (and then asked for one), the ECG in one run
+  and the aspirin in two, even with the later notes listed again right before the request and "trop" spelled out.
+- So the app copies every later note and every chat question **word for word** under the AI's text ("Added after
+  arrival (copied from the notes, not written by the AI)", "Asked in the chat"): nothing typed after arrival can go
+  missing from the handover, and the reader can see which part the AI wrote. Marked "AI draft: check before use";
+  a warning shows when new information arrives after it was written.
+- Finding for the report: a 4B model summarising a long multi-turn record loses specific later results; for safety
+  the facts are carried by code, the AI writes the summary. (Same pattern as the numbers: rules check the AI.)
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.
