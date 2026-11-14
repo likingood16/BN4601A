@@ -235,14 +235,17 @@ def run():
     check("answering a question adds it to the notes", any("NKDA" in n["text"] for n in p["notes"]))
     check("Rebuilt case file keeps the earlier notes", "aspirin 300" in p["report"])
     # retest 14 Nov (Caleb, T01): an answered number reached the case file but not the tiles or the score
-    note(a, "What is the level of consciousness (AVPU/GCS)? → alert, GCS 15. T 37.9. HR 140")
+    note(a, "What is the level of consciousness (AVPU/GCS)? → alert, GCS 15. T 37.9. HR 140. trop 85, now drowsy")
     p = wait(a)
     f = p["fields"]
     check("answer: missing numbers are read into the tiles (consciousness, temperature)",
           f.get("mental") == "alert" and f.get("temp_c") == 37.9, f)
-    check("answer: a number already on a tile is not changed, the nurse is asked to check it",
-          f.get("hr") == 118 and any(w.startswith("please check HR") for w in p["found"].get("warnings", [])),
-          p["found"].get("warnings"))
+    check("a later note's vital sign is a newer reading: the tile changes and says what it was (Caleb final QC)",
+          f.get("hr") == 140 and "HR 140 (was 118)" in p["report"]
+          and any("HR 140 (was 118)" in e["text"] for e in p["timeline"]), (f.get("hr"), p["found"].get("warnings")))
+    check("age and sex are never read from a later note ('trop 85' is not age 85, 'now drowsy' is not female)",
+          f.get("age") == 67 and f.get("sex") in ("M", "male", "Male")
+          and not any(("Age" in w or "Sex" in w) for w in p["found"].get("warnings", [])), (f.get("age"), f.get("sex"), p["found"].get("warnings")))
     check("answer: re-scored and logged; the case file says what was read",
           any("Numbers from a later note" in e["text"] for e in p["timeline"])
           and re.search(r"From a later note: [^\n]*Consciousness alert", p["report"]) is not None,
@@ -264,6 +267,13 @@ def run():
           done == {"troponin": "11:05", "ECG": "11:05"}
           and "troponin (already done: troponin at 11:05, ECG at 11:05, see the notes)." in marked
           and "Repeat troponin at 3 h." in marked and "Order a chest X-ray." in marked, (done, marked))
+    fixed = charting.fix_stemi("Likely an ST-elevation myocardial infarction (STEMI). Treat as STEMI; NSTEMI is less likely.",
+                               "trop 85, ECG ST depression V4-6")
+    check("ST depression only: 'STEMI' is corrected to NSTEMI, and said so (Caleb final QC)",
+          "Likely an non-ST-elevation myocardial infarction (NSTEMI). Treat as NSTEMI; NSTEMI is less likely." in fixed
+          and "Corrected by a fixed rule" in fixed
+          and charting.fix_stemi("STEMI", "ECG ST elevation V2-4") == "STEMI"
+          and "cardiac enzymes (already done" in charting.mark_done_tests("Consider a full workup including cardiac enzymes.", done), fixed)
 
     # ---------------- case file window
     fixes_before = get("/api/learning").json()["number_corrections"]

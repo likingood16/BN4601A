@@ -436,7 +436,27 @@ def strip_preamble(text):
                   r"[^\n]*\n+", "", text, count=1).lstrip()
 
 
-DONE_TESTS = {"ECG": r"\b(?:ecg|ekg|electrocardiogram)s?\b", "troponin": r"\b(?:trop|troponin|hs-?tni?|tni)s?\b",
+def st_depression_only(notes_text):
+    """The notes give ST depression and never ST elevation (Caleb's final QC 14 Nov: chat + SBAR called T01 a STEMI)."""
+    return bool(re.search(r"(?i)\bst[- ]?(?:segment )?depress", notes_text)) and not re.search(
+        r"(?i)\bst[- ]?(?:segment )?elevat|\bstemi\b", notes_text)
+
+
+def fix_stemi(text, notes_text):
+    """With ST depression and no ST elevation in the notes, 'STEMI' is the wrong label (it is NSTEMI / NSTE-ACS).
+    MedGemma's other words are kept; the label is corrected and the change is said once."""
+    if not st_depression_only(notes_text):
+        return text
+    new = re.sub(r"(?i)\bST[- ]elevation myocardial infarction(?:\s*\(STEMI\))?", "non-ST-elevation myocardial infarction (NSTEMI)", text)
+    new = re.sub(r"(?<![A-Za-z-])STEMI\b", "NSTEMI", new)
+    if new != text:
+        new += ("\n\n_(Corrected by a fixed rule: the notes give ST depression, not ST elevation, so 'STEMI' was changed "
+                "to 'NSTEMI'. Check the plan, e.g. the timing of angiography, with the cardiology team.)_")
+    return new
+
+
+DONE_TESTS = {"ECG": r"\b(?:ecg|ekg|electrocardiogram)s?\b",
+              "troponin": r"\b(?:trop|troponin|hs-?tni?|tni|cardiac enzymes?|cardiac markers?|cardiac biomarkers?)s?\b",
               "chest X-ray": r"\b(?:cxr|chest x-?rays?|chest radiograph)\b", "CT head": r"\bct (?:head|brain)\b",
               "blood glucose": r"\b(?:bm|cbg|blood glucose|glucose|capillary glucose)\b", "lactate": r"\blactate\b",
               "blood gas": r"\b(?:vbg|abg|blood gas)\b"}
