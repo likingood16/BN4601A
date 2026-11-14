@@ -25,7 +25,8 @@ class TestPipeline:
         flagged = bool(head_flag or floor_flag)
         decision = Decision(p_urgent=out["p_urgent"], head_flag=head_flag, floor_flag=floor_flag, flagged=flagged,
                             level=2 if flagged else 3, level_set=(1, 2) if flagged else (3, 4),
-                            floor_priority=out["floor_priority"], news2=out["news2"], model_level=3, **facts)
+                            floor_priority=out["floor_priority"], news2=out["news2"], model_level=3,
+                            level_probs=(0.3, 0.4, 0.2, 0.08, 0.02) if flagged else (0.02, 0.08, 0.5, 0.3, 0.1), **facts)
         visit = Visit(card=make_card(patient, out), decision=decision, ed=ed_assessment(patient))
         if explain:
             self.explain(visit)

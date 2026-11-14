@@ -264,6 +264,12 @@ def _patient(pid):
     return store.patients.get(pid) if pid and pid != NEW else None
 
 
+def _groups_line(d):
+    """'Classifier: Urgent 70% · Can wait 25% · Minor 5% · ' (the level classifier's three groups, 14 Nov)."""
+    g = d.groups()
+    return ("Classifier: " + " · ".join(f"{k} {v:.0%}" for k, v in g.items()) + " · ") if g else ""
+
+
 def _header(p):
     if p is None:
         return "Pick a patient."
@@ -291,7 +297,7 @@ def _header(p):
         flag = (f"🔴 **Urgent: flagged** · {d.p_urgent:.0%} chance of level 1–2 · {d.reason()}" if d.flagged
                 else f"**{S.group(d.level, False)}**: not flagged · {d.p_urgent:.0%} chance of level 1–2")
     parts = [f"## Level {d.level} · {p.bed} · {who} · {p.complaint()}",
-             f"{flag} · levels it can't rule out: {', '.join(map(str, d.level_set))} · NEWS2 {d.news2} · "
+             f"{flag} · {_groups_line(d)}levels it can't rule out: {', '.join(map(str, d.level_set))} · NEWS2 {d.news2} · "
              f"{p.stage} · {p.doctor}"]
     if d.raised_by():
         parts.append(f"⬆ {d.raised_by()}  \n_The score and the safety rules disagree. A doctor can review and change "

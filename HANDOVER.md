@@ -78,7 +78,9 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | Caleb's final QC (14 Nov 17:14, on 437ca2e): a worse later note (BP 78/50, HR 128, drowsy) after a doctor lowered T01 changed nothing on screen; "trop 85" read as age 85; chat + SBAR called ST depression + trop 85 a STEMI; SBAR asked for "cardiac enzymes" | A vital sign in a later note is a newer reading: the tile updates ("HR 128 (was 112)"), the patient is re-scored and the review warning fires; 'please check' lines now show on the case page; age/sex never read from later notes; with ST depression and no elevation 'STEMI' is corrected to NSTEMI (and said so); "cardiac enzymes" counts as troponin | **Done, in `main`.** Full-AI QC of T01 (14 Nov 20:36): 12/12 after one fix (the STEMI rule had turned a correct "non-ST-elevation… (NSTEMI)" into "non-non-…"); "trop 85" no longer read as arrival by ambulance either. Screenshots `docs/handover/qc_final_*.png` |
 
-Test-mode checks: `python app/tests/test_app.py` = **121 PASS, 0 FAIL**.
+| + | The three groups were only a label from the level | The **level classifier's own chances for the three groups** are shown on the case file ("Classifier: Urgent 6% · Can wait 51% · Minor 44%" = levels 1-2 / 3 / 4-5 added up from its 1-5 output). Full AI: T01 70/30/0, T07 6/51/44, T04 0/1/99. No retraining, so no reported number changes | **Done, in `main`** (React + Gradio) |
+
+Test-mode checks: `python app/tests/test_app.py` = **122 PASS, 0 FAIL**.
 
 Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
 - `priority_override_a_before.png`: case file before, with the **Change priority** button

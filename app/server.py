@@ -170,7 +170,7 @@ class Patient:
                 "timeline": self.visit.timeline if self.visit else [],
                 "decision": None if d is None else {
                     "p_urgent": d.p_urgent, "flagged": d.flagged, "head_flag": d.head_flag, "floor_flag": d.floor_flag,
-                    "level": d.level, "level_set": list(d.level_set), "news2": d.news2,
+                    "level": d.level, "level_set": list(d.level_set), "news2": d.news2, "groups": d.groups(),
                     "floor_priority": d.floor_priority, "needs_obs": d.needs_obs, "missing": list(d.missing),
                     "abnormal": list(d.abnormal), "picture": getattr(d, "picture", "")}}
 
