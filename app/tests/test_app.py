@@ -419,7 +419,10 @@ def run():
     ai_todos = get("/api/learning").json()["ai_todos"]
     check("learning: ticking / removing an AI to-do is logged (monitoring only)",
           not first_is_ai or sum(v["removed"] for v in ai_todos.values()) >= 1)
-    check("Clear is refused before the patient has somewhere to go", board(b, {**LEAD, "cleared": True}).status_code == 400)
+    r = board(b, {**LEAD, "cleared": True})       # Alex 14 Nov: a doctor can remove a patient in one step
+    check("✕ Remove from board works in one step (no need to set where they went first)", r.status_code == 200
+          and all(x["id"] != b for x in get("/api/board").json()["patients"]))
+    board(b, {**LEAD, "cleared": False})
     for stage in ("Going to surgery", "Transfer to another department", "Admitted to ward", "Discharged home"):
         r = board(c, {**LEAD, "stage": stage})
         check(f"stage '{stage}' can be set", r.status_code == 200)
@@ -428,7 +431,7 @@ def run():
     check("Clear: a level outside 1-5 is refused", board(c, {**LEAD, "cleared": True, "final_level": 9}).status_code == 400)
     r = board(c, {**LEAD, "cleared": True, "diagnosis": "Acute coronary syndrome", "final_level": 2})
     learn = get("/api/learning").json()
-    check("learning: Clear with a final diagnosis + level logs an outcome case", learn["patients_with_outcome"] == 1
+    check("learning: Clear with a final diagnosis + level logs an outcome case", learn["patients_with_outcome"] >= 1
           and learn["with_diagnosis_or_level"] == 1 and any(e["what"] == "Outcome" for e in get(f"/api/patients/{c}").json()["timeline"]))
     check("learning: test mode has no MedGemma vector, so nothing is used for training", learn["usable_for_learning"] == 0)
     on, left = get("/api/board").json(), get("/api/board?cleared=true").json()
@@ -440,6 +443,18 @@ def run():
     board(c, {**LEAD, "cleared": True})
     lv = [x["level"] for x in get("/api/board").json()["patients"] if not x["leaving"]]
     check("board order: most urgent first", lv == sorted(lv))
+    t0 = time.time()
+    d0 = next(x["id"] for x in get("/api/board").json()["patients"] if not x["leaving"])
+    tm = {}
+    for stage in ("Waiting for doctor", "Being seen", "Gone for imaging", "Discharged home"):
+        board(d0, {**LEAD, "stage": stage})
+        tm[stage] = next(x for x in get("/api/board").json()["patients"] if x["id"] == d0)["timer"]
+    created = get(f"/api/patients/{d0}").json()["created"]
+    check("board timer: waiting to be seen from arrival; imaging and leaving start it again (Alex 14 Nov)",
+          tm["Waiting for doctor"] == {"label": "Waiting to be seen", "since": created, "restarted": False}
+          and tm["Being seen"]["since"] == created and tm["Gone for imaging"]["label"] == "At imaging"
+          and tm["Gone for imaging"]["since"] >= t0 - 1 and tm["Discharged home"]["restarted"], tm)
+    board(d0, {**LEAD, "stage": "Being seen"})
     rows = [x for x in get("/api/board").json()["patients"] if x["level"]]
     check("three groups: Urgent (flagged or level 1-2) / Can wait (3) / Minor (4-5) on every board row (14 Nov)",
           all(x["group"] == ("Urgent" if x["flagged"] or x["level"] <= 2 else "Can wait" if x["level"] == 3 else "Minor")

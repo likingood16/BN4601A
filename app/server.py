@@ -35,9 +35,9 @@ import learning                                                             # no
 
 # The client's actions (6 Nov 2026): where the patient is going. The last four mean the patient leaves the ED; the
 # organising doctor or triage nurse then clears them off the board (the case file is kept, under "Left the ED").
-STAGES = ["Waiting for doctor", "Being seen", "Results pending", "Going to surgery", "Transfer to another department",
+STAGES = ["Waiting for doctor", "Being seen", "Results pending", "Gone for imaging", "Going to surgery", "Transfer to another department",
           "Admitted to ward", "Discharged home"]
-LEAVING = set(STAGES[3:])
+LEAVING = set(STAGES[4:])
 OLD_STAGES = {"Waiting": "Waiting for doctor", "Admitted / ward": "Admitted to ward", "Discharged": "Discharged home"}
 ROLES = ["Triage nurse", "Organising doctor", "Doctor", "Nurse", "Ward / other"]
 BOARD_EDITORS = {"Triage nurse", "Organising doctor"}            # the client's choice: only these change the board
@@ -77,6 +77,7 @@ class Patient:
     todos: list = field(default_factory=list)       # {text, done, ai, by}
     chat: list = field(default_factory=list)        # {role, text, who, time}
     stage: str = "Waiting for doctor"
+    stage_since: float = 0.0                        # when the current stage began (the board timer resets, 14 Nov)
     cleared: bool = False                           # off the board (left the ED); case file kept
     doctor: str = "unassigned"
     status: str = "working"                         # working / ready / error
@@ -123,10 +124,22 @@ class Patient:
                         return text[:80]
         return self.fields.get("chief_complaint", "")
 
+    def timer(self):
+        """The board clock (Alex, 14 Nov): waiting to be seen counts from arrival; going for imaging or a decision to
+        leave the ED starts it again (how long since); other stages show the total time in the ED."""
+        since = getattr(self, "stage_since", 0.0) or self.created
+        if self.stage == "Waiting for doctor":
+            return {"label": "Waiting to be seen", "since": self.created, "restarted": False}
+        if self.stage == "Gone for imaging":
+            return {"label": "At imaging", "since": since, "restarted": True}
+        if self.stage in LEAVING:
+            return {"label": "Since the decision to leave", "since": since, "restarted": True}
+        return {"label": "In the ED", "since": self.created, "restarted": False}
+
     def summary(self):
         d = self.visit.decision if self.visit else None
         o = getattr(self, "override", {}) if d else {}
-        out = {"id": self.id, "bed": self.bed, "created": self.created, "stage": self.stage, "doctor": self.doctor, "cleared": self.cleared,
+        out = {"id": self.id, "bed": self.bed, "created": self.created, "stage": self.stage, "timer": self.timer(), "doctor": self.doctor, "cleared": self.cleared,
                "leaving": self.stage in LEAVING,
                "status": self.status, "progress": self.progress,
                "level": d.level if d else None, "flagged": d.flagged if d else None,
@@ -811,12 +824,11 @@ def set_board(pid: str, body: BoardIn):
             raise HTTPException(400, "unknown stage")
         change.append(f"stage {p.stage} -> {body.stage}")
         p.stage = body.stage
+        p.stage_since = time.time()
     if body.doctor is not None and body.doctor.strip() and body.doctor.strip() != p.doctor:
         change.append(f"doctor {p.doctor} -> {body.doctor.strip()}")
         p.doctor = body.doctor.strip()
     if body.cleared is not None and body.cleared != p.cleared:
-        if body.cleared and p.stage not in LEAVING:
-            raise HTTPException(400, "Set where the patient went (surgery, transfer, ward or home) before clearing")
         change.append("cleared from the board (left the ED)" if body.cleared else "put back on the board")
         p.cleared = body.cleared
         if body.cleared:

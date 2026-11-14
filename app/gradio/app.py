@@ -598,7 +598,8 @@ def board_view(show_left=False):
                        f'background:#e3f0fc;color:#0d3c61;{"text-decoration:line-through;opacity:.55;" if t["done"] else ""}">'
                        f'{"✦ " if t.get("ai") else ""}{esc(t["text"])}</span>' for t in r["todos"])
         ai = "" if r["status"] == "ready" else f"⏳ {esc(r['progress'])}" if r["status"] == "working" else "⚠ AI step failed"
-        waited = int((time.time() - r["created"]) // 60)
+        waited = int((time.time() - r["timer"]["since"]) // 60)   # waiting to be seen; restarts for imaging / leaving
+        total = int((time.time() - r["created"]) // 60)
         tint = "" if not r["flagged"] or r["leaving"] else "#fff3e0" if r["needs_obs"] else "#fdecea"
         why = (f'<div style="font-weight:700;color:{"#a15c00" if r["needs_obs"] else "#b71c1c"}">'
                f'{"🩺" if r.get("override") else "🟠" if r["needs_obs"] else "🔴"} {esc(r["reason"])}</div>') if r["reason"] else ""
@@ -612,7 +613,8 @@ def board_view(show_left=False):
                       f'color:{S.GROUPS[r["group"]]}">{r["group"]}</div>')
         who = r["who"] if r["who"] != "?, ?" else ("reading the note…" if r.get("status") == "working" else "age/sex not recorded")
         cells = [badge, esc(r["bed"]), f"<b>{esc(who)}</b><div>{esc(r['complaint'] or '')}</div>{why}", esc(r["stage"]),
-                 esc(r["doctor"]), f"{waited // 60}h {waited % 60:02d}m", todo, ai]
+                 esc(r["doctor"]), f"{waited // 60}h {waited % 60:02d}m<div style='font-size:12px;opacity:.7'>{r['timer']['label'].lower()}"
+                 + (f" · total {total // 60}h {total % 60:02d}m" if r["timer"]["restarted"] else "") + "</div>", todo, ai]
         rows.append(f'<tr style="background:{tint or "#ffffff"};color:#1b2733;{"opacity:.6;" if r["leaving"] else ""}">'
                     + "".join(f'<td style="padding:8px 10px;border-bottom:1px solid #dde3e9;vertical-align:top">{c}</td>'
                               for c in cells) + "</tr>")
@@ -646,7 +648,7 @@ def board_pick(pid):
     p = _patient(pid)
     if p is None:
         return gr.skip(), gr.skip(), gr.update(visible=False)
-    return p.stage, p.doctor, gr.update(visible=p.stage in S.LEAVING and not p.cleared)
+    return p.stage, p.doctor, gr.update(visible=not p.cleared)
 
 
 def board_update(name, role, pid, stage, doctor, show_left):
@@ -655,7 +657,7 @@ def board_update(name, role, pid, stage, doctor, show_left):
         raise gr.Error("Pick a patient")
     _call(S.set_board, pid, S.BoardIn(who=name, role=role, stage=stage, doctor=doctor))
     rows, line = board_view(show_left)
-    return rows, line, gr.update(visible=stage in S.LEAVING)
+    return rows, line, gr.update(visible=True)
 
 
 def board_clear(name, role, pid, diagnosis, right_level, show_left):
@@ -687,7 +689,7 @@ MODE = ("**Test mode:** MedGemma's writing is made up; numbers, urgency, rules, 
             "day (log in to Hugging Face for more)" if ZERO and not FAKE_ZERO else ""))
 if NO_FILES:
     MODE += f"\n\n⚠ The full AI couldn't start: {NO_FILES} (the Space owner needs to set its HF_TOKEN secret)."
-BOARD_HEAD = ["Level", "Bed", "Patient", "Stage", "Doctor", "Waiting", "To do", "AI"]
+BOARD_HEAD = ["Level", "Bed", "Patient", "Stage", "Doctor", "Time", "To do", "AI"]
 
 with gr.Blocks(title="ED triage app") as demo:
     with gr.Row():
@@ -812,7 +814,7 @@ with gr.Blocks(title="ED triage app") as demo:
                             b_dx = gr.Textbox(label="Final diagnosis (optional)")
                             b_level = gr.Dropdown(["Right level?", "1", "2", "3", "4", "5"], value="Right level?",
                                                   label="Right level? (optional)")
-                            b_clear = gr.Button("✓ Clear from board", variant="primary")
+                            b_clear = gr.Button("✓ Remove from board (left the ED)", variant="primary")
                     with gr.Column(scale=3, visible=False) as b_left_box:
                         b_back = gr.Button("Put back on the board")
             with gr.Row():
