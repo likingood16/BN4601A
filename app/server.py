@@ -593,6 +593,14 @@ def _save_images(pid, files):
     return out
 
 
+def _need_who(who):
+    """Every change says who made it (button test 15 Nov: Add, Fix numbers, Edit, SBAR and Chat saved 'not recorded')."""
+    who = (who or "").strip()
+    if not who or who.lower() == "not recorded":
+        raise HTTPException(400, "Type your name at the top right first")
+    return who
+
+
 @app.post("/api/patients")
 def new_patient(text: str = Form(...), who: str = Form(...), files: list[UploadFile] = File(default=[])):
     if not text.strip():
@@ -609,7 +617,11 @@ def new_patient(text: str = Form(...), who: str = Form(...), files: list[UploadF
 
 @app.post("/api/patients/{pid}/notes")
 def add_note(pid: str, text: str = Form(""), who: str = Form(...), files: list[UploadFile] = File(default=[])):
+    who = _need_who(who)
     p = store.get(pid)
+    # button test 15 Nov: a clicked question with nothing typed after the arrow was saved as a note
+    if text.strip().endswith("→") and not files:
+        raise HTTPException(400, "Type the answer after the arrow first")
     images = _save_images(pid, files)
     if not text.strip() and not images:
         raise HTTPException(400, "Type something or add a picture")
@@ -637,6 +649,7 @@ class ReportIn(BaseModel):
 
 @app.put("/api/patients/{pid}/report")
 def edit_report(pid: str, body: ReportIn):
+    body.who = _need_who(body.who)
     p = store.get(pid)
     if p.status == "working" and not p.report:      # the AI is writing the first version: an edit would be lost
         raise HTTPException(409, "The AI is still writing the case file; edit it when it's ready")
@@ -655,6 +668,7 @@ class FieldsIn(BaseModel):
 @app.put("/api/patients/{pid}/fields")
 def fix_numbers(pid: str, body: FieldsIn):
     """The nurse corrects a number the AI pulled out -> urgency and level are scored again."""
+    body.who = _need_who(body.who)
     p = store.get(pid)
     if p.status == "working":
         raise HTTPException(409, "The AI is still working on this patient")
@@ -664,7 +678,10 @@ def fix_numbers(pid: str, body: FieldsIn):
             continue
         if v in ("", None):
             continue
-        clean[k] = v if k in ("sex", "mental", "chief_complaint") else float(v)
+        try:
+            clean[k] = v if k in ("sex", "mental", "chief_complaint") else float(v)
+        except (TypeError, ValueError):                 # button test 15 Nov: "abc" gave a 500
+            raise HTTPException(400, f"{FIELD_NAMES[k]}: '{v}' is not a number")
     old = p.visit.decision.level if p.visit else None
     ai_read = p.found.get("ai_fields", p.fields)
     changed = sorted(k for k in set(ai_read) | set(clean) if k != "chief_complaint" and ai_read.get(k) != clean.get(k))
@@ -678,7 +695,12 @@ def fix_numbers(pid: str, body: FieldsIn):
         p.fields = clean
         p.found["checked_by"] = body.who
         # a nurse has looked: readings the two readers disagreed on are now settled
-        p.found["by"] = {k: ("nurse" if v == "check" or k in changed else v) for k, v in p.found.get("by", {}).items()}
+        # button test 15 Nov: labels went on untouched tiles and not on the new ones. "nurse" now means typed or
+        # changed in THIS fix (compared with the tiles), or a reading the two readers disagreed on
+        typed = [k for k in clean if k != "chief_complaint" and _show(clean.get(k)) != _show(before_fields.get(k))]
+        p.found["by"] = {**{k: ("nurse" if v == "check" else v) for k, v in p.found.get("by", {}).items()},
+                         **{k: "nurse" for k in typed}}
+        p.found.setdefault("found", {}).update({k: f"entered by {body.who}" for k in typed})
         p.found["check"] = []
         p.found["warnings"] = [w for w in p.found.get("warnings", []) if not w.startswith("please check")]
         p.visit = new_visit
@@ -687,6 +709,12 @@ def fix_numbers(pid: str, body: FieldsIn):
         apply_picture_rule(p, body.who)             # a numbers fix keeps the picture rule
         check_override(p)                           # ... and a doctor's level
         show_supported_pathways(p)
+        # button test 15 Nov: it still asked for numbers just typed. Drop those; the one "Observations not recorded
+        # yet" question is written again from the new numbers (it goes when fewer than 3 are missing, as at arrival)
+        qs = [q for q in p.questions if not q.startswith("Observations not recorded yet")]
+        obs_q = charting.missing_obs_question(clean)
+        p.questions = ([obs_q] if obs_q and any(q.startswith("Observations not recorded yet") for q in p.questions) else []) \
+            + charting.drop_known(qs, clean, " ".join(n["text"] for n in p.notes))
         p.visit.log("Triage", f"Numbers corrected; level {old} -> {p.visit.decision.level}", body.who)
         if p.report:
             # the Observations text still had the note's numbers after a fix (Gradio check 13 Nov: tile 82/60, text
@@ -715,6 +743,7 @@ class ChatIn(BaseModel):
 
 @app.post("/api/patients/{pid}/chat")
 def chat(pid: str, body: ChatIn):
+    body.who = _need_who(body.who)
     p = store.get(pid)
     if p.visit is None:
         raise HTTPException(409, "The case file isn't ready yet")
@@ -752,6 +781,7 @@ class WhoIn(BaseModel):
 def write_sbar(pid: str, body: WhoIn):
     """Core task 3: an SBAR handover for the next doctor, written by MedGemma from everything gathered so far (the
     record, every later note and answer, the latest case file and the chat). A draft for a person to check."""
+    body.who = _need_who(body.who)
     p = store.get(pid)
     if p.visit is None or p.status == "working":
         raise HTTPException(409, "Wait until the AI has finished reading the notes")
@@ -853,6 +883,9 @@ def set_board(pid: str, body: BoardIn):
         p.cleared = body.cleared
         if body.cleared:
             _log_outcome(p, body)
+        elif p.stage in LEAVING and not body.stage:  # button test 15 Nov: put back still said "Discharged home"
+            change.append(f"stage {p.stage} -> Being seen")
+            p.stage, p.stage_since = "Being seen", time.time()
     if change:
         _log(p, "Board", "; ".join(change), body.who)
     store.changed()

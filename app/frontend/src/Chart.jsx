@@ -77,6 +77,7 @@ export default function Chart({ me, setMe }) {
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => setError(""), [target]);            // button test 15 Nov: an old error followed you to another patient
   const [current, setCurrent] = useState(null);
   const [p] = usePoll(current ? `/api/patients/${current}` : null);
   const [answer, setAnswer] = useState("");
@@ -159,7 +160,7 @@ export default function Chart({ me, setMe }) {
           </div>
           <textarea className="note-box" value={text} onChange={(e) => { setText(e.target.value); setError(""); setDone(""); }}
             placeholder={"Example: 67M CP since 0600, sweaty, radiating L arm. HR 112 BP 90/60 sats 94 RA RR 22. hx DM HTN on metformin. came by amb. pain 8/10"} />
-          <ImagePicker files={files} setFiles={setFiles} onReject={setError} />
+          <ImagePicker files={files} setFiles={(f) => { setError(""); setFiles(f); }} onReject={setError} />
           {error && <div className="error">{error}</div>}
           {done && <div className="ok-msg">{done}</div>}
           <div className="row" style={{ justifyContent: "flex-end", marginTop: 10 }}>
@@ -175,12 +176,12 @@ export default function Chart({ me, setMe }) {
           {/* the answer box sits ABOVE the questions so it doesn't jump down when they arrive (7 Nov stress test) */}
           {p && (
             <div className="row" style={{ marginBottom: 12 }}>
-              <input style={{ flex: 1 }} value={answer} onChange={(e) => setAnswer(e.target.value)}
+              <input id="answer-box" style={{ flex: 1 }} value={answer} onChange={(e) => setAnswer(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendAnswer()} placeholder="Answer or add information" />
               <button onClick={sendAnswer}>Add</button>
             </div>
           )}
-          <Questions p={p} onPick={(q) => setAnswer(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `)} />
+          <Questions p={p} onPick={(q) => { setAnswer(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `); setTimeout(() => { const el = document.getElementById("answer-box"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0); }} />
         </div>
       </div>
     </div>

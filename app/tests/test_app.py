@@ -471,6 +471,32 @@ def run():
         (x["id"] for x in get("/api/board").json()["patients"] if x["level"]), None)) else {}
     check("the level classifier's three groups are shown as chances (Urgent / Can wait / Minor add up to 100%)",
           list(g) == ["Urgent", "Can wait", "Minor"] and abs(sum(g.values()) - 1) < 0.01, g)
+    # ---------------- button test 15 Nov
+    e = new("70F fall at home, HR 90 BP 140/80").json()["id"]
+    pe = wait(e)
+    r = requests.post(f"{URL}/api/patients/{e}/notes", data={"text": "hi", "who": "not recorded"})
+    r2 = requests.post(f"{URL}/api/patients/{e}/chat", json={"text": "hi", "who": ""})
+    check("a change without a name is refused (Add, Chat): 'Type your name at the top right first'",
+          r.status_code == 400 and "name" in r.text and r2.status_code == 400, (r.text, r2.text))
+    r = requests.post(f"{URL}/api/patients/{e}/notes", data={"text": "What is the respiratory rate? → ", "who": "Nurse Tan"})
+    check("a clicked question with nothing after the arrow is not saved as a note",
+          r.status_code == 400 and len(get(f"/api/patients/{e}").json()["notes"]) == 1, r.text)
+    r = requests.put(f"{URL}/api/patients/{e}/fields", json={"fields": {**pe["fields"], "hr": "abc"}, "who": "Nurse Tan"})
+    check("Fix numbers with 'abc' says what is wrong (400, not a 500)", r.status_code == 400 and "not a number" in r.text, r.text)
+    r = requests.put(f"{URL}/api/patients/{e}/fields",
+                     json={"fields": {**pe["fields"], "rr": 18, "temp_c": 37.0, "mental": "alert"}, "who": "Nurse Tan"})
+    pf = get(f"/api/patients/{e}").json()
+    by = pf["found"].get("by", {})
+    check("Fix numbers: the 'nurse' label goes on the tiles typed in this fix, not on untouched ones",
+          r.status_code == 200 and all(by.get(k) == "nurse" for k in ("rr", "temp_c", "mental")) and by.get("hr") != "nurse", by)
+    check("Fix numbers: questions about the numbers just typed are dropped",
+          not any(re.search(r"respiratory rate|temperature|consciousness|avpu|gcs", q, re.I) for q in pf["questions"]), pf["questions"])
+    board(e, {**LEAD, "stage": "Discharged home"})
+    board(e, {**LEAD, "cleared": True})
+    board(e, {**LEAD, "cleared": False})
+    pb = get(f"/api/patients/{e}").json()
+    check("Put back on the board: back in the ED (stage 'Being seen', not 'Discharged home')",
+          not pb["cleared"] and pb["stage"] == "Being seen", pb["stage"])
     rows = [x for x in get("/api/board").json()["patients"] if x["level"]]
     check("three groups: Urgent (flagged or level 1-2) / Can wait (3) / Minor (4-5) on every board row (14 Nov)",
           all(x["group"] == ("Urgent" if x["flagged"] or x["level"] <= 2 else "Can wait" if x["level"] == 3 else "Minor")
