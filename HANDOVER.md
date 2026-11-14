@@ -76,7 +76,9 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | Board clock only counted from arrival; a patient could only be cleared after setting where they went | **Time** column: "waiting to be seen" from arrival; **Gone for imaging** (new stage) or a decision to leave starts the clock again ("at imaging 12m · total 1h 05m"). **✕ Remove from board** in one step for the triage nurse / organising doctor (case file kept under "Left the ED") | **Done, in `main`** (React + Gradio) |
 
-Test-mode checks: `python app/tests/test_app.py` = **119 PASS, 0 FAIL**.
+| + | Caleb's final QC (14 Nov 17:14, on 437ca2e): a worse later note (BP 78/50, HR 128, drowsy) after a doctor lowered T01 changed nothing on screen; "trop 85" read as age 85; chat + SBAR called ST depression + trop 85 a STEMI; SBAR asked for "cardiac enzymes" | A vital sign in a later note is a newer reading: the tile updates ("HR 128 (was 112)"), the patient is re-scored and the review warning fires; 'please check' lines now show on the case page; age/sex never read from later notes; with ST depression and no elevation 'STEMI' is corrected to NSTEMI (and said so); "cardiac enzymes" counts as troponin | **Done, in `main`** (test mode; full-AI check pending) |
+
+Test-mode checks: `python app/tests/test_app.py` = **121 PASS, 0 FAIL**.
 
 Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
 - `priority_override_a_before.png`: case file before, with the **Change priority** button

@@ -45,6 +45,7 @@ IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tif", ".tiff", ".d
 FIELD_NAMES = {"age": "Age", "sex": "Sex", "hr": "HR", "sbp": "BP sys", "dbp": "BP dia", "rr": "RR", "spo2": "SpO2 %",
                "temp_c": "Temp C", "nrs_pain": "Pain /10", "mental": "Consciousness", "ambulance": "Ambulance (1/0)",
                "injured": "Injury (1/0)"}
+NEWER_READING = {"hr", "sbp", "dbp", "rr", "spo2", "temp_c", "mental", "nrs_pain"}   # vital signs: a later note updates them
 
 
 GROUPS = {"Urgent": "#d32f2f", "Can wait": "#f9a825", "Minor": "#388e3c"}
@@ -56,6 +57,11 @@ def group(level, flagged):
     if level is None:
         return ""
     return "Urgent" if flagged or level <= 2 else "Can wait" if level == 3 else "Minor"
+
+
+def _read_line(added, was):
+    """'Consciousness verbal (was alert), HR 128 (was 112)': what a later note changed."""
+    return ", ".join(f"{FIELD_NAMES[k]} {_show(v)}" + (f" (was {_show(was[k])})" if k in was else "") for k, v in added.items())
 
 
 def now():
@@ -366,30 +372,39 @@ class Store:
         the score still said 'not recorded', because only the first note's numbers were read. Later notes (answers and
         added information) are now read the same way as the first note: MedGemma and the rules both read them
         (charting.read_numbers). A number that was missing is filled in and the urgency and level are scored again.
-        A different value for a number that is already there is NOT changed: it goes to the nurse as 'please check'
-        (they change it with Fix numbers), so a later note can't silently move the decision."""
+        Caleb's final QC 14 Nov: after a doctor lowered T01, "now drowsy, BP 78/50, HR 128" changed nothing on screen
+        (the old rule kept every filled tile and only made a hidden 'please check'). A vital sign in a later note is a
+        NEWER reading, so it now replaces the old one (said on the timeline and in the case file: "HR 128 (was 112)")
+        and the patient is scored again, which also fires the doctor's review warning. Age and sex are never read
+        from a later note ("trop 85" was read as age 85, "now drowsy" as female); other differences stay 'please check'."""
         text = "\n".join(n["text"] for n in new if n["text"].strip())
         if not text:
             return
         self._step(p, "Reading numbers in the new note")
         got, info = charting.read_numbers(ai, text)
-        added, who = {}, new[-1]["who"]
+        added, was, who = {}, {}, new[-1]["who"]
         p.found.setdefault("found", {})
         p.found.setdefault("by", {})
         p.found.setdefault("warnings", [])
         for k, v in got.items():
-            if k == "chief_complaint" or k not in FIELD_NAMES:
+            if k == "chief_complaint" or k not in FIELD_NAMES or k in ("age", "sex"):
                 continue
             if p.fields.get(k) in (None, ""):
                 added[k] = v
                 p.found["found"][k] = info["found"].get(k, "")
                 p.found["by"][k] = info["by"].get(k, "rules")
                 p.found.setdefault("check", []).extend(c for c in info.get("check", []) if c["field"] == k)
+            elif k in NEWER_READING and not charting._agree(k, p.fields[k], v):
+                added[k] = v                         # a newer reading replaces the old one
+                was[k] = p.fields[k]
+                p.found["found"][k] = info["found"].get(k, "")
+                p.found["by"][k] = info["by"].get(k, "rules")
             elif not charting._agree(k, p.fields[k], v):
                 p.found["warnings"].append(f"please check {FIELD_NAMES[k]}: a later note says {_show(v)} "
                                            f"({info['found'].get(k, '')!r}), the tile has {_show(p.fields[k])}; "
                                            "use Fix numbers to change it")
         p.found["warnings"] += [w for w in info.get("warnings", []) if w.startswith("please check") and
+                                not any(x in w for x in ("Age", "Sex")) and
                                 any(c["field"] in added for c in info.get("check", []))]
         if not added:
             return
@@ -401,11 +416,10 @@ class Store:
             p.visit = new_visit
             p.visit.timeline, p.visit.results, p.visit.messages = before.timeline, before.results, before.messages
             apply_picture_rule(p)                   # a re-score keeps the picture rule
-            p.visit.log("Triage", f"Numbers from a later note: {', '.join(f'{FIELD_NAMES[k]} {_show(v)}' for k, v in added.items())}"
+            p.visit.log("Triage", f"Numbers from a later note: {_read_line(added, was)}"
                         f"; level {old} -> {p.visit.decision.level}", who)
         if p.report:
-            p.report = charting.add_line(p.report, "Observations", "From a later note: " + ", ".join(
-                f"{FIELD_NAMES[k]} {_show(v)}" for k, v in added.items()))
+            p.report = charting.add_line(p.report, "Observations", "From a later note: " + _read_line(added, was))
             p.report = charting.drop_not_recorded(p.report, added)
 
     def _work(self, p):
@@ -719,7 +733,10 @@ def chat(pid: str, body: ChatIn):
         done = charting.tests_done(p.notes[1:])
         if done:                                   # Caleb's retest 14 Nov: the T01 chat asked for an ECG + troponin already done
             times += f" Tests already done (results in the notes): {', '.join(f'{k} at {v}' for k, v in done.items())}."
+        if charting.st_depression_only(typed):     # Caleb's final QC: "ST depression + trop 85" was called a STEMI
+            times += " The ECG shows ST depression, not ST elevation (so not a STEMI)."
         answer = charting.mark_done_tests(store.ai.chat(p.visit, f"({times}) {body.text}"), done)
+        answer = charting.fix_stemi(answer, typed)
     p.chat += [{"role": "user", "text": body.text, "who": body.who, "time": now()},
                {"role": "ai", "text": answer, "who": "AI", "time": now()}]
     p.visit.log("Chat", f"Q ({body.who}): {body.text}")
@@ -749,8 +766,11 @@ def write_sbar(pid: str, body: WhoIn):
         if later:
             p.visit.unseen.append("For the handover: results and answers added after arrival (put every one of "
                                   "them in the SBAR, and don't ask for a test that is already done):\n" + "\n".join(later))
+        typed = " ".join(n["text"] for n in p.notes)
+        if charting.st_depression_only(typed):
+            p.visit.unseen.append("The ECG shows ST depression, not ST elevation: this is not a STEMI.")
         text = charting.strip_preamble(store.ai.sbar(p.visit))
-        text = charting.mark_done_tests(text, charting.tests_done(p.notes[1:]))
+        text = charting.fix_stemi(charting.mark_done_tests(text, charting.tests_done(p.notes[1:])), typed)
     # 3rd check: even with them listed, MedGemma dropped the troponin and the ECG in one run out of three. So they are
     # also copied word for word under the AI's text: nothing typed after arrival can go missing from the handover
     asked = [f"- {m['time']} {m['who']}: {m['text']}" for m in p.chat if m["role"] == "user"]

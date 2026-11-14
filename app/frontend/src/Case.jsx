@@ -63,7 +63,7 @@ function Vitals({ p, me, reload, meta }) {
       </div>
       <div className="row muted" style={{ marginTop: -6, marginBottom: 12 }}>
         Numbers read by {meta?.test ? "fixed rules (test mode)" : "fixed rules and the AI, each checked against the note's words; where they disagree the tile says check"}{p.found?.checked_by ? `, checked by ${p.found.checked_by}` : ""}.
-        {(p.found?.warnings || []).filter((w) => !w.startsWith("please check")).map((w) => <span key={w} className="pill red">⚠ {w}</span>)}
+        {(p.found?.warnings || []).map((w) => <span key={w} className={`pill ${w.startsWith("please check") ? "amber" : "red"}`}>⚠ {w}</span>)}
         <button className="small" onClick={() => setEdit({ ...p.fields })} disabled={p.status === "working"}>Fix numbers</button>
       </div>
     </>
