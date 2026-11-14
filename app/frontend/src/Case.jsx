@@ -296,7 +296,8 @@ export default function Case({ id, me, meta }) {
           title={p.override ? `Set by ${p.override.who}; AI + safety rules say ${p.override.now_ai_level}` : ""}>{d ? p.level : "…"}</div>
         <div>
           <div className="name">{p.bed} · {whoLine(p.who, p.status)} · {p.complaint || "…"}
-            <a className="board-btn" href={`#/board/${id}`} title="Open the whiteboard in this tab (a Back button returns here)">▦ Whiteboard</a></div>
+            <a className="board-btn" href={`#/board/${id}`} title="Open the whiteboard in this tab (a Back button returns here)">▦ Whiteboard</a>
+            <a className="board-btn" href="#/new" title="Chart a new patient in this tab">➕ New patient</a></div>
           <div className="row" style={{ marginTop: 4 }}>
             {d && p.override && <span className={`pill ${p.flagged ? "red" : ""} doctor`}>🩺 {p.reason} · {p.override.time}</span>}
             {d && p.override && <span className="pill">AI + safety rules now: level {d.level}{d.flagged ? ", urgent" : ""} · {Math.round(d.p_urgent * 100)}% chance of level 1–2</span>}

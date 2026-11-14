@@ -96,6 +96,7 @@ export default function Board({ me, meta, from }) {
           const back = board.patients.find((x) => x.id === from);
           return <a className="back-btn" href={`#/case/${from}`}>← Back to {back ? `${back.bed} ` : ""}case file</a>;
         })()}
+        <a className="back-btn" href="#/new" title="Chart a new patient in this tab">➕ New patient</a>
         <span>{left ? `${board.patients.length} patients who left the ED` : `${board.patients.length} patients in the ED`} ·
           ✦ = suggested by the AI, a person ticks it off ·{" "}
           {can ? `You (${me.role}) can change the board` : "View only: the triage nurse or organising doctor changes the board"}</span>

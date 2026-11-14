@@ -7,7 +7,7 @@ import Case from "./Case";
 import Board from "./Board";
 
 // Pages by the part after #: #/ charting, #/case/<id> case file, #/board whiteboard, #/board/<id> whiteboard opened
-// from that patient's case file (shows a Back button; all in the same tab, so the browser Back button works too).
+// from that patient's case file, #/new charting with a blank new patient (shows a Back button; all in the same tab, so the browser Back button works too).
 function useRoute() {
   const [hash, setHash] = useState(location.hash);
   useEffect(() => {
