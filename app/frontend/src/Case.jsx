@@ -178,7 +178,7 @@ function Files({ p }) {
         <a href={`/api/patients/${p.id}/case_file`} download={`case_file_${p.bed}.txt`}><button>⬇ Download the whole case file</button></a>
         <span className="muted">Timeline, tidy case file and the notes as typed, in one text file.</span>
       </div>
-      {!images.length && <p className="muted">No images yet. Add them with the bar at the bottom.</p>}
+      {!images.length && <p className="muted">No images yet. Add them with the Image button in the Add information bar.</p>}
       {images.map((img) => (
         <div key={img.file} style={{ borderTop: "1px solid var(--line)", paddingTop: 10 }}>
           <b>{img.name}</b> <span className="muted">· {img.kind ? img.kind.replace("_", " ") : "waiting for the AI"} · added by {img.who}, {img.time}</span>
@@ -237,7 +237,7 @@ function Todos({ p, me, reload }) {
       {can ? (
         <div className="row" style={{ marginTop: 6 }}>
           <input style={{ flex: 1 }} value={text} onChange={(e) => setText(e.target.value)} placeholder="Add a to-do" />
-          <button className="small" onClick={() => act(async () => { await api.post(`/api/patients/${p.id}/todos`, { ...body, text }); setText(""); })}>Add</button>
+          <button className="small" onClick={() => text.trim() && act(async () => { await api.post(`/api/patients/${p.id}/todos`, { ...body, text }); setText(""); })}>Add</button>
         </div>
       ) : <p className="muted">Only the triage nurse or organising doctor ticks these off.</p>}
     </div>
@@ -329,7 +329,7 @@ export default function Case({ id, me, meta }) {
       <div className="addbar">
         <div className="card">
           <div className="row" style={{ flexWrap: "nowrap" }}>
-            <input style={{ flex: 1, fontSize: 16 }} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()}
+            <input id="add-info" style={{ flex: 1, fontSize: 16 }} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()}
               placeholder="Add information: trop 2.1, ECG ST depression V4-6, aspirin 300 given" aria-label="Add information" />
             {picker.button}
             <button className="primary" onClick={add}>Add</button>
@@ -374,7 +374,7 @@ export default function Case({ id, me, meta }) {
             <>
               <h3>Questions for you to answer</h3>
               <p className="muted" style={{ marginTop: -6 }}>The AI is asking you. Click one, type the answer in the "Add information" bar above, press Add.</p>
-              <Questions p={p} onPick={(q) => setText(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `)} />
+              <Questions p={p} onPick={(q) => { setText(`${q.replace(/\s*\[TEST MODE.*\]$/, "")} → `); setTimeout(() => { const el = document.getElementById("add-info"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0); }} />
               <h3 style={{ marginTop: 16 }}>To do (also on the whiteboard)</h3>
               <Todos p={p} me={me} reload={reload} />
             </>
