@@ -301,7 +301,7 @@ export default function Case({ id, me, meta }) {
             {d && p.override && <span className="pill">AI + safety rules now: level {d.level}{d.flagged ? ", urgent" : ""} · {Math.round(d.p_urgent * 100)}% chance of level 1–2</span>}
             {d && !p.override && (d.needs_obs
               ? <span className="pill needs" title="Two or more of BP, RR and HR are not recorded, so the patient can't be scored. The safety rule treats that as urgent until they are measured.">Urgent: needs vitals · {d.missing.join(" and ")} not recorded, measure {d.missing.length > 1 ? "them" : "it"}</span>
-              : <span className={`pill ${d.flagged ? "red" : ""}`}>{d.flagged ? "Urgent: flagged" : "Not flagged"} · {Math.round(d.p_urgent * 100)}% chance of level 1–2{d.flagged && p.reason ? ` · ${p.reason}` : ""}</span>)}
+              : <span className={`pill ${d.flagged ? "red" : ""}`}>{d.flagged ? "Urgent: flagged" : `${p.group}: not flagged`} · {Math.round(d.p_urgent * 100)}% chance of level 1–2{d.flagged && p.reason ? ` · ${p.reason}` : ""}</span>)}
             {d && !p.override && d.needs_obs && <span className="pill">{Math.round(d.p_urgent * 100)}% chance of level 1–2 from what is recorded</span>}
             {d && <span className="pill">Levels it can't rule out: {d.level_set.join(", ")}</span>}
             {p.raised_by && <span className="pill amber" title="The urgent flag catches 90% of urgent patients, so it also raises some who aren't. Use your judgement.">⬆ {p.raised_by}</span>}

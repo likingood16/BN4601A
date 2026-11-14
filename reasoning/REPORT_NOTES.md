@@ -1404,6 +1404,8 @@ refused, works without a reason, 2 -> 3 turns the flag off and moves the patient
 a sicker later note keeps level 3 and warns, undo works (114 PASS, 0 FAIL). The answer key has no doctor changes, so
 none of the 40 cases change.
 
+**Caleb's 2nd retest (14 Nov 13:27) and fixes.** All four fixes and the SBAR confirmed on his laptop (RTX 4050, 100/100). Three points: (1) the SBAR Recommendation and the T01 chat still asked to "obtain urgent ECG and troponin" although both results were in later notes; (2) the SBAR opened "Okay, here is…"; (3) the case file kept "Consciousness not recorded" next to "Consciousness alert". Fixes are rules, not prompts, because prompting alone had already failed 3 times for the troponin: tests with a result in a later note (not "pending") are listed for the chat, and any AI sentence that still asks for one is kept but marked "(already done: troponin at 11:05, see the notes)"; repeat or serial requests are left alone. The opening line is cut, and "X not recorded" is removed once a later note gives X. Full-AI check (T01): no opening line, no "Consciousness not recorded", the SBAR no longer asks for a troponin and the chat no longer asks for the ECG; the first version of the marker split "e.g." and fired on "a full ECG review", both fixed. **Three groups** (Alex, 14 Nov): the whiteboard and case file now show Urgent (flagged or level 1-2) / Can wait (level 3) / Minor (level 4-5); a label only, the urgent cut-off is unchanged. 118 PASS, 0 FAIL.
+
 ## 6. Limitations (be honest)
 - KTAS test has only 37 urgent patients, so its intervals are wide. NHAMCS (235 urgent) is the more
   reliable judge.
