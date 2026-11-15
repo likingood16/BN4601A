@@ -765,7 +765,8 @@ def chat(pid: str, body: ChatIn):
         if charting.st_depression_only(typed):     # Caleb's final QC: "ST depression + trop 85" was called a STEMI
             times += " The ECG shows ST depression, not ST elevation (so not a STEMI)."
         answer = charting.mark_done_tests(store.ai.chat(p.visit, f"({times}) {body.text}"), done)
-        answer = charting.fix_stemi(answer, typed)
+        answer = charting.tidy_ai_text(charting.fix_stemi(answer, typed), typed, p.fields.get("temp_c"),
+                                       patient=charting.patient_facing(body.text))     # Alex 15 Nov
     p.chat += [{"role": "user", "text": body.text, "who": body.who, "time": now()},
                {"role": "ai", "text": answer, "who": "AI", "time": now()}]
     p.visit.log("Chat", f"Q ({body.who}): {body.text}")
@@ -801,6 +802,7 @@ def write_sbar(pid: str, body: WhoIn):
             p.visit.unseen.append("The ECG shows ST depression, not ST elevation: this is not a STEMI.")
         text = charting.strip_preamble(store.ai.sbar(p.visit))
         text = charting.fix_stemi(charting.mark_done_tests(text, charting.tests_done(p.notes[1:])), typed)
+        text = charting.tidy_ai_text(text, typed, p.fields.get("temp_c"))          # Alex 15 Nov: no off-topic sepsis line
     # 3rd check: even with them listed, MedGemma dropped the troponin and the ECG in one run out of three. So they are
     # also copied word for word under the AI's text: nothing typed after arrival can go missing from the handover
     asked = [f"- {m['time']} {m['who']}: {m['text']}" for m in p.chat if m["role"] == "user"]

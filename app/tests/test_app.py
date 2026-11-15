@@ -267,6 +267,15 @@ def run():
           done == {"troponin": "11:05", "ECG": "11:05"}
           and "troponin (already done: troponin at 11:05, ECG at 11:05, see the notes)." in marked
           and "Repeat troponin at 3 h." in marked and "Order a chest X-ray." in marked, (done, marked))
+    tidy = charting.tidy_ai_text("Hello Mr. [Patient Name], your heart test (already done: ECG at 11:05, see the notes) "
+                                 "shows strain.", "trop 85", 37.2, patient=charting.patient_facing(
+                                     "Please explain what is going on to the patient in simple, non-medical words."))
+    sb = charting.tidy_ai_text("Likely not an ST elevation (NSTEMI). qSOFA is 1, so sepsis is less likely. Troponin 85.",
+                               "trop 85, ECG ST depression", 37.2)
+    check("AI wording (Alex 15 Nov): no '[Patient Name]', no staff notes for the patient, no off-topic sepsis line, tidy NSTEMI",
+          tidy == "Hello, your heart test shows strain." and not charting.patient_facing("What should we rule out?")
+          and sb == "Likely a non-ST-elevation myocardial infarction (NSTEMI). Troponin 85."
+          and charting.tidy_ai_text("Consider sepsis.", "fever and cough", 38.9) == "Consider sepsis.", (tidy, sb))
     fixed = charting.fix_stemi("Likely an ST-elevation myocardial infarction (STEMI). Treat as STEMI; NSTEMI is less likely.",
                                "trop 85, ECG ST depression V4-6")
     check("ST depression only: 'STEMI' is corrected to NSTEMI, and said so (Caleb final QC)",
