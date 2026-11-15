@@ -12,8 +12,8 @@ export function ImagePicker({ files, setFiles, compact = false, onReject = alert
   const [over, setOver] = useState(false);
   const add = (list) => {
     const bad = [...list].filter((f) => !isPicture(f));   // a PDF used to vanish without a word (5q #11)
+    setFiles([...files, ...[...list].filter(isPicture)]);   // first: Charting's setFiles clears old errors (button re-test 15 Nov)
     if (bad.length) onReject(`${bad.map((f) => f.name).join(", ")}: only pictures can be added (JPG, PNG ...)`);
-    setFiles([...files, ...[...list].filter(isPicture)]);
   };
   const thumbs = files.length > 0 && (
     <div className="thumbs">
