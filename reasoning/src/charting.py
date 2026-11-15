@@ -456,6 +456,38 @@ def fix_stemi(text, notes_text):
     return new
 
 
+PATIENT_FACING = re.compile(r"(?i)\b(?:to the patient|to (?:him|her|them|the family|relatives)|simple|plain|non-?medical|lay(?:man|person)?\b"
+                            r"|easy words|for the patient)")
+INFECTION = re.compile(r"(?i)\b(?:infect\w*|sepsis|septic|fever\w*|febrile|rigors?|pus|cellulitis|pneumonia|uti|urine)\b")
+
+
+def patient_facing(question):
+    """The chat question asks for words for the patient or family (TURNS[2]: 'explain ... in simple, non-medical words')."""
+    return bool(PATIENT_FACING.search(question or ""))
+
+
+def tidy_ai_text(text, notes_text="", temp_c=None, patient=False):
+    """Alex, 15 Nov (full-AI chat + SBAR):
+    - no "Mr. [Patient Name]" style placeholders: the record has no name, so the greeting is dropped;
+    - "not an ST elevation (NSTEMI)" -> "a non-ST-elevation myocardial infarction (NSTEMI)";
+    - a sepsis / qSOFA sentence is dropped from a handover when nothing points to infection (no infection word in the
+      notes and a temperature under 38 C), as in T01's chest pain;
+    - patient=True: staff-only notes (the "(already done: ...)" marks, the STEMI correction note) never go in."""
+    t = re.sub(r"(?i)\b(?:mr|mrs|ms|miss|mx|dr)\.?\s*\[[^\]]{0,30}\]", "", text)
+    t = re.sub(r"(?i)\[(?:patient'?s?|the patient'?s?)?\s*(?:full |first |last )?name\]", "", t)
+    t = re.sub(r"(?im)^(\s*(?:hello|hi|dear|good (?:morning|afternoon|evening)))\s*([,!.])", r"\1\2", t)
+    t = re.sub(r"(?i)\bnot an? ST[- ]elevation(?: myocardial infarction)?\s*\(NSTEMI\)", "a non-ST-elevation myocardial infarction (NSTEMI)", t)
+    t = re.sub(r"(?i)\bnon-?ST[- ]elevation\s*\(NSTEMI\)", "non-ST-elevation myocardial infarction (NSTEMI)", t)
+    no_infection = not INFECTION.search(notes_text or "") and temp_c is not None and temp_c == temp_c and float(temp_c) < 38
+    if no_infection:
+        t = re.sub(r"[^.!?\n]*\b(?:sepsis|septic|qsofa)\b[^.!?\n]*[.!?]?[ \t]*", " ", t, flags=re.I)
+        t = re.sub(r"(?m)^[ \t]+|[ \t]+$", "", t)
+    if patient:
+        t = re.sub(r"\s*\(already done: [^)]*\)", "", t)
+        t = re.sub(r"\n*_\(Corrected by a fixed rule:[^)]*\)_", "", t)
+    return re.sub(r"[ \t]{2,}", " ", t).strip()
+
+
 DONE_TESTS = {"ECG": r"\b(?:ecg|ekg|electrocardiogram)s?\b",
               "troponin": r"\b(?:trop|troponin|hs-?tni?|tni|cardiac enzymes?|cardiac markers?|cardiac biomarkers?)s?\b",
               "chest X-ray": r"\b(?:cxr|chest x-?rays?|chest radiograph)\b", "CT head": r"\bct (?:head|brain)\b",
