@@ -650,17 +650,6 @@ def board_tick(seen, show_left):
     return rows, line, gr.update(choices=_choices(new=False, cleared=show_left)), store.version
 
 
-def go_to_board(pid):
-    """Case file -> Whiteboard tab, remembering the patient so a Back button can return to them (Alex, 15 Nov)."""
-    p = _patient(pid) if pid else None
-    return pid, gr.Tabs(selected="board"), gr.update(visible=p is not None,
-                                                     value=f"← Back to {p.bed} case file" if p else "← Back to case file")
-
-
-def back_to_case(pid):
-    return gr.Tabs(selected="case"), gr.update(value=pid)
-
-
 def board_pick(pid):
     p = _patient(pid)
     if p is None:
@@ -738,10 +727,6 @@ with gr.Blocks(title="ED triage app") as demo:
             seen = gr.State(-1)
             labels = gr.State([])                           # the patient list last sent to this screen
             case_pick = gr.Dropdown(_choices(new=False, everyone=True), label="Patient", filterable=True)
-            with gr.Row():
-                to_board = gr.Button("▦ Whiteboard", size="sm")    # same-tab hop to the board and back (15 Nov)
-                new_from_case = gr.Button("➕ New patient", size="sm")
-            came_from = gr.State(None)
             header = gr.Markdown("Pick a patient.")
             numbers = gr.Dataframe(headers=["Number", "Value", "Read from the note's words", "Read by"],
                                    interactive=False, wrap=True)
@@ -817,9 +802,6 @@ with gr.Blocks(title="ED triage app") as demo:
         with gr.Tab("Whiteboard", id="board"):
             b_seen = gr.State(-1)
             show_left = gr.State(False)
-            with gr.Row():
-                back_case = gr.Button("← Back to case file", size="sm", visible=False)
-                new_from_board = gr.Button("➕ New patient", size="sm")
             b_line = gr.Markdown()
             b_table = gr.HTML()
             with gr.Group():
@@ -850,10 +832,6 @@ with gr.Blocks(title="ED triage app") as demo:
     timer = gr.Timer(2)
     timer.tick(tick, [case_pick, seen, labels], [*case_out, case_pick, labels])
     case_pick.change(case_view, case_pick, case_out)
-    to_board.click(go_to_board, case_pick, [came_from, tabs, back_case])
-    back_case.click(back_to_case, came_from, [tabs, case_pick])
-    for b in (new_from_case, new_from_board):                  # Charting with a blank new patient (Alex, 15 Nov)
-        b.click(lambda: (gr.Tabs(selected="chart"), gr.update(value=NEW), ""), None, [tabs, pick, note])
     on(txt.upload, load_text_file, txt, note)
     on(send.click, submit, [name, pick, note, pics], [note, pics, pick, sent, case_pick, tabs])
     on(more_btn.click, add_info, [name, case_pick, more, more_pics], [more, more_pics, *case_out])

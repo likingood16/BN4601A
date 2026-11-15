@@ -153,9 +153,3 @@ a { color: var(--accent); }
 .board .g-urgent { color: #ef5350; }
 .board .g-can-wait { color: #f9a825; }
 .board .g-minor { color: #66bb6a; }
-
-/* same-tab navigation between a case file and the whiteboard (15 Nov) */
-.board-btn, .back-btn { display: inline-block; margin-left: 12px; padding: 4px 12px; border-radius: 8px; font-size: 14px;
-  font-weight: 600; text-decoration: none; vertical-align: middle; border: 1px solid #1565c0; color: #1565c0; background: #fff; }
-.back-btn { margin-left: 0; margin-right: 12px; border-color: #90caf9; color: #0d1b2a; background: #90caf9; }
-.board-btn:hover, .back-btn:hover { filter: brightness(0.95); }

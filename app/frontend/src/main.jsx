@@ -6,9 +6,7 @@ import Chart from "./Chart";
 import Case from "./Case";
 import Board from "./Board";
 
-// Pages by the part after #: #/ charting, #/case/<id> case file, #/board whiteboard, #/board/<id> whiteboard opened
-// from that patient's case file, #/new charting with a blank new patient. <Case key={id}>: a new patient gets a fresh
-// screen (button test 15 Nov: an open edit box carried over and Save overwrote another patient's case file) (shows a Back button; all in the same tab, so the browser Back button works too).
+// Pages by the part after #: #/ charting, #/case/<id> case file, #/board whiteboard.
 function useRoute() {
   const [hash, setHash] = useState(location.hash);
   useEffect(() => {
@@ -24,8 +22,8 @@ function TopBar({ me, setMe, meta, page }) {
     <div className="top">
       <span className="brand">ED charting</span>
       <nav>
-        <a href="#/" className={page === "" || page === "new" ? "on" : ""}>Charting</a>
-        <a href="#/board" className={page === "board" ? "on" : ""}>Whiteboard</a>
+        <a href="#/" className={page === "" ? "on" : ""}>Charting</a>
+        <a href="#/board" target="ed-board" className={page === "board" ? "on" : ""}>Whiteboard</a>
       </nav>
       {meta?.test && <span className="test-flag">Test mode: AI answers are made up</span>}
       <div className="me">
@@ -52,7 +50,7 @@ function App() {
   return (
     <div className={page === "board" ? "board-page" : ""}>
       <TopBar me={me} setMe={setMe} meta={meta} page={page} />
-      {page === "case" ? <Case key={id} id={id} {...props} /> : page === "board" ? <Board from={id} {...props} /> : <Chart key={page} {...props} />}
+      {page === "case" ? <Case id={id} {...props} /> : page === "board" ? <Board {...props} /> : <Chart {...props} />}
     </div>
   );
 }

@@ -80,13 +80,7 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | The three groups were only a label from the level | The **level classifier's own chances for the three groups** are shown on the case file ("Classifier: Urgent 6% · Can wait 51% · Minor 44%" = levels 1-2 / 3 / 4-5 added up from its 1-5 output). Full AI: T01 70/30/0, T07 6/51/44, T04 0/1/99. No retraining, so no reported number changes | **Done, in `main`** (React + Gradio) |
 
-| + | Case file and whiteboard opened in separate windows | **Same-tab navigation**: "▦ Whiteboard" in the case-file header opens the board in the same tab, with "← Back to P1 case file"; **➕ New patient** on the case file and the board opens Charting with a blank new patient (`#/new`); clicking a patient on the board opens their case file in the same tab; the browser Back button works (hash routes `#/board/<id>`). Gradio: "▦ Whiteboard" and "← Back to P1 case file" switch tabs | **Done, in `main`** (React + Gradio; checked in the browser, test mode) |
-
-| + | Button test 15 Nov (docs/BUTTON_TEST_15NOV.md): an open Edit box / typed text carried over to the next patient and Save overwrote their case file; Remove from board had no confirm and no way back; and smaller bugs | Each case file is a fresh screen (`<Case key={id}>`); Remove asks first and "Put back on the board" is always shown in Left the ED (puts the patient back as "Being seen"); clicking a question puts the cursor in the answer box, and an empty answer ("…? →") isn't saved; Add, Fix numbers, Edit, Chat and SBAR need a name; Fix numbers with "abc" says what is wrong; the "nurse" label goes on the tiles typed in that fix; questions are refreshed after Fix numbers; old errors cleared; empty to-do ignored; header Whiteboard in the same tab; "1 patient", "in the ED" | **Done, in `main`** (checked in the browser, test mode). Not changed: search labels (11), role rules (14, for the client to decide), Left-the-ED editing (15) |
-
-| + | AI wording (Alex, 15 Nov): chat said "Mr. [Patient Name]"; the patient explanation carried the staff note "(already done: …)"; the T01 SBAR had a sepsis line and "not an ST elevation (NSTEMI)" | Fixed text rules (charting.tidy_ai_text): name placeholders removed; staff notes kept out of answers meant for the patient; a sepsis/qSOFA sentence is dropped only when nothing points to infection (no infection word, temperature under 38 C); the NSTEMI phrase tidied | **Done, in `main`** (test checks; not yet re-run on the full AI) |
-
-Test-mode checks: `python app/tests/test_app.py` = **129 PASS, 0 FAIL**.
+Test-mode checks: `python app/tests/test_app.py` = **122 PASS, 0 FAIL**.
 
 Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
 - `priority_override_a_before.png`: case file before, with the **Change priority** button
