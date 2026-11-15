@@ -202,6 +202,10 @@ def extract_numbers_ai(ai, note):
         if key == "temp_unit" or not isinstance(item, dict) or item.get("value") in (None, ""):
             continue
         value, quote = item["value"], _norm(item.get("quote", ""))
+        # MedGemma writes -1 for "not in the note": that is a missing value, not a rejected one, so no warning
+        # (PM retest 15 Nov: T09 showed 8 red "AI value hr -1 left out" pills, still there after the vitals came)
+        if re.fullmatch(r"\s*-\s*1(?:\.0*)?\s*", str(value)):
+            continue
         if not quote or quote not in text:
             warnings.append(f"AI value for {key} left out: its words {item.get('quote')!r} are not in the note")
             continue
