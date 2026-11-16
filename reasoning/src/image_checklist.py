@@ -39,6 +39,26 @@ CHECKLIST = {
             "Slow heart rate", "Peaked T waves"],
     "other": ["Wound or skin infection", "Swelling", "Foreign body"],
 }
+# a head CT gets head items only (16 Nov: the head-injury bleed case was asked about free fluid, free air, bowel
+# obstruction and an aortic aneurysm); body CTs keep the list above
+CT_HEAD = ["Bleeding inside the skull", "Midline shift or mass effect", "Skull fracture", "Mass",
+           "Signs of stroke"]
+HEAD_CT_WORDS = r"\b(?:head|brain|skull|intracranial|cranial|cerebral|ct ?h|cth)\b"
+
+
+def is_head_ct(kind, models=None, note="", description=""):
+    """A CT is a head CT when the head-CT bleed model ran on it, or the note or MedGemma's description says head,
+    brain or skull."""
+    if kind != "ct_slice":
+        return False
+    ran = bool((models or {}).get("model") == "head-CT bleed model" and (models or {}).get("findings"))
+    return ran or bool(re.search(HEAD_CT_WORDS, f"{note} {description}", re.I))
+
+
+def items_for(kind, head=False):
+    return CT_HEAD if kind == "ct_slice" and head else CHECKLIST.get(kind, CHECKLIST["other"])
+
+
 LOCATABLE = {"bone_xray", "chest_xray", "ct_slice", "mri_slice", "ultrasound"}   # an outline makes sense on these
 NOTE = "AI check, not a radiologist report: it points where to look"
 
@@ -75,14 +95,14 @@ def _ask_all(model, processor, path, questions, tokens):
         return [_ask(model, processor, path, q, tokens) for q in questions]
 
 
-def checklist(model, processor, path, kind):
+def checklist(model, processor, path, kind, head=False):
     """-> {item: {"seen": "yes" | "no" | "unclear", "where": str}} for this kind's ED checklist.
     One short question per item. (Real-AI run 4, 7 Nov: asking for all items in one JSON answer came back unreadable,
     so every item was 'unclear', even a large pleural effusion the description itself named.) The questions go to
     MedGemma together, as one batch (_ask_all)."""
     from image_reader import IMAGE_TYPES
     label = IMAGE_TYPES.get(kind, ("medical image",))[0]
-    items = CHECKLIST.get(kind, CHECKLIST["other"])
+    items = items_for(kind, head)
     # the old wording ended "then, if yes, a dash and where it is in a few words": MedGemma copied the words
     # ("Joint effusion (a dash and in the ankle)", group test 10 Nov, C4)
     questions = [f"Look at this {label}. Is there {item.lower()}? Answer with one word: yes, no or unclear. If yes, "

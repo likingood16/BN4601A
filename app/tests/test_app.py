@@ -252,6 +252,19 @@ def run():
           ([e["text"] for e in p["timeline"]][-4:], p["report"].split("## Observations")[-1][:300]))
     check("case-file slips tidied: 'Pain 3/010' -> 'Pain 3/10' (retest 14 Nov, P05)",
           charting.tidy_numbers("Pain 3/010, pain 8/10") == "Pain 3/10, pain 8/10")
+    # 16 Nov, full AI: the complaint said "low heart rate, low respiratory rate" for HR 134, RR 30
+    check("complaint keeps symptoms only: vital-sign words go to the tiles, not the complaint (16 Nov)",
+          charting.drop_vital_words("Sore throat, fever, fatigue, low blood pressure, low heart rate, low respiratory "
+                                    "rate, low oxygen saturation") == "Sore throat, fever, fatigue"
+          and charting.drop_vital_words("Chest pain and tachycardia") == "Chest pain"
+          and charting.drop_vital_words("Fever with rigors") == "Fever with rigors"
+          and charting.drop_vital_words("Hypotension") == "")
+    import image_checklist
+    head = image_checklist.items_for("ct_slice", image_checklist.is_head_ct("ct_slice", None, "35M bumped head", ""))
+    body = image_checklist.items_for("ct_slice", image_checklist.is_head_ct("ct_slice", None, "abdo pain", "CT abdomen"))
+    check("head CT gets a head-only checklist; body CT keeps the body list (16 Nov)",
+          "Skull fracture" in head and not any(w in " ".join(head) for w in ("Free fluid", "Free air", "Bowel", "Aortic"))
+          and "Free fluid" in body, (head, body))
     # Caleb's 2nd retest 14 Nov (13:27): three points
     check("case file: 'Consciousness not recorded' goes once a later note says alert (Caleb 2nd retest)",
           not re.search(r"(?i)consciousness:? not recorded", p["report"]) and charting.drop_not_recorded(

@@ -86,7 +86,9 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | AI wording (Alex, 15 Nov): chat said "Mr. [Patient Name]"; the patient explanation carried the staff note "(already done: …)"; the T01 SBAR had a sepsis line and "not an ST elevation (NSTEMI)" | Fixed text rules (charting.tidy_ai_text): name placeholders removed; staff notes kept out of answers meant for the patient; a sepsis/qSOFA sentence is dropped only when nothing points to infection (no infection word, temperature under 38 C); the NSTEMI phrase tidied | **Done, in `main`** (test checks; not yet re-run on the full AI) |
 
-Test-mode checks: `python app/tests/test_app.py` = **129 PASS, 0 FAIL**.
+| + | 16 Nov (full AI): the complaint line said "low heart rate, low respiratory rate" for HR 134, RR 30; a head CT was asked about free fluid, free air, bowel obstruction and aortic aneurysm | Vital-sign words are taken out of the AI's complaint (symptoms only; numbers stay on the tiles; none of the 40 answer-key complaints change). A head CT (bleed model ran, or note/description says head, brain or skull) gets a head-only checklist: bleed, midline shift, skull fracture, mass, stroke signs | **Done, in `main`.** Full AI, head-injury + CT bleed case: no abdominal items, AI score 3%, picture rule moves him to level 2 |
+
+Test-mode checks: `python app/tests/test_app.py` = **131 PASS, 0 FAIL**.
 
 Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
 - `priority_override_a_before.png`: case file before, with the **Change priority** button
