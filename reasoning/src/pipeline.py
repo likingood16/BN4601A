@@ -191,7 +191,9 @@ class EDPipeline:
         with self._adapter("image" if xray else None, "image"):
             text = describe_image(self.model, self.processor, path, image_type, think=self.think)
         with self._adapter(None, "checklist"):
-            found_list = checklist(self.model, self.processor, path, image_type)
+            from image_checklist import is_head_ct
+            found_list = checklist(self.model, self.processor, path, image_type,
+                                   head=is_head_ct(image_type, models, note, text))
             located = []
             if image_type in ("mri_slice", "ultrasound"):        # no trained detector for these
                 for item in [k for k, v in found_list.items() if v["seen"] == "yes"][:2]:

@@ -80,7 +80,9 @@ From Caleb's retest of the 13 Nov version, full AI, RTX 4050 6 GB laptop
 
 | + | The three groups were only a label from the level | The **level classifier's own chances for the three groups** are shown on the case file ("Classifier: Urgent 6% · Can wait 51% · Minor 44%" = levels 1-2 / 3 / 4-5 added up from its 1-5 output). Full AI: T01 70/30/0, T07 6/51/44, T04 0/1/99. No retraining, so no reported number changes | **Done, in `main`** (React + Gradio) |
 
-Test-mode checks: `python app/tests/test_app.py` = **122 PASS, 0 FAIL**.
+| + | 16 Nov (full AI): the complaint line said "low heart rate, low respiratory rate" for HR 134, RR 30; a head CT was asked about free fluid, free air, bowel obstruction and aortic aneurysm | Vital-sign words are taken out of the AI's complaint (symptoms only; numbers stay on the tiles; none of the 40 answer-key complaints change). A head CT (bleed model ran, or note/description says head, brain or skull) gets a head-only checklist: bleed, midline shift, skull fracture, mass, stroke signs | **Done, in `main`.** Full AI, head-injury + CT bleed case: no abdominal items, AI score 3%, picture rule moves him to level 2 |
+
+Test-mode checks: `python app/tests/test_app.py` = **124 PASS, 0 FAIL**.
 
 Doctor's priority, full-AI screenshots (T01 as Dr Lim, Doctor), in `docs/handover/`:
 - `priority_override_a_before.png`: case file before, with the **Change priority** button

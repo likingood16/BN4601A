@@ -331,7 +331,29 @@ def complaint(ai, note):
     text = (final_answer(ai._ask(_messages(None, q), "complaint")) or "").strip().strip(".").splitlines()
     words = re.sub(r"\(injury\)|\b(?:walk-?in|walked in|biba|self-presented|brought (?:in )?by \w+)\b", "",
                    text[0] if text else "", flags=re.I).strip(" ,;.-")
+    words = drop_vital_words(words)
     return words[:80] if words else first_clause(note)
+
+
+# 16 Nov (full AI): "22M sore throat ... HR 134 BP 86/50 RR 30" got the complaint "Sore throat, fever, fatigue, low
+# blood pressure, low heart rate, low respiratory rate, low oxygen saturation": HR and RR were HIGH. Vital signs belong
+# on the tiles, not in the complaint (which the urgency score reads), so they are taken out; symptoms stay.
+VITAL_WORDS = re.compile(
+    r"(?i)\b(?:(?:very |abnormally )?(?:low|high|raised|elevated|increased|decreased|reduced|fast|slow|rapid|abnormal)\s+)?"
+    r"(?:heart rate|pulse(?: rate)?|blood pressure|\bbp\b|respiratory rate|breathing rate|resp(?:iratory)? rate|"
+    r"oxygen saturations?|o2 saturations?|\bsats\b|\bspo2\b|saturations?)"
+    r"(?:\s+(?:low|high|raised|elevated|fast|slow))?\b"
+    r"|\b(?:tachycardi[ac]|bradycardi[ac]|hypotensi(?:on|ve)|hypertensi(?:on|ve)|tachypno?e[ai]c?|hypoxi[ac]|hypoxaemi[ac]|"
+    r"desaturat(?:ion|ing))\b")
+
+
+def drop_vital_words(text):
+    """'Sore throat, fever, fatigue, low blood pressure, low heart rate' -> 'Sore throat, fever, fatigue'."""
+    parts = [p.strip() for p in re.split(r"\s*(?:,|;|\band\b|\bwith\b|/)\s*", text or "")]
+    keep = [p for p in parts if p and not re.fullmatch(r"(?i)\W*", VITAL_WORDS.sub("", p))]
+    if len(keep) == len([p for p in parts if p]):
+        return text                                   # nothing taken out: the AI's words as they were
+    return ", ".join(keep).strip(" ,;.-")
 
 
 # ---------------------------------------------------------------- case file
